@@ -1,6 +1,5 @@
 import type { ProcurementPlanItem } from "@/types/data.types";
 
-
 import { href, useNavigate } from "react-router";
 
 import { ROUTES } from "@/shared/model/routes";
@@ -161,7 +160,7 @@ const ProcurementsPage = () => {
     navigate(href(ROUTES.PROCUREMENT, { id: row.id }), { state: row });
   };
   // const getAuth = async () => {
-  //   const res = await axios.get(CONFIG.API_BASE_URL + "/gpz");
+  //   const res = await axios.get(ENV.API_BASE_URL + "/gpz");
   //   console.log(res);
   // };
   // useEffect(() => {

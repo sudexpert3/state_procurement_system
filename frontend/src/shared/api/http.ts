@@ -1,9 +1,9 @@
 import axios from "axios";
 
-import { CONFIG } from "../model/config";
+import { ENV } from "../model/env";
 
 export const http = axios.create({
-  baseURL: CONFIG.API_BASE_URL,
+  baseURL: ENV.API_BASE_URL,
   withCredentials: true,
   headers: {
     Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -11,7 +11,7 @@ export const http = axios.create({
 });
 
 export const gpzApi = axios.create({
-  baseURL: CONFIG.API_BASE_URL,
+  baseURL: ENV.API_BASE_URL,
 });
 
 [http, gpzApi].forEach((instance) =>
