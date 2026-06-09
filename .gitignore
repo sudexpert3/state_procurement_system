@@ -27,6 +27,7 @@ input/*
 backend/db/.gitkeep
 backend/db/backups/.gitkeep
 backend/static/.gitkeep
+frontend/.gitkeep
 !backend/media/.gitkeep
 !input/.gitkeep
 
