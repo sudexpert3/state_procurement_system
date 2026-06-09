@@ -11,7 +11,7 @@ export const http = axios.create({
 });
 
 export const gpzApi = axios.create({
-  baseURL: CONFIG.GPZ_URL,
+  baseURL: CONFIG.API_BASE_URL,
 });
 
 [http, gpzApi].forEach((instance) =>
