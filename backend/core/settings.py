@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     # 'djoser',
     'django_filters',
     'django_extensions',
+    'drf_spectacular',
 
     # модули
     'procurement',
@@ -124,6 +125,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ),
     'DEFAULT_RENDERER_CLASSES': ('rest_framework.renderers.JSONRenderer',),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_PARSER_CLASSES': (
@@ -194,3 +196,10 @@ GPZ_USERNAME = os.getenv('GPZ_USERNAME')
 GPZ_PASSWORD = os.getenv('GPZ_PASSWORD')
 
 
+# Глобальные настройки генератора схемы под FullHD экраны и фронтенд
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'State Procurement System API (ГКСЭ РБ)',
+    'DESCRIPTION': 'Ведомственная ERP-система контроля лимитов и кассового исполнения ГПЗ',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}

@@ -20,6 +20,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from django.conf import settings
 from procurement.views import get_purchases_view
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
 router = DefaultRouter()
@@ -34,6 +35,11 @@ urlpatterns = [
 
     # path('api/', include(router.urls)),
     path('gpz/', get_purchases_view, name='get_gpz'),
+
+    # Скачивание схемы в формате YAML (из неё будем делать типы)
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    # Интерактивная документация Swagger для обсуждения с фронтендером
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
 
 # Добавляем раздачу медиа-файлов (только для разработки)
