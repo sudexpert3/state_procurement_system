@@ -1,0 +1,102 @@
+version: '3.8'
+#name: state_procurement_system
+services:
+  db:
+    image: postgres:15
+    container_name: db
+    networks:
+      - sps_app_net
+    expose:
+      - "5432"
+    ports:
+      - "5460:5432"
+    env_file:
+      - .env
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_HOST: ${DB_HOST}
+      POSTGRES_PORT: ${DB_PORT}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/db/backups:/var/lib/postgresql/backups
+
+  adminer:
+    image: adminer
+    container_name: adminer_sps
+    networks:
+      - sps_app_net
+    ports:
+      - "8099:8080"
+    restart: always
+    depends_on:
+      - db
+
+#  nginx:
+#    image: nginx:alpine
+#    container_name: nginx_sps
+#    networks:
+#      - sps_app_net
+#    ports:
+#      - "80:80"
+#    restart: always
+#    volumes:
+#      - ./backend/static:/var/www/static/
+#      - ./backend/media:/var/www/media/
+#      - ./nginx:/etc/nginx/conf.d
+#    depends_on:
+#      - backend
+#      - frontend
+
+
+#  backend:
+#    build: ./backend
+#    container_name: backend_sps
+#    networks:
+#      - sps_app_net
+#    expose:
+#      - "8000"
+#    env_file:
+#      - .env
+#    restart: always
+#    environment:
+#      - POSTGRES_DB=${DB_NAME}
+#      - POSTGRES_USER=${DB_USER}
+#      - POSTGRES_PASSWORD=${DB_PASSWORD}
+#      - POSTGRES_HOST=db
+#      - POSTGRES_PORT=${DB_PORT}
+#      - DJANGO_STATIC_ROOT=/app/static
+#      - DJANGO_MEDIA_ROOT=/app/media
+#    volumes:
+#      - ./backend/static:/app/static
+#      - ./backend/media:/app/media
+#    depends_on:
+#      - db
+#    #    command: python manage.py runserver 0.0.0.0:8000
+#    command: gunicorn -b 0.0.0.0:8000 -w 9 UsbApp.wsgi:application
+
+
+#  frontend:
+#    build: ./frontend
+#    container_name: frontend_sps
+#    networks:
+#      - sps_app_net
+#    expose:
+#      - "5173"
+#    restart: always
+#    environment:
+#      - VITE_API_URL=${VITE_API_URL}
+#    volumes:
+#      - ./frontend:/app
+#      - /app/node_modules
+#    depends_on:
+#      - backend
+
+networks:
+  sps_app_net:
+    driver: bridge
+
+volumes:
+  postgres_data:

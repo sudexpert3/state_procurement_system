@@ -1,0 +1,14 @@
+# Быстрый способ исключить всё ненужное для Python
+venv/
+db/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+db.sqlite3
+.env
+.git
+.gitignore
+media/
+static/

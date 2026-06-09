@@ -1,0 +1,9 @@
+python manage.py makemigrations procurement
+python manage.py migrate
+
+Создаем резервную копию: pg_dump -U sps sps_db > /var/lib/postgresql/backups/sps_db_backup.sql
+Удаляем старую базу: psql -U sps -d postgres -c "DROP DATABASE sps_db;"
+Создайте новую, пустую базу данных командой: psql -U sps -d postgres -c "CREATE DATABASE sps_db ENCODING 'UTF8';"
+
+
+Создаем БЭКАП базы данных командой: pg_dump -U sps sps_db > /var/lib/postgresql/backups/sps_db_backup.sql

@@ -1,0 +1,1 @@
+from .goszakupki import get_purchases_view

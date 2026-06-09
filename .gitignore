@@ -1,0 +1,57 @@
+# Секретные переменные окружения
+.env
+
+# Python / Django
+backend/venv/
+backend/.env
+backend/__pycache__/
+backend/*.pyc
+backend/db.sqlite3
+
+# 1. Позволяем Git заходить в эти папки (убираем их из потенциального игнора)
+!backend/db/
+!backend/db/backups/
+!backend/media/
+!backend/static/
+!input/
+
+
+# 2. Игнорируем всё содержимое этих папок
+backend/db/*
+backend/db/backups/*
+backend/static/*
+backend/media/*
+input/*
+
+# 3. Разрешаем только .gitkeep, чтобы папки создались в репозитории
+backend/db/.gitkeep
+backend/db/backups/.gitkeep
+backend/static/.gitkeep
+!backend/media/.gitkeep
+!input/.gitkeep
+
+
+# Node / React
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+*.log
+
+
+
+
+
+
+
+
+
+
+
+
+
