@@ -10,3 +10,4 @@ class TreasuryPaymentViewSet(viewsets.ModelViewSet):
     serializer_class = TreasuryPaymentSerializer
     permission_classes = [AllowAny]  # Временный режим отладки системы
     filterset_fields = ['contract']
+ 
