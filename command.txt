@@ -7,3 +7,7 @@ python manage.py migrate
 
 
 Создаем БЭКАП базы данных командой: pg_dump -U sps sps_db > /var/lib/postgresql/backups/sps_db_backup.sql
+
+
+
+psql -U sps -d sps_db -f /var/lib/postgresql/backups/sps_db_backup.sql
