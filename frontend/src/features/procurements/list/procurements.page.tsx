@@ -159,8 +159,10 @@ const ProcurementsPage = () => {
   const getRow = (row: ProcurementPlanItem) => {
     navigate(href(ROUTES.PROCUREMENT, { id: row.id }), { state: row });
   };
+  // const query = rqClient.useQuery("get", "/gpz");
+  // console.log(query.data);
   // const getAuth = async () => {
-  //   const res = await axios.get(ENV.API_BASE_URL + "/gpz");
+  //   const res = await fetchClient.GET("/gpz", "/");
   //   console.log(res);
   // };
   // useEffect(() => {

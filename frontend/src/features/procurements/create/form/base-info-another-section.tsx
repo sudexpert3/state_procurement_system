@@ -114,21 +114,6 @@ export const BaseInfoAnotherSection = ({
   }
 
   const departmentsByParentId = buildTree(departments);
-  const childrenMap = departments.reduce<Record<number, typeof departments>>(
-    (obj, item) => {
-      if (item.parentId !== null) {
-        (obj[item.parentId] ??= []).push(item);
-      }
-      return obj;
-    },
-    {},
-  );
-
-  // const departmentsByParentId = departments
-  //   .filter((item) => item.parentId === null)
-  //   .map((item) => {
-  //     return { ...item, children: childrenMap[item.id] ?? [] };
-  //   });
 
   const renderItem = (item: DepartmentNode): React.ReactNode => {
     if (item?.children?.length > 0) {
@@ -233,7 +218,6 @@ export const BaseInfoAnotherSection = ({
           control={control}
           name={`procurementItems.${index}.departmentId`}
           render={({ field, fieldState }) => {
-            console.log(field.value);
             return (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel>Подразделение</FieldLabel>
