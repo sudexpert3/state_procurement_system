@@ -1,64 +1,92 @@
 import type { AdditionalInfoValues, BaseInfoValues } from "../schema";
 
-import { ChevronRightIcon, FolderIcon } from "lucide-react";
-import { useFormContext } from "react-hook-form";
+import { ChevronRightIcon } from "lucide-react";
+import { Controller, useFormContext } from "react-hook-form";
 
 import { InputField } from "@/shared/ui/form/input-field";
 import { TextAreaField } from "@/shared/ui/form/text-area-field";
 import { Button } from "@/shared/ui/kit/button";
 import {
-    CollapsibleContent,
-    CollapsibleTrigger,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
 } from "@/shared/ui/kit/collapsible";
-import { FieldGroup } from "@/shared/ui/kit/field";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+  ComboboxValue,
+} from "@/shared/ui/kit/combobox";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/shared/ui/kit/field";
 
-const departments = [
+type Department = {
+  id: number;
+  name: string;
+  shortName: string;
+  active: boolean;
+  parentId: number | null;
+};
+
+type DepartmentNode = Department & {
+  children: DepartmentNode[];
+};
+
+const departments: Department[] = [
   {
     id: 1,
     name: "Управление режимно-секретной деятельностью и делопроизводства",
-    shortName: "УРСДиД",
+    shortName: "УРСИД",
     active: true,
     parentId: null,
   },
   {
     id: 2,
-    name: "Управление режимно-секретной деятельностью и делопроизводства",
-    shortName: "УРСДиД",
+    name: "Управление кадровой деятельности",
+    shortName: "УКД",
     active: true,
     parentId: null,
   },
   {
     id: 3,
-    name: "Управление режимно-секретной деятельностью и делопроизводства",
-    shortName: "УРСДиД",
+    name: "Управление секретной политики сотрудников",
+    shortName: "УСПС",
     active: true,
     parentId: null,
   },
   {
     id: 4,
-    name: "Управление режимно-секретной деятельностью и делопроизводства",
-    shortName: "УРСДиД",
+    name: "Управление документацией и режимно-секретной",
+    shortName: "УДРС",
     active: true,
-    parentId: null,
+    parentId: 1,
   },
   {
     id: 5,
-    name: "Управление режимно-секретной деятельностью и делопроизводства",
-    shortName: "УРСДиД",
+    name: "Царское администрирование и режимно-секретная деятельность",
+    shortName: "ЦАРС",
     active: true,
-    parentId: null,
+    parentId: 2,
   },
   {
     id: 6,
-    name: "Управление режимно-секретной деятельностью и делопроизводства",
-    shortName: "УРСДиД",
+    name: "Секретное администрирование режимно-секретной деятельности",
+    shortName: "САРС",
     active: true,
-    parentId: null,
+    parentId: 2,
   },
   {
     id: 7,
-    name: "Управление режимно-секретной деятельностью и делопроизводства",
-    shortName: "УРСДиД",
+    name: "Маршрутное администрирование режимно-секретной деятельности",
+    shortName: "МАРС",
     active: true,
     parentId: 1,
   },
@@ -72,6 +100,20 @@ export const BaseInfoAnotherSection = ({
   index: number;
 }) => {
   const { control } = useFormContext<BaseInfoValues>();
+
+  function buildTree(
+    items: Department[],
+    parentId: number | null = null,
+  ): DepartmentNode[] {
+    return items
+      .filter((item) => item.parentId === parentId)
+      .map((item) => ({
+        ...item,
+        children: buildTree(items, item.id),
+      }));
+  }
+
+  const departmentsByParentId = buildTree(departments);
   const childrenMap = departments.reduce<Record<number, typeof departments>>(
     (obj, item) => {
       if (item.parentId !== null) {
@@ -82,25 +124,23 @@ export const BaseInfoAnotherSection = ({
     {},
   );
 
-  const departmentsByParentId = departments
-    .filter((item) => item.parentId === null)
-    .map((item) => ({
-      ...item,
-      children: childrenMap[item.id] ?? [],
-    }));
+  // const departmentsByParentId = departments
+  //   .filter((item) => item.parentId === null)
+  //   .map((item) => {
+  //     return { ...item, children: childrenMap[item.id] ?? [] };
+  //   });
 
-  const renderItem = (item: (typeof departmentsByParentId)[number]) => {
-    if ("children" in item) {
+  const renderItem = (item: DepartmentNode): React.ReactNode => {
+    if (item?.children?.length > 0) {
       return (
-        <>
+        <Collapsible key={item.id}>
           <CollapsibleTrigger asChild>
             <Button
               variant="ghost"
               size="sm"
               className="group hover:bg-accent hover:text-accent-foreground w-full justify-start transition-none">
-              <ChevronRightIcon className="transition-transform group-data-[state=open]:rotate-90" />
-              <FolderIcon />
               {item.shortName}
+              <ChevronRightIcon className="transition-transform group-data-[state=open]:rotate-90" />
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="style-lyra:ml-4 mt-1 ml-5">
@@ -108,10 +148,14 @@ export const BaseInfoAnotherSection = ({
               {item.children.map((child) => renderItem(child))}
             </div>
           </CollapsibleContent>
-        </>
+        </Collapsible>
       );
     }
-    return;
+    return (
+      <ComboboxItem key={item.id} value={item} className="px-3">
+        {item.shortName}
+      </ComboboxItem>
+    );
   };
 
   return (
@@ -179,43 +223,58 @@ export const BaseInfoAnotherSection = ({
         {/* <ComboboxField
           control={control}
           name={`procurementItems.${index}.departmentId`}
-          items={departments}
+          items={options}
           label="Подразделение"
           placeholder="Выберите подразделение"
-          renderItemValue={(item) => item.}
+          renderItemValue={(item) => item.label}
         /> */}
 
-        {/* <Controller
+        <Controller
           control={control}
           name={`procurementItems.${index}.departmentId`}
-          render={({ field }) => {
+          render={({ field, fieldState }) => {
+            console.log(field.value);
             return (
-              <Collapsible>
-                {departmentsByParentId.map((item) => {
-                  return (
-                    <>
-                      <CollapsibleTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="group hover:bg-accent hover:text-accent-foreground w-full justify-start transition-none">
-                          <ChevronRightIcon className="transition-transform group-data-[state=open]:rotate-90" />
-                          <FolderIcon />
-                          {item.shortName}
-                        </Button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="style-lyra:ml-4 mt-1 ml-5">
-                        <div className="flex flex-col gap-1">
-                          {item.children.map((child) => renderItem(child))}
-                        </div>
-                      </CollapsibleContent>
-                    </>
-                  );
-                })}
-              </Collapsible>
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel>Подразделение</FieldLabel>
+                <Combobox
+                  items={departmentsByParentId}
+                  value={
+                    departments.find(
+                      (item) => item.id === Number(field.value),
+                    ) ?? null
+                  }
+                  itemToStringLabel={(item) =>
+                    item !== null ? item.shortName : ""
+                  }
+                  onValueChange={(item) => field.onChange(item?.id ?? null)}
+                  autoHighlight>
+                  <ComboboxTrigger
+                    render={
+                      <Button
+                        variant="outline"
+                        className="w-64 justify-between font-normal">
+                        <ComboboxValue placeholder="Выберите подразделение" />
+                      </Button>
+                    }
+                  />
+                  <ComboboxContent>
+                    <ComboboxInput showTrigger={false} placeholder="Search" />
+                    <ComboboxEmpty>Подразделение не найдено</ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: DepartmentNode) => {
+                        return renderItem(item);
+                      }}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+                {fieldState.invalid && (
+                  <FieldError>{fieldState.error?.message}</FieldError>
+                )}
+              </Field>
             );
           }}
-        /> */}
+        />
         <InputField
           control={control}
           name={`procurementItems.${index}.volume`}
