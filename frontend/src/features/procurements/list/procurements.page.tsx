@@ -159,8 +159,8 @@ const ProcurementsPage = () => {
   const getRow = (row: ProcurementPlanItem) => {
     navigate(href(ROUTES.PROCUREMENT, { id: row.id }), { state: row });
   };
-  // const query = rqClient.useQuery("get", "/gpz");
-  // console.log(query.data);
+  // const { data } = rqClient.useQuery("get", "/gpz");
+  // console.log(data);
   // const getAuth = async () => {
   //   const res = await fetchClient.GET("/gpz", "/");
   //   console.log(res);

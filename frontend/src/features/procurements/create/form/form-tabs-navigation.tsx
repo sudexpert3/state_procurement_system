@@ -28,7 +28,7 @@ const TABS_CONFIG: {
   },
   {
     value: "contract-info",
-    title: "Договорная информация",
+    title: "Договоры",
     icon: FileText,
     Component: ContractSection,
   },

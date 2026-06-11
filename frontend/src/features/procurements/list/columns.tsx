@@ -1,24 +1,32 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { FileTextIcon, PencilIcon } from "lucide-react";
+import { href, Link } from "react-router";
 
+import { ROUTES } from "@/shared/model/routes";
 import { type ProcurementPlanItem } from "@/types/data.types";
 
 export const columns: ColumnDef<ProcurementPlanItem>[] = [
   {
     id: "select2",
-    cell: ({ row }) => (
-      <div className="flex gap-2">
-        <FileTextIcon
-          size={18}
-          className="text-muted-foreground hover:text-foreground cursor-pointer"
-        />
+    cell: ({ row }) => {
+      return (
+        <div className="flex gap-2">
+          <Link
+            to={href(ROUTES.PROCUREMENT, { id: row.original.id })}
+            state={row.original}>
+            <FileTextIcon
+              size={18}
+              className="text-muted-foreground hover:text-foreground cursor-pointer"
+            />
+          </Link>
 
-        <PencilIcon
-          size={18}
-          className="text-muted-foreground hover:text-foreground cursor-pointer"
-        />
-      </div>
-    ),
+          <PencilIcon
+            size={18}
+            className="text-muted-foreground hover:text-foreground cursor-pointer"
+          />
+        </div>
+      );
+    },
     enableSorting: false,
     enableHiding: false,
   },
@@ -90,13 +98,17 @@ export const columns: ColumnDef<ProcurementPlanItem>[] = [
       return <div className="capitalize">{row.getValue("customer")}</div>;
     },
   },
-  {
-    accessorKey: "department",
-    header: () => <div className="text-right">Подразделения</div>,
-    cell: ({ row }) => {
-      return <div className="capitalize">{row.getValue("department")}</div>;
-    },
-  },
+  // {
+  //   accessorKey: "department",
+  //   header: () => (
+  //     <div className="text-right">
+  //       <Input value={"Подразделения"} />
+  //     </div>
+  //   ),
+  //   cell: ({ row }) => {
+  //     return <div className="capitalize">{row.getValue("department")}</div>;
+  //   },
+  // },
   //   {
   //     accessorKey: "period",
   //     header: "Срок (периодичность) проведения процедуры",
