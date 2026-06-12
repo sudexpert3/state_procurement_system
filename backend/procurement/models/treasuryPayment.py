@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-
+from django.utils import timezone
 from .contract import Contract
 
 
@@ -8,7 +8,7 @@ class TreasuryPayment(models.Model):
     """Фактические оплаты по договору (Платежные поручения казначейства)"""
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='payments', verbose_name="Договор")
     payment_number = models.CharField("Номер платежного поручения", max_length=32, blank=True, null=True, help_text="Внутренний номер платежки из системы Клиент-ТК Минфина")
-    payment_date = models.DateField("Дата оплаты", db_index=True)
+    payment_date = models.DateField("Дата оплаты", db_index=True, default=timezone.now())
     amount = models.DecimalField("Сумма оплаты", max_digits=15, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 

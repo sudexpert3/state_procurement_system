@@ -131,7 +131,7 @@ class Contract(models.Model):
 class ContractItem(models.Model):
     """Спецификация договора (Строки списания лимитов)"""
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='items')
-    year = models.PositiveIntegerField("Год позиции договора", db_index=True)
+    year = models.PositiveIntegerField("Год позиции договора", db_index=True, default=timezone.now().year)
     # ЖЕСТКАЯ СВЯЗЬ С ДОЛЕЙ ПОДРАЗДЕЛЕНИЯ ИЗ ПЛАНА!
     plan_share = models.ForeignKey(PlanShare, on_delete=models.PROTECT, related_name='contract_items')
     # Списание конкретно под это подразделение

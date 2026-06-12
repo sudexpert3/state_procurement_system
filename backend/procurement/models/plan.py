@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.conf import settings
 from core.choices import ProcurementItemTypes, CurrencyTypes, PlanStatus
 from .okrb import OkrbProduct
 from .unitOfMeasurement import UnitOfMeasurement
@@ -66,12 +66,13 @@ class PlanVersion(models.Model):
 
     version_number = models.PositiveIntegerField("Номер версии", default=1)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    changed_at = models.DateTimeField(auto_now_add=True)
+    # changed_by = models.ForeignKey('authentication.CustomUser', on_delete=models.SET_NULL, null=True, blank=True)
     is_active = models.BooleanField("Актуальная версия", default=True, db_index=True)
 
     plan_goszakupki_id = models.BigIntegerField("id позиции ГПЗ на goszakupki.by", null=True, blank=True)
     purchases_id = models.BigIntegerField("Идентификатор ГПЗ на goszakupki.by", null=True, blank=True, db_index=True)
-    unp_budget = models.CharField("УНП", max_length=16, db_index=True)
+    unp_budget = models.CharField("УНП", max_length=16, db_index=True, default=settings.UNP_BUDGET)
     # num = models.CharField("Регистрационный номер позиции ГПЗ на goszakupki.by", max_length=32, db_index=True)
     title = models.TextField("Наименование позиции ГПЗ на goszakupki.by")
 
@@ -92,8 +93,8 @@ class PlanVersion(models.Model):
     procedure_months = models.JSONField("Список месяцев (от 1 до 12), в которые проводится процедура", default=list)
     is_by_organizator = models.BooleanField(verbose_name='Отметка о проведении закупки организатором на goszakupki.by', default=False)
 
-    # changed_by = models.ForeignKey('authentication.CustomUser', on_delete=models.SET_NULL, null=True, blank=True)
-    changed_at = models.DateTimeField(auto_now_add=True)
+
+
 
     class Meta:
         verbose_name = "Пункт плана закупки"

@@ -203,3 +203,10 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+# ЗНАЧЕНИЯ ПО УМОЛЧАНИЮ ДЛЯ НЕКОТОРЫХ ПОЛЕЙ МОДЕЛЕЙ
+DEFAULT_BUDGET_CODE=os.getenv('DEFAULT_BUDGET_CODE', default=90000)
+DEFAULT_BUDGET_CODE_NAME=os.getenv('DEFAULT_BUDGET_CODE_NAME', default="Республиканский бюджет")
+DEFAULT_UNK=os.getenv('DEFAULT_UNK', default="1534")
+DEFAULT_TK_ID=os.getenv('DEFAULT_TK_ID', default=104)
+UNP_BUDGET=os.getenv('UNP_BUDGET', default="102377498")
