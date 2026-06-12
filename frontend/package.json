@@ -13,7 +13,7 @@
     "lint:fix": "eslint --fix . && prettier --write .",
     "type-check": "tsc --noEmit",
     "prepare": "husky",
-    "generate-types": "openapi-typescript localhost:8000 -o src/shared/api/types/api.ts"
+    "generate-types": "openapi-typescript http://localhost:8000/api/schema -o src/shared/api/types/api.ts"
   },
   "lint-staged": {
     "**/*.{js,jsx,tsx,ts,less,scss,md,json}": [

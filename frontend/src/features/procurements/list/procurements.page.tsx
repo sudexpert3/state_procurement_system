@@ -159,14 +159,14 @@ const ProcurementsPage = () => {
   const getRow = (row: ProcurementPlanItem) => {
     navigate(href(ROUTES.PROCUREMENT, { id: row.id }), { state: row });
   };
-  // const { data } = rqClient.useQuery("get", "/gpz");
-  // console.log(data);
+  // const { data: bueyrs } = rqClient.useQuery("get", "/api/buyers/");
+  // console.log(bueyrs);
   // const getAuth = async () => {
   //   const res = await fetchClient.GET("/gpz", "/");
   //   console.log(res);
   // };
   // useEffect(() => {
-  //   getAuth();
+  //   getAuth();+
   // }, []);
 
   return (
