@@ -19,7 +19,7 @@ import {
 } from "../kit/combobox";
 
 type ComboboxItem = {
-  id: string;
+  id: number | string;
 };
 
 type ComboboxFieldProps<

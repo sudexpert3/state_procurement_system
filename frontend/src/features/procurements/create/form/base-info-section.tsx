@@ -1,7 +1,7 @@
 import type { BaseInfoValues } from "../schema";
 
 import { PlusIcon } from "lucide-react";
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 
 import { ComboboxField } from "@/shared/ui/form/combobox-field";
 import { InputField } from "@/shared/ui/form/input-field";
@@ -22,6 +22,8 @@ import {
   SelectValue,
 } from "@/shared/ui/kit/select";
 import { Separator } from "@/shared/ui/kit/separator";
+
+import { BaseInfoAnotherSection } from "./base-info-another-section";
 
 const codesOkrb = [
   {
@@ -58,24 +60,6 @@ const units = [
     label: "м",
   },
 ];
-
-const departments = [
-  {
-    id: "1",
-    // value: "Отдел 1",
-    label: "Отдел 1",
-  },
-  {
-    id: "2",
-    // value: "Отдел 2",
-    label: "Отдел 2",
-  },
-  {
-    id: "3",
-    // value: "Отдел 3",
-    label: "Отдел 3",
-  },
-];
 const customers = [
   {
     id: "1",
@@ -93,26 +77,28 @@ const customers = [
     label: "Исполнитель 3",
   },
 ];
+
 export const BaseInfoSection = () => {
   const { control } = useFormContext<BaseInfoValues>();
-  // const { append, fields, remove } = useFieldArray({
-  //   control,
-  //   name: `procurementItems[${fields.length}]`,
-  // });
+  const { append, fields, remove } = useFieldArray({
+    control,
+    name: `procurementItems`,
+  });
 
-  // const handleAddItem = () => {
-  //   append({
-  //     id: "",
-
-  //     planPointNumber: "",
-  //     okrbCode: "",
-  //     okrbName: "",
-  //     goodsName: "",
-  //     quantity: "",
-  //     unit: "",
-  //     department: "",
-  //   });
-  // };
+  const handleAddItem = () => {
+    append({
+      articleNumber: 0,
+      cost: 0,
+      volume: 0,
+      subElementNumber: 0,
+      elementNumber: 0,
+      pstNumber: 0,
+      expenseCategory: "",
+      elNumber: 0,
+      economicClass: 0,
+      departmentId: "",
+    });
+  };
 
   return (
     <div className="w-full">
@@ -124,7 +110,7 @@ export const BaseInfoSection = () => {
             </CardTitle>
           </CardHeader>
           <Separator />
-          <CardContent className="flex gap-10 px-0">
+          <CardContent className="flex gap-10 px-2">
             <FieldGroup>
               <InputField
                 control={control}
@@ -232,102 +218,17 @@ export const BaseInfoSection = () => {
             Иная информация
           </CardTitle>
           <PlusIcon
-            // onClick={() => handleAddItem()}
+            onClick={() => handleAddItem()}
             className="text-accent-foreground hover:text-accent-foreground/50 cursor-pointer"
-            size={20}></PlusIcon>
+            size={20}
+          />
         </CardHeader>
-        {/* {fields.length > 0 && <Separator />}
+        {fields.length > 0 && <Separator />}
         <CardContent className="space-y-4 px-2">
-          {fields.map((item) => {
-            return (
-              <FieldGroup className="flex flex-col" key={item.id}>
-                <p>{item.id}</p>
-                <FieldGroup className="grid grid-cols-2 gap-4">
-                  <InputField
-                    control={control}
-                    name="articleNumber"
-                    label="Статья"
-                    placeholder="10"
-                    type="text"
-                    required
-                  />
-                  <InputField
-                    control={control}
-                    name="pstNumber"
-                    label="ПСТ"
-                    placeholder="10"
-                    type="number"
-                    required
-                  />
-                  <InputField
-                    control={control}
-                    name="elNumber"
-                    label="ЭЛ"
-                    placeholder="99"
-                    type="number"
-                    required
-                  />
-                  <InputField
-                    control={control}
-                    name="economicClass"
-                    label="ЭКР"
-                    placeholder="173"
-                    type="number"
-                    required
-                  />
-
-                  <InputField
-                    control={control}
-                    name="subElementNumber"
-                    label="Под. элемент"
-                    placeholder="1101008"
-                    type="number"
-                    required
-                  />
-                  <InputField
-                    control={control}
-                    name="elementNumber"
-                    label="Элемент"
-                    placeholder="1101000"
-                    type="number"
-                    required
-                  />
-                </FieldGroup>
-                <TextAreaField
-                  control={control}
-                  name="expenseCategory"
-                  label="Категория расходов"
-                  placeholder="приобретение, сопровождение и информационное обеспечение программных средств для ЭКСПЕРТНЫХ подразделений"
-                  required
-                />
-                <FieldGroup className="flex-row gap-4">
-                  <ComboboxField
-                    control={control}
-                    name="departmentId"
-                    items={departments}
-                    label="Подразделение"
-                    placeholder="Выберите подразделение"
-                    renderItemValue={(item) => item.label}
-                  />
-                  <InputField
-                    control={control}
-                    name="allVolume"
-                    label="Количество"
-                    placeholder="100"
-                    required
-                  />
-                  <InputField
-                    control={control}
-                    name="allVolume"
-                    label="Сумма "
-                    placeholder="100"
-                    required
-                  />
-                </FieldGroup>
-              </FieldGroup>
-            );
-          })}
-        </CardContent> */}
+          {fields.map((item, index) => (
+            <BaseInfoAnotherSection key={item.id} item={item} index={index} />
+          ))}
+        </CardContent>
       </Card>
     </div>
   );

@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import { createBrowserRouter, redirect } from "react-router";
 
 import * as procurements from "@/features/procurements";
@@ -6,10 +8,17 @@ import { ROUTES } from "@/shared/model/routes";
 import { App } from "./app";
 import { MainLayout } from "./main-layout";
 import { ProtectedRoute } from "./protected-route";
+import { Providers } from "./providers";
 
 export const router = createBrowserRouter([
   {
-    element: <App />,
+    element: (
+      <Providers>
+        <Suspense fallback={<div>Loading...</div>}>
+          <App />
+        </Suspense>
+      </Providers>
+    ),
     errorElement: <div>ERROR</div>,
     children: [
       {

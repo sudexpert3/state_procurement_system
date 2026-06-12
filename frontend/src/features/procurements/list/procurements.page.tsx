@@ -1,11 +1,7 @@
 import type { ProcurementPlanItem } from "@/types/data.types";
 
-import { useEffect } from "react";
-
-import axios from "axios";
 import { href, useNavigate } from "react-router";
 
-import { CONFIG } from "@/shared/model/config";
 import { ROUTES } from "@/shared/model/routes";
 import { DataTable } from "@/shared/ui/data-table/data-table";
 
@@ -163,17 +159,15 @@ const ProcurementsPage = () => {
   const getRow = (row: ProcurementPlanItem) => {
     navigate(href(ROUTES.PROCUREMENT, { id: row.id }), { state: row });
   };
-  const username = CONFIG.GPZ_USERNAME;
-  const password = CONFIG.GPZ_PASSWORD;
-  const getAuth = async () => {
-    const res = await axios.post("https://api.goszakupki.by/auth/login", {
-      body: JSON.stringify({ username, password }),
-    });
-    // console.log(res);
-  };
-  useEffect(() => {
-    getAuth();
-  }, []);
+  // const query = rqClient.useQuery("get", "/gpz");
+  // console.log(query.data);
+  // const getAuth = async () => {
+  //   const res = await fetchClient.GET("/gpz", "/");
+  //   console.log(res);
+  // };
+  // useEffect(() => {
+  //   getAuth();
+  // }, []);
 
   return (
     <div className="max-w-full">
