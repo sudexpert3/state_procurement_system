@@ -67,6 +67,7 @@ class PlanImportSerializer(serializers.ModelSerializer):
                 unit_obj = UnitOfMeasurement.objects.create(
                     code=raw_val_type,
                     short_name=f"Код {raw_val_type}",
+                    is_active=True,
                 )
 
             attrs["val_unit"] = unit_obj

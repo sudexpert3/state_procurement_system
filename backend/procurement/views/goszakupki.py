@@ -24,8 +24,8 @@ def get_purchases_view(request):
         # data = client.get_data(f"/purchase/items/42511") #2023
         # data = client.get_data(f"/purchase/items/57859?page={page_str}") #2024
         # data = client.get_data(f"/purchase/items/59258") #2025
-        data = client.get_data(f"/purchase/items/68009?page={page_str}") #2026
-        # data = client.get_data(f"/purchase/view-item/86808628") # 2024-102377498-578 услуги по разработке ДНК
+        # data = client.get_data(f"/purchase/items/68009?page={page_str}") #2026
+        data = client.get_data(f"/purchase/view-item/86808628") # 2024-102377498-578 услуги по разработке ДНК
         # data = client.get_data(f"/purchase/view-item/119050190") # 2026-102377498-15 услуги по питанию
         # data = client.get_data(f"/purchase/budget-cost/86808628") # 2024-102377498-578 услуги по разработке ДНК
         # data = client.get_data("/purchase/budget-cost/119050176")

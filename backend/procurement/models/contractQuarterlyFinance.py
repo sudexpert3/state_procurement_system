@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-
+from django.utils import timezone
 from .contract import Contract
 
 
@@ -15,7 +15,7 @@ class ContractQuarterlyFinance(models.Model):
     """Квартальное казначейское планирование и кассовое исполнение договора"""
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='quarterly_finances', verbose_name="Договор")
     quarter = models.CharField("Квартал", max_length=2, choices=QuarterTypes.choices, db_index=True)
-    year = models.PositiveIntegerField("Год", db_index=True)
+    year = models.PositiveIntegerField("Год", db_index=True, default=timezone.now().year)
 
     planned_cost = models.DecimalField("Прогнозируемый (планируемый) расход", max_digits=15, decimal_places=2, default=0)
     actual_cost = models.DecimalField("Фактический расход (по платежным поручениям)", max_digits=15, decimal_places=2, default=0)

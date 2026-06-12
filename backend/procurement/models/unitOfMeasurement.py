@@ -16,4 +16,4 @@ class UnitOfMeasurement(models.Model):
         ordering = ["short_name"]
 
     def __str__(self):
-        return f"{self.code} ({self.short_name})"
+        return f"{self.short_name}"
