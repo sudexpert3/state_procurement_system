@@ -3,9 +3,8 @@ import { FileTextIcon, PencilIcon } from "lucide-react";
 import { href, Link } from "react-router";
 
 import { ROUTES } from "@/shared/model/routes";
-import { type ProcurementPlanItem } from "@/types/data.types";
 
-export const columns: ColumnDef<ProcurementPlanItem>[] = [
+export const columns: ColumnDef<{}>[] = [
   {
     id: "select2",
     cell: ({ row }) => {

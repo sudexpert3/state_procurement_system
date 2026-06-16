@@ -58,7 +58,7 @@ const data = {
       items: [
         {
           title: "ЭКР",
-          url: "#",
+          url: ROUTES.ECONOMIC_CLASSIFIER,
         },
         {
           title: "Коды ОКРБ",
@@ -78,7 +78,7 @@ const data = {
         },
         {
           title: "Для кого закупка",
-          url: "#",
+          url: ROUTES.BUYERS,
         },
       ],
     },

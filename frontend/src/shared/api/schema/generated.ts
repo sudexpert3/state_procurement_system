@@ -508,8 +508,8 @@ export interface components {
        */
       contract_cost: string;
     };
-    /** @description Рекурсивный сериализатор для автоматической сборки дерева подразделений ГКСЭ */
-    DepartmentTree: {
+    /** @description Базовый сериализатор для создания, изменения и плоского вывода подразделений */
+    Department: {
       readonly id: number;
       /** Полное наименование подразделения */
       full_name: string;
@@ -517,8 +517,9 @@ export interface components {
       short_name: string;
       /** Действующее подразделение */
       is_active?: boolean;
+      /** Вышестоящее подразделение (Агрегатор) */
+      parent?: number | null;
       readonly is_root: boolean;
-      readonly sub_departments: string;
     };
     PaginatedBudgetCostsImportList: {
       /** @example 123 */
@@ -641,8 +642,8 @@ export interface components {
         [key: string]: unknown;
       };
     };
-    /** @description Рекурсивный сериализатор для автоматической сборки дерева подразделений ГКСЭ */
-    PatchedDepartmentTree: {
+    /** @description Базовый сериализатор для создания, изменения и плоского вывода подразделений */
+    PatchedDepartment: {
       readonly id?: number;
       /** Полное наименование подразделения */
       full_name?: string;
@@ -650,8 +651,9 @@ export interface components {
       short_name?: string;
       /** Действующее подразделение */
       is_active?: boolean;
+      /** Вышестоящее подразделение (Агрегатор) */
+      parent?: number | null;
       readonly is_root?: boolean;
-      readonly sub_departments?: string;
     };
     /** @description Сериализатор иерархических пунктов процедур закупок РБ */
     PatchedProcurementMethodDetail: {
@@ -1218,7 +1220,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["DepartmentTree"][];
+          "application/json": components["schemas"]["Department"][];
         };
       };
     };
@@ -1232,9 +1234,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["DepartmentTree"];
-        "application/x-www-form-urlencoded": components["schemas"]["DepartmentTree"];
-        "multipart/form-data": components["schemas"]["DepartmentTree"];
+        "application/json": components["schemas"]["Department"];
+        "application/x-www-form-urlencoded": components["schemas"]["Department"];
+        "multipart/form-data": components["schemas"]["Department"];
       };
     };
     responses: {
@@ -1243,7 +1245,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["DepartmentTree"];
+          "application/json": components["schemas"]["Department"];
         };
       };
     };
@@ -1265,7 +1267,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["DepartmentTree"];
+          "application/json": components["schemas"]["Department"];
         };
       };
     };
@@ -1282,9 +1284,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["DepartmentTree"];
-        "application/x-www-form-urlencoded": components["schemas"]["DepartmentTree"];
-        "multipart/form-data": components["schemas"]["DepartmentTree"];
+        "application/json": components["schemas"]["Department"];
+        "application/x-www-form-urlencoded": components["schemas"]["Department"];
+        "multipart/form-data": components["schemas"]["Department"];
       };
     };
     responses: {
@@ -1293,7 +1295,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["DepartmentTree"];
+          "application/json": components["schemas"]["Department"];
         };
       };
     };
@@ -1331,9 +1333,9 @@ export interface operations {
     };
     requestBody?: {
       content: {
-        "application/json": components["schemas"]["PatchedDepartmentTree"];
-        "application/x-www-form-urlencoded": components["schemas"]["PatchedDepartmentTree"];
-        "multipart/form-data": components["schemas"]["PatchedDepartmentTree"];
+        "application/json": components["schemas"]["PatchedDepartment"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedDepartment"];
+        "multipart/form-data": components["schemas"]["PatchedDepartment"];
       };
     };
     responses: {
@@ -1342,7 +1344,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["DepartmentTree"];
+          "application/json": components["schemas"]["Department"];
         };
       };
     };

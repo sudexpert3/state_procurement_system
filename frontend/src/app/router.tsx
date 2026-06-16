@@ -2,6 +2,8 @@ import { Suspense } from "react";
 
 import { createBrowserRouter, redirect } from "react-router";
 
+import * as buyers from "@/features/buyers";
+import * as economicClassifier from "@/features/economic-classifier";
 import * as procurements from "@/features/procurements";
 import { ROUTES } from "@/shared/model/routes";
 
@@ -38,6 +40,14 @@ export const router = createBrowserRouter([
               {
                 path: ROUTES.PROCUREMENT_ADD,
                 lazy: procurements.create,
+              },
+              {
+                path: ROUTES.ECONOMIC_CLASSIFIER,
+                lazy: economicClassifier.list,
+              },
+              {
+                path: ROUTES.BUYERS,
+                lazy: buyers.list,
               },
               {
                 path: ROUTES.USERS,

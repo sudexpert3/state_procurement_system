@@ -1,5 +1,5 @@
 import type { Departments } from "@/shared/api/schema";
-import type { AdditionalInfoValues, BaseInfoValues } from "../schema";
+import type { BaseInfoValues } from "../schema";
 
 import { ChevronRightIcon } from "lucide-react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -30,100 +30,45 @@ import {
   FieldLabel,
 } from "@/shared/ui/kit/field";
 
-// type Department = {
-//   id: number;
-//   name: string;
-//   shortName: string;
-//   active: boolean;
-//   parentId: number | null;
-// };
+type DepartmentNode = Departments & {
+  sub_departments: DepartmentNode[];
+};
 
-// type DepartmentNode = Department & {
-//   children: DepartmentNode[];
-// };
-
-// const departments: Department[] = [
-//   {
-//     id: 1,
-//     name: "Управление режимно-секретной деятельностью и делопроизводства",
-//     shortName: "УРСИД",
-//     active: true,
-//     parentId: null,
-//   },
-//   {
-//     id: 2,
-//     name: "Управление кадровой деятельности",
-//     shortName: "УКД",
-//     active: true,
-//     parentId: null,
-//   },
-//   {
-//     id: 3,
-//     name: "Управление секретной политики сотрудников",
-//     shortName: "УСПС",
-//     active: true,
-//     parentId: null,
-//   },
-//   {
-//     id: 4,
-//     name: "Управление документацией и режимно-секретной",
-//     shortName: "УДРС",
-//     active: true,
-//     parentId: 1,
-//   },
-//   {
-//     id: 5,
-//     name: "Царское администрирование и режимно-секретная деятельность",
-//     shortName: "ЦАРС",
-//     active: true,
-//     parentId: 2,
-//   },
-//   {
-//     id: 6,
-//     name: "Секретное администрирование режимно-секретной деятельности",
-//     shortName: "САРС",
-//     active: true,
-//     parentId: 2,
-//   },
-//   {
-//     id: 7,
-//     name: "Маршрутное администрирование режимно-секретной деятельности",
-//     shortName: "МАРС",
-//     active: true,
-//     parentId: 1,
-//   },
-// ];
-
-export const BaseInfoAnotherSection = ({
-  item,
-  index,
-}: {
-  item: AdditionalInfoValues;
-  index: number;
-}) => {
+export const BaseInfoAnotherSection = ({ index }: { index: number }) => {
   const { control } = useFormContext<BaseInfoValues>();
 
   // function buildTree(
-  //   items: Department[],
-  //   parentId: number | null = null,
+  //   items: Departments[],
+  //   parent: number | null = null,
   // ): DepartmentNode[] {
   //   return items
-  //     .filter((item) => item.parentId === parentId)
+  //     .filter((item) => item.parent === parent)
   //     .map((item) => ({
   //       ...item,
-  //       children: buildTree(items, item.id),
+  //       sub_departments: buildTree(items, item.id),
   //     }));
   // }
 
-  // const departmentsByParentId = buildTree(departments);
-  const { data: departments } = rqClient.useQuery("get", "/api/departments/", {
-    params: {},
+  const getDepartments = rqClient.useQuery("get", "/api/departments/", {
+    params: {
+      query: {
+        tree: true,
+      } as
+        | {
+            is_active?: boolean;
+            parent?: number;
+            search?: string;
+            tree?: boolean;
+          }
+        | undefined,
+    },
   });
-  const a: typeof departments = [];
-  console.log(departments);
+  // const departmentsByParentId = buildTree(getDepartments.data || []);
+  // const a: typeof departments = [];
+  // console.log(departments);
 
-  const renderItem = (item: Departments): React.ReactNode => {
-    if (item.sub_departments.length > 0) {
+  const renderItem = (item: DepartmentNode): React.ReactNode => {
+    if (item?.sub_departments?.length > 0) {
       return (
         <Collapsible key={item.id}>
           <CollapsibleTrigger asChild>
@@ -229,9 +174,9 @@ export const BaseInfoAnotherSection = ({
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel>Подразделение</FieldLabel>
                 <Combobox
-                  items={departments}
+                  items={getDepartments.data || []}
                   value={
-                    departments?.find(
+                    getDepartments.data?.find(
                       (item) => item.id === Number(field.value),
                     ) ?? null
                   }

@@ -6,7 +6,9 @@ export const ROUTES = {
   PROCUREMENTS: "/procurements",
   PROCUREMENT_ADD: "/procurement/add",
   PROCUREMENT: "/procurement/:id",
+  ECONOMIC_CLASSIFIER: `/economic-classifier`,
   CODES: `/codes`,
+  BUYERS: `/buyers`,
   USERS: `/users`,
   NOT_FOUND: "*",
 } as const;
