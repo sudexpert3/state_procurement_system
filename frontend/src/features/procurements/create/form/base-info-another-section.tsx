@@ -1,8 +1,10 @@
-import type { AdditionalInfoValues, BaseInfoValues } from "../schema";
+import type { Departments } from "@/shared/api/schema";
+import type { BaseInfoValues } from "../schema";
 
 import { ChevronRightIcon } from "lucide-react";
 import { Controller, useFormContext } from "react-hook-form";
 
+import { rqClient } from "@/shared/api/instance";
 import { InputField } from "@/shared/ui/form/input-field";
 import { TextAreaField } from "@/shared/ui/form/text-area-field";
 import { Button } from "@/shared/ui/kit/button";
@@ -28,95 +30,45 @@ import {
   FieldLabel,
 } from "@/shared/ui/kit/field";
 
-type Department = {
-  id: number;
-  name: string;
-  shortName: string;
-  active: boolean;
-  parentId: number | null;
+type DepartmentNode = Departments & {
+  sub_departments: DepartmentNode[];
 };
 
-type DepartmentNode = Department & {
-  children: DepartmentNode[];
-};
-
-const departments: Department[] = [
-  {
-    id: 1,
-    name: "Управление режимно-секретной деятельностью и делопроизводства",
-    shortName: "УРСИД",
-    active: true,
-    parentId: null,
-  },
-  {
-    id: 2,
-    name: "Управление кадровой деятельности",
-    shortName: "УКД",
-    active: true,
-    parentId: null,
-  },
-  {
-    id: 3,
-    name: "Управление секретной политики сотрудников",
-    shortName: "УСПС",
-    active: true,
-    parentId: null,
-  },
-  {
-    id: 4,
-    name: "Управление документацией и режимно-секретной",
-    shortName: "УДРС",
-    active: true,
-    parentId: 1,
-  },
-  {
-    id: 5,
-    name: "Царское администрирование и режимно-секретная деятельность",
-    shortName: "ЦАРС",
-    active: true,
-    parentId: 2,
-  },
-  {
-    id: 6,
-    name: "Секретное администрирование режимно-секретной деятельности",
-    shortName: "САРС",
-    active: true,
-    parentId: 2,
-  },
-  {
-    id: 7,
-    name: "Маршрутное администрирование режимно-секретной деятельности",
-    shortName: "МАРС",
-    active: true,
-    parentId: 1,
-  },
-];
-
-export const BaseInfoAnotherSection = ({
-  item,
-  index,
-}: {
-  item: AdditionalInfoValues;
-  index: number;
-}) => {
+export const BaseInfoAnotherSection = ({ index }: { index: number }) => {
   const { control } = useFormContext<BaseInfoValues>();
 
-  function buildTree(
-    items: Department[],
-    parentId: number | null = null,
-  ): DepartmentNode[] {
-    return items
-      .filter((item) => item.parentId === parentId)
-      .map((item) => ({
-        ...item,
-        children: buildTree(items, item.id),
-      }));
-  }
+  // function buildTree(
+  //   items: Departments[],
+  //   parent: number | null = null,
+  // ): DepartmentNode[] {
+  //   return items
+  //     .filter((item) => item.parent === parent)
+  //     .map((item) => ({
+  //       ...item,
+  //       sub_departments: buildTree(items, item.id),
+  //     }));
+  // }
 
-  const departmentsByParentId = buildTree(departments);
+  const getDepartments = rqClient.useQuery("get", "/api/departments/", {
+    params: {
+      query: {
+        tree: true,
+      } as
+        | {
+            is_active?: boolean;
+            parent?: number;
+            search?: string;
+            tree?: boolean;
+          }
+        | undefined,
+    },
+  });
+  // const departmentsByParentId = buildTree(getDepartments.data || []);
+  // const a: typeof departments = [];
+  // console.log(departments);
 
   const renderItem = (item: DepartmentNode): React.ReactNode => {
-    if (item?.children?.length > 0) {
+    if (item?.sub_departments?.length > 0) {
       return (
         <Collapsible key={item.id}>
           <CollapsibleTrigger asChild>
@@ -124,13 +76,13 @@ export const BaseInfoAnotherSection = ({
               variant="ghost"
               size="sm"
               className="group hover:bg-accent hover:text-accent-foreground w-full justify-start transition-none">
-              {item.shortName}
+              {item.short_name}
               <ChevronRightIcon className="transition-transform group-data-[state=open]:rotate-90" />
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="style-lyra:ml-4 mt-1 ml-5">
             <div className="flex flex-col gap-1">
-              {item.children.map((child) => renderItem(child))}
+              {item.sub_departments.map((child) => renderItem(child))}
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -138,7 +90,7 @@ export const BaseInfoAnotherSection = ({
     }
     return (
       <ComboboxItem key={item.id} value={item} className="px-3">
-        {item.shortName}
+        {item.short_name}
       </ComboboxItem>
     );
   };
@@ -222,14 +174,14 @@ export const BaseInfoAnotherSection = ({
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel>Подразделение</FieldLabel>
                 <Combobox
-                  items={departmentsByParentId}
+                  items={getDepartments.data || []}
                   value={
-                    departments.find(
+                    getDepartments.data?.find(
                       (item) => item.id === Number(field.value),
                     ) ?? null
                   }
                   itemToStringLabel={(item) =>
-                    item !== null ? item.shortName : ""
+                    item !== null ? item.short_name : ""
                   }
                   onValueChange={(item) => field.onChange(item?.id ?? null)}
                   autoHighlight>
@@ -246,7 +198,7 @@ export const BaseInfoAnotherSection = ({
                     <ComboboxInput showTrigger={false} placeholder="Search" />
                     <ComboboxEmpty>Подразделение не найдено</ComboboxEmpty>
                     <ComboboxList>
-                      {(item: DepartmentNode) => {
+                      {(item) => {
                         return renderItem(item);
                       }}
                     </ComboboxList>

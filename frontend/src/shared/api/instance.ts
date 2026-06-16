@@ -1,9 +1,13 @@
+import type { ApiPaths } from "./schema";
+
 import createFetchClient from "openapi-fetch";
 import createClient from "openapi-react-query";
 
 import { ENV } from "@/shared/model/env";
 
-export const fetchClient = createFetchClient({ baseUrl: ENV.API_BASE_URL });
+export const fetchClient = createFetchClient<ApiPaths>({
+  baseUrl: ENV.API_BASE_URL,
+});
 
 export const rqClient = createClient(fetchClient);
 

@@ -175,10 +175,11 @@ export const DataTable = <TData,>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    props.getRow?.(row.original);
-                  }}>
+                  // onClick={(e) => {
+                  //   e.stopPropagation();
+                  //   props.getRow?.(row.original);
+                  // }}>
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
@@ -202,11 +203,7 @@ export const DataTable = <TData,>({
         </Table>
       </div>
       {enableTablePagination && (
-        <div className="mt-4 flex items-center justify-between">
-          <span>
-            {table.getFilteredSelectedRowModel().rows.length} из{" "}
-            {table.getFilteredRowModel().rows.length} строк выбрано.
-          </span>
+        <div className="mt-4">
           <DataTablePagination table={table} />
         </div>
       )}

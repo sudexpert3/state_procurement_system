@@ -1,15 +1,19 @@
-import { ChevronsUpDownIcon, LogOutIcon } from "lucide-react"
-import { useNavigate } from "react-router"
+import { ChevronsUpDownIcon, LogOutIcon } from "lucide-react";
+import { useNavigate } from "react-router";
 
-import { ROUTES } from "@/shared/model/routes"
+import { ROUTES } from "@/shared/model/routes";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/shared/ui/kit/sidebar"
+} from "@/shared/ui/kit/sidebar";
 
-import { Avatar, AvatarFallback, AvatarImage } from "../kit/avatar"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "../../shared/ui/kit/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,25 +21,25 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../kit/dropdown-menu"
+} from "../../shared/ui/kit/dropdown-menu";
 
 export function NavUser({
   user,
 }: {
   user: {
-    name: string
-    role: string
-    avatar: string
-  }
+    name: string;
+    role: string;
+    avatar: string;
+  };
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const logout = () => {
-    localStorage.removeItem("token")
-    navigate(ROUTES.LOGIN)
-  }
+    localStorage.removeItem("token");
+    navigate(ROUTES.LOGIN);
+  };
 
   return (
     <SidebarMenu>
@@ -82,5 +86,5 @@ export function NavUser({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }
