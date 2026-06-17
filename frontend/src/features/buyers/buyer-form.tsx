@@ -6,13 +6,13 @@ import z from "zod";
 
 import { Button } from "@/shared/ui/kit/button";
 import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/shared/ui/kit/combobox";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/kit/select";
 import {
   Drawer,
   DrawerClose,
@@ -40,10 +40,6 @@ export type BuyerItem = {
   is_active: boolean;
 };
 
-const STATUS_OPTIONS = [
-  { value: "true", label: "Действующий" },
-  { value: "false", label: "Не действующий" },
-];
 
 type Props = {
   open: boolean;
@@ -137,25 +133,20 @@ export const BuyerForm = ({ open, item, onClose, onSubmit }: Props) => {
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel>Статус</FieldLabel>
-                <Combobox
+                <Select
+                  name={field.name}
                   value={String(field.value)}
                   onValueChange={(val) => field.onChange(val === "true")}>
-                  <ComboboxInput
-                    placeholder="Выберите статус..."
-                    showClear={false}
-                    aria-invalid={fieldState.invalid}
-                  />
-                  <ComboboxContent>
-                    <ComboboxList>
-                      {STATUS_OPTIONS.map((opt) => (
-                        <ComboboxItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </ComboboxItem>
-                      ))}
-                      <ComboboxEmpty>Ничего не найдено</ComboboxEmpty>
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
+                  <SelectTrigger aria-invalid={fieldState.invalid}>
+                    <SelectValue placeholder="Выберите статус" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="true">Действующий</SelectItem>
+                      <SelectItem value="false">Не действующий</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}

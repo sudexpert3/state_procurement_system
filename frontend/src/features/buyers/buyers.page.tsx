@@ -112,7 +112,14 @@ const BuyersPage = () => {
               placeholder="Поиск по имени"
             />
           </InputGroup>
-          <Combobox value={statusFilter} onValueChange={setStatusFilter}>
+          <Combobox
+            value={
+              STATUS_FILTER_OPTIONS.find((opt) => opt.value === statusFilter)
+                ?.label
+            }
+            onValueChange={(item) => {
+              setStatusFilter(item?.value);
+            }}>
             <ComboboxInput
               placeholder="Статус..."
               showClear={false}
@@ -121,7 +128,7 @@ const BuyersPage = () => {
             <ComboboxContent>
               <ComboboxList>
                 {STATUS_FILTER_OPTIONS.map((opt) => (
-                  <ComboboxItem key={opt.value} value={opt.value}>
+                  <ComboboxItem key={opt.value} value={opt}>
                     {opt.label}
                   </ComboboxItem>
                 ))}
