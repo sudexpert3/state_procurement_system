@@ -1,18 +1,15 @@
+import type { Buyer } from "@/shared/api/schema";
+
 import { useEffect } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2Icon } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 
+import { rqClient } from "@/shared/api/instance";
 import { Button } from "@/shared/ui/kit/button";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/ui/kit/select";
 import {
   Drawer,
   DrawerClose,
@@ -23,6 +20,14 @@ import {
 } from "@/shared/ui/kit/drawer";
 import { Field, FieldError, FieldLabel } from "@/shared/ui/kit/field";
 import { Input } from "@/shared/ui/kit/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/kit/select";
 
 const buyerSchema = z.object({
   shot_name: z.string().min(1, "Обязательное поле"),
@@ -31,25 +36,21 @@ const buyerSchema = z.object({
 });
 
 type FormValues = z.input<typeof buyerSchema>;
-export type BuyerFormOutput = z.output<typeof buyerSchema>;
-
-export type BuyerItem = {
-  id: number;
-  shot_name: string;
-  full_name: string;
-  is_active: boolean;
-};
-
 
 type Props = {
   open: boolean;
-  item: BuyerItem | null;
+  item: Buyer | null;
   onClose: () => void;
-  onSubmit: (values: BuyerFormOutput, id?: number) => void;
+  onSuccess: () => void;
 };
 
-export const BuyerForm = ({ open, item, onClose, onSubmit }: Props) => {
+export const BuyerForm = ({ open, item, onClose, onSuccess }: Props) => {
   const isEdit = item !== null;
+
+  const createMutation = rqClient.useMutation("post", "/api/buyers/");
+  const updateMutation = rqClient.useMutation("patch", "/api/buyers/{id}/");
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   const { handleSubmit, control, reset } = useForm<FormValues>({
     resolver: zodResolver(buyerSchema),
@@ -63,16 +64,40 @@ export const BuyerForm = ({ open, item, onClose, onSubmit }: Props) => {
           ? {
               shot_name: item.shot_name,
               full_name: item.full_name,
-              is_active: item.is_active,
+              is_active: item.is_active ?? true,
             }
           : { shot_name: "", full_name: "", is_active: true },
       );
     }
   }, [open, item, reset]);
 
-  const submit = handleSubmit((values) => {
-    onSubmit(values as BuyerFormOutput, item?.id);
+  const handleSuccess = (message: string) => {
+    toast.success(message);
     onClose();
+    onSuccess();
+  };
+
+  const handleError = () => toast.error("Не удалось сохранить закупщика");
+
+  const submit = handleSubmit((values) => {
+    if (item) {
+      updateMutation.mutate(
+        { params: { path: { id: item.id } }, body: values },
+        {
+          onSuccess: () => handleSuccess("Закупщик обновлён"),
+          onError: handleError,
+        },
+      );
+    } else {
+      // TODO: бэкенд использует одну схему Buyer для POST/GET/PUT — id нужен только в ответе, но не в теле создания. Требует разделения схем на бэке.
+      createMutation.mutate(
+        { body: values as unknown },
+        {
+          onSuccess: () => handleSuccess("Закупщик добавлен"),
+          onError: handleError,
+        },
+      );
+    }
   });
 
   return (
@@ -85,6 +110,7 @@ export const BuyerForm = ({ open, item, onClose, onSubmit }: Props) => {
         </DrawerHeader>
 
         <form
+          id="buyer-form"
           onSubmit={submit}
           className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-2">
           <Controller
@@ -140,7 +166,7 @@ export const BuyerForm = ({ open, item, onClose, onSubmit }: Props) => {
                   <SelectTrigger aria-invalid={fieldState.invalid}>
                     <SelectValue placeholder="Выберите статус" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     <SelectGroup>
                       <SelectItem value="true">Действующий</SelectItem>
                       <SelectItem value="false">Не действующий</SelectItem>
@@ -156,11 +182,12 @@ export const BuyerForm = ({ open, item, onClose, onSubmit }: Props) => {
         </form>
 
         <DrawerFooter>
-          <Button type="button" onClick={submit}>
+          <Button type="submit" form="buyer-form" disabled={isPending}>
+            {isPending && <Loader2Icon size={16} className="animate-spin" />}
             {isEdit ? "Сохранить" : "Добавить"}
           </Button>
           <DrawerClose asChild>
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} disabled={isPending}>
               Отмена
             </Button>
           </DrawerClose>

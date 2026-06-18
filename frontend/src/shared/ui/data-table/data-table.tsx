@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/kit/dropdown-menu";
 import { Input } from "@/shared/ui/kit/input";
+import { Skeleton } from "@/shared/ui/kit/skeleton";
 import {
   Table,
   TableBody,
@@ -50,12 +51,14 @@ type DataTableProps<TData> = {
   enableTablePagination?: boolean;
   enableFilters?: boolean;
   enableActions?: boolean;
+  isLoading?: boolean;
   getRow?: (row: TData) => void;
 };
 
 export const DataTable = <TData,>({
   enableTablePagination = true,
   enableActions = true,
+  isLoading = false,
   ...props
 }: DataTableProps<TData>) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -170,7 +173,17 @@ export const DataTable = <TData,>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  {props.columns.map((_, j) => (
+                    <TableCell key={j}>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}

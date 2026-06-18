@@ -154,8 +154,8 @@ import { TableActions } from "./table-actions";
 
 const ProcurementsPage = () => {
   const navigate = useNavigate();
-  const getRow = (row) => {
-    navigate(href(ROUTES.PROCUREMENT, { id: row.id }), { state: row });
+  const getRow = (row: unknown) => {
+    navigate(href(ROUTES.PROCUREMENT, { id: row?.id }), { state: row });
   };
   // const { data: bueyrs } = rqClient.useQuery("get", "/api/buyers/");
   // console.log(bueyrs);

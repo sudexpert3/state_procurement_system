@@ -1,8 +1,9 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { EconomicClassifier } from "./economic-classifier.page";
 
-import { ArrowUpDownIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import { ArrowUpDownIcon, PencilIcon } from "lucide-react";
 
+import { DeleteButton } from "@/shared/ui/delete-button";
 import { Button } from "@/shared/ui/kit/button";
 
 export const createColumns = (
@@ -19,15 +20,7 @@ export const createColumns = (
           onClick={() => onEdit(row.original)}>
           <PencilIcon size={16} className="text-muted-foreground" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onDelete(row.original.id)}>
-          <Trash2Icon
-            size={16}
-            className="text-muted-foreground hover:text-destructive"
-          />
-        </Button>
+        <DeleteButton onConfirm={() => onDelete(row.original.id)} />
       </div>
     ),
     enableSorting: false,

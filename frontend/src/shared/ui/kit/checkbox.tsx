@@ -1,9 +1,9 @@
-import * as React from "react"
+import * as React from "react";
 
-import { CheckIcon } from "lucide-react"
-import { Checkbox as CheckboxPrimitive } from "radix-ui"
+import { CheckIcon } from "lucide-react";
+import { Checkbox as CheckboxPrimitive } from "radix-ui";
 
-import { cn } from "@/shared/lib/utils"
+import { cn } from "@/shared/lib/utils";
 
 function Checkbox({
   className,
@@ -23,7 +23,7 @@ function Checkbox({
         <CheckIcon />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
-  )
+  );
 }
 
-export { Checkbox }
+export { Checkbox };

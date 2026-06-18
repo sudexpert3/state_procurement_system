@@ -1,7 +1,8 @@
-import { Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 
 import { cn } from "@/shared/lib/utils";
+import { DeleteButton } from "@/shared/ui/delete-button";
 import { Button } from "@/shared/ui/kit/button";
 import { Input } from "@/shared/ui/kit/input";
 import {
@@ -249,15 +250,11 @@ export function EditableTable() {
             <div className="bg-muted/50 flex items-center justify-between border-b px-3 py-2">
               <span className="text-sm font-medium">{year} год</span>
               {fields.length > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-destructive h-6 w-6"
-                  onClick={() => remove(index)}
-                  aria-label={`Удалить ${year} год`}>
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                <DeleteButton
+                  onConfirm={() => remove(index)}
+                  description={`Год ${year} будет удалён. Все введённые данные по кварталам будут потеряны.`}
+                  iconSize={14}
+                />
               )}
             </div>
             <YearTable yearIndex={index} />

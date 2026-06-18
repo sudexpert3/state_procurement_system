@@ -1,13 +1,13 @@
-import { useLocation } from "react-router"
+import { useLocation } from "react-router";
 
 const ProcurementDetailPage = () => {
-  const location = useLocation()
+  const location = useLocation();
 
   return (
     <div>
       <span>{location.state.id}</span>
     </div>
-  )
-}
+  );
+};
 
-export const Component = ProcurementDetailPage
+export const Component = ProcurementDetailPage;

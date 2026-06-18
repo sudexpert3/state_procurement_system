@@ -1,12 +1,12 @@
-import { useNavigate } from "react-router"
+import { useNavigate } from "react-router";
 
-import { ROUTES } from "@/shared/model/routes"
-import { Button } from "@/shared/ui/kit/button"
+import { ROUTES } from "@/shared/model/routes";
+import { Button } from "@/shared/ui/kit/button";
 
 const NotFoundPage = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const handleClick = () => navigate(ROUTES.HOME)
+  const handleClick = () => navigate(ROUTES.HOME);
 
   return (
     <div className="mt-10 grid place-items-center gap-2.5">
@@ -14,7 +14,7 @@ const NotFoundPage = () => {
       <p>Страница, которую ты ищешь, не существует :(</p>
       <Button onClick={handleClick}>Перейти на главную</Button>
     </div>
-  )
-}
+  );
+};
 
-export const Component = NotFoundPage
+export const Component = NotFoundPage;

@@ -226,7 +226,7 @@ export const BaseInfoSection = () => {
         {fields.length > 0 && <Separator />}
         <CardContent className="space-y-4 px-2">
           {fields.map((item, index) => (
-            <BaseInfoAnotherSection key={item.id} item={item} index={index} />
+            <BaseInfoAnotherSection key={item.id} index={index} />
           ))}
         </CardContent>
       </Card>

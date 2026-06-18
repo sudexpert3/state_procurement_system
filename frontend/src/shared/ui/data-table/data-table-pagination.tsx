@@ -1,29 +1,29 @@
-import type { Table } from "@tanstack/react-table"
+import type { Table } from "@tanstack/react-table";
 
 import {
   ArrowLeft,
   ArrowLeftToLine,
   ArrowRight,
   ArrowRightToLine,
-} from "lucide-react"
+} from "lucide-react";
 
-import { Button } from "@/shared/ui/kit/button"
+import { Button } from "@/shared/ui/kit/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/kit/select"
+} from "@/shared/ui/kit/select";
 
-import { useDataTablePagination } from "./hooks/use-data-table-pagination"
+import { useDataTablePagination } from "./hooks/use-data-table-pagination";
 
 export const DataTablePagination = <TData,>({
   table,
 }: {
-  table: Table<TData>
+  table: Table<TData>;
 }) => {
-  const { currentPage, pages } = useDataTablePagination({ table })
+  const { currentPage, pages } = useDataTablePagination({ table });
 
   return (
     <div className="flex items-center justify-end space-x-2">
@@ -67,8 +67,8 @@ export const DataTablePagination = <TData,>({
           variant={page === currentPage ? "default" : "outline"}
           size="sm"
           onClick={(e) => {
-            e.preventDefault()
-            table.setPageIndex(Number(page) - 1)
+            e.preventDefault();
+            table.setPageIndex(Number(page) - 1);
           }}
           className="w-8 cursor-pointer"
           disabled={page === "..."}>
@@ -92,5 +92,5 @@ export const DataTablePagination = <TData,>({
         <ArrowRightToLine />
       </Button>
     </div>
-  )
-}
+  );
+};

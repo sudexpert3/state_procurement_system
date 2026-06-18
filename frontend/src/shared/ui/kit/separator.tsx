@@ -1,8 +1,8 @@
-import * as React from "react"
+import * as React from "react";
 
-import { Separator as SeparatorPrimitive } from "radix-ui"
+import { Separator as SeparatorPrimitive } from "radix-ui";
 
-import { cn } from "@/shared/lib/utils"
+import { cn } from "@/shared/lib/utils";
 
 function Separator({
   className,
@@ -21,7 +21,7 @@ function Separator({
       )}
       {...props}
     />
-  )
+  );
 }
 
-export { Separator }
+export { Separator };
