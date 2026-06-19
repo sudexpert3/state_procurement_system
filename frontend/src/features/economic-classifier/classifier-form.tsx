@@ -1,6 +1,6 @@
 import type { EconomicClassifier } from "./economic-classifier.page";
 
-import { useEffect } from "react";
+import { useMemo, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
@@ -29,11 +29,7 @@ import { Input } from "@/shared/ui/kit/input";
 const classifierSchema = z.object({
   code: z.string().min(1, "Обязательное поле"),
   name: z.string().min(1, "Обязательное поле"),
-  parent_id: z.preprocess(
-    (val) =>
-      val === "" || val === null || val === undefined ? null : Number(val),
-    z.number().nullable(),
-  ),
+  parent_id: z.coerce.number<number>().nullable(),
 });
 
 type FormValues = z.input<typeof classifierSchema>;
@@ -47,6 +43,8 @@ type Props = {
   onSubmit: (values: ClassifierFormOutput, id?: number) => void;
 };
 
+const initialData = { code: "", name: "", parent_id: null };
+
 export const ClassifierForm = ({
   open,
   item,
@@ -55,26 +53,21 @@ export const ClassifierForm = ({
   onSubmit,
 }: Props) => {
   const isEdit = item !== null;
+  const [drawerEl, setDrawerEl] = useState<HTMLDivElement | null>(null);
 
   const { handleSubmit, control, reset } = useForm<FormValues>({
     resolver: zodResolver(classifierSchema),
-    defaultValues: { code: "", name: "", parent_id: null },
+    values: { ...initialData, ...item },
   });
 
-  useEffect(() => {
-    if (open) {
-      reset(
-        item
-          ? { code: item.code, name: item.name, parent_id: item.parent_id }
-          : { code: "", name: "", parent_id: null },
-      );
-    }
-  }, [open, item, reset]);
-
-  const parentOptions = allItems.filter((i) => i.id !== item?.id);
+  const parentOptions = useMemo(
+    () => allItems.filter((i) => i.id !== item?.id),
+    [item?.id, allItems],
+  );
 
   const submit = handleSubmit((values) => {
-    onSubmit(values as ClassifierFormOutput, item?.id);
+    onSubmit(values, item?.id);
+    reset(initialData);
     onClose();
   });
 
@@ -135,9 +128,11 @@ export const ClassifierForm = ({
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel>Родительский классификатор</FieldLabel>
                 <Combobox
-                  value={field.value === null ? "" : String(field.value)}
-                  onValueChange={(val) =>
-                    field.onChange(val === "" ? null : val)
+                  onValueChange={(val: EconomicClassifier | null) =>
+                    field.onChange(val?.id ?? null)
+                  }
+                  itemToStringLabel={(val) =>
+                    val ? `${val.code} — ${val.name}` : ""
                   }>
                   <ComboboxInput
                     placeholder="Поиск по коду или названию..."
@@ -148,7 +143,7 @@ export const ClassifierForm = ({
                     <ComboboxList>
                       <ComboboxItem value="">Без родителя</ComboboxItem>
                       {parentOptions.map((opt) => (
-                        <ComboboxItem key={opt.id} value={String(opt.id)}>
+                        <ComboboxItem key={opt.id} value={opt}>
                           {opt.code} — {opt.name}
                         </ComboboxItem>
                       ))}

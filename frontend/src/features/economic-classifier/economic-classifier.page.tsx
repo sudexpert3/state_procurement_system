@@ -50,10 +50,10 @@ const EconomicClassifierPage = () => {
 
   const { search, setSearch, filteredData } = useClassifierSearch(data);
 
-  const handleAdd = () => {
+  const handleAdd = useCallback(() => {
     setEditingItem(null);
     setDrawerOpen(true);
-  };
+  }, []);
 
   const handleEdit = useCallback((item: EconomicClassifier) => {
     setEditingItem(item);
@@ -64,15 +64,18 @@ const EconomicClassifierPage = () => {
     setData((prev) => prev.filter((item) => item.id !== id));
   }, []);
 
-  const handleSubmit = (values: ClassifierFormOutput, id?: number) => {
-    if (id !== undefined) {
-      setData((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, ...values } : item)),
-      );
-    } else {
-      setData((prev) => [...prev, { id: nextId++, ...values }]);
-    }
-  };
+  const handleSubmit = useCallback(
+    (values: ClassifierFormOutput, id?: number) => {
+      if (id !== undefined) {
+        setData((prev) =>
+          prev.map((item) => (item.id === id ? { ...item, ...values } : item)),
+        );
+      } else {
+        setData((prev) => [...prev, { id: nextId++, ...values }]);
+      }
+    },
+    [],
+  );
 
   const columns = useMemo(
     () => createColumns(handleEdit, handleDelete),
