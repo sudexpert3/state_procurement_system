@@ -7,7 +7,13 @@ export const useBuyers = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const query = rqClient.useQuery("get", "/api/buyers/");
+  const query = rqClient.useQuery("get", "/api/buyers/", {
+    params: {
+      query: {
+        search,
+      },
+    },
+  });
 
   const data = useMemo(() => {
     let result = query.data ?? [];
@@ -17,17 +23,8 @@ export const useBuyers = () => {
       result = result.filter((item) => item.is_active === isActive);
     }
 
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (item) =>
-          item.shot_name.toLowerCase().includes(q) ||
-          item.full_name.toLowerCase().includes(q),
-      );
-    }
-
     return result;
-  }, [query.data, search, statusFilter]);
+  }, [query.data, statusFilter]);
 
   const invalidate = useCallback(
     () => queryClient.invalidateQueries({ queryKey: ["get", "/api/buyers/"] }),

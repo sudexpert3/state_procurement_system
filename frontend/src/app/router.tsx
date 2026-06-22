@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { createBrowserRouter, redirect } from "react-router";
+import { Toaster } from "sonner";
 
 import * as buyers from "@/features/buyers";
 import * as economicClassifier from "@/features/economic-classifier";
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
       <Providers>
         <Suspense fallback={<div>Loading...</div>}>
           <App />
+          <Toaster />
         </Suspense>
       </Providers>
     ),

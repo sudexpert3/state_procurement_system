@@ -187,12 +187,7 @@ export const DataTable = <TData,>({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  // onClick={(e) => {
-                  //   e.stopPropagation();
-                  //   props.getRow?.(row.original);
-                  // }}>
-                >
+                  data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(

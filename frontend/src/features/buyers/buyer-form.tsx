@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import z from "zod";
 
 import { rqClient } from "@/shared/api/instance";
+import { handleHttpError } from "@/shared/lib/handle-http-error";
 import { Button } from "@/shared/ui/kit/button";
 import {
   Drawer,
@@ -77,7 +78,10 @@ export const BuyerForm = ({ open, item, onClose, onSuccess }: Props) => {
     onSuccess();
   };
 
-  const handleError = () => toast.error("Не удалось сохранить закупщика");
+  const handleError = (error) => {
+    console.log(error);
+    toast.error(`Не удалось сохранить закупщика`);
+  };
 
   const submit = handleSubmit((values) => {
     if (item) {
@@ -91,10 +95,17 @@ export const BuyerForm = ({ open, item, onClose, onSuccess }: Props) => {
     } else {
       // TODO: бэкенд использует одну схему Buyer для POST/GET/PUT — id нужен только в ответе, но не в теле создания. Требует разделения схем на бэке.
       createMutation.mutate(
-        { body: values as unknown },
+        {
+          body: values satisfies {
+            shot_name: string;
+            full_name: string;
+            is_active: boolean;
+          },
+        },
         {
           onSuccess: () => handleSuccess("Закупщик добавлен"),
-          onError: handleError,
+          onError: (error) =>
+            handleHttpError(error, "Не удалось создать запись", true),
         },
       );
     }

@@ -1,6 +1,6 @@
 import type { EconomicClassifier } from "./economic-classifier.page";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
@@ -53,7 +53,7 @@ export const ClassifierForm = ({
   onSubmit,
 }: Props) => {
   const isEdit = item !== null;
-  const [drawerEl, setDrawerEl] = useState<HTMLDivElement | null>(null);
+  const portalContainerRef = useRef<HTMLDivElement | null>(null);
 
   const { handleSubmit, control, reset } = useForm<FormValues>({
     resolver: zodResolver(classifierSchema),
@@ -73,7 +73,7 @@ export const ClassifierForm = ({
 
   return (
     <Drawer open={open} onOpenChange={(v) => !v && onClose()} direction="right">
-      <DrawerContent className="flex flex-col">
+      <DrawerContent className="flex flex-col" ref={portalContainerRef}>
         <DrawerHeader>
           <DrawerTitle>
             {isEdit ? "Редактировать классификатор" : "Добавить классификатор"}
@@ -139,7 +139,7 @@ export const ClassifierForm = ({
                     showClear
                     aria-invalid={fieldState.invalid}
                   />
-                  <ComboboxContent>
+                  <ComboboxContent portalContainer={portalContainerRef}>
                     <ComboboxList>
                       <ComboboxItem value="">Без родителя</ComboboxItem>
                       {parentOptions.map((opt) => (
