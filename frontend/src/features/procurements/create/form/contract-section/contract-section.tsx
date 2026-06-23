@@ -1,12 +1,12 @@
 import type { ContractInfoValues } from "@/features/procurements/create/schema";
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { Controller, useFormContext } from "react-hook-form";
 
 import { contractStatus } from "@/features/procurements/create/config";
 import {
-  columns,
+  createColumns,
   type ProcurementContract,
 } from "@/features/procurements/create/form/contract-section/columns";
 import { DataTable } from "@/shared/ui/data-table/data-table";
@@ -261,7 +261,21 @@ const procurementContracts: ProcurementContract[] = [
 
 export const ContractSection = () => {
   const { control } = useFormContext<ContractInfoValues>();
-  const [open, setOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<ProcurementContract | null>();
+
+  const onEdit = useCallback((row: ProcurementContract) => {
+    setEditingItem(row);
+    setDrawerOpen(true);
+  }, []);
+  const onView = useCallback((row: ProcurementContract) => {
+    setEditingItem(row);
+    setDrawerOpen(true);
+  }, []);
+
+  const columns = useMemo(() => {
+    return createColumns(onEdit, onView);
+  }, [onView, onEdit]);
 
   return (
     <div className="w-full pb-4">
@@ -405,15 +419,15 @@ export const ContractSection = () => {
       <Button
         type="button"
         onClick={() => {
-          setOpen(true);
+          setDrawerOpen(true);
         }}>
         Добавить договор
       </Button>
 
       <ContractDetails
         title={<span>Добавление договора</span>}
-        open={open}
-        setOpen={setOpen}
+        open={drawerOpen}
+        setOpen={setDrawerOpen}
         footer={
           <>
             <Button className="">Добавить</Button>

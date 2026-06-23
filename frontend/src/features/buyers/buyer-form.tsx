@@ -1,7 +1,5 @@
 import type { Buyer } from "@/shared/api/schema";
 
-import { useEffect } from "react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
@@ -45,32 +43,28 @@ type Props = {
   onSuccess: () => void;
 };
 
+const defaultValues = {
+  shot_name: "",
+  full_name: "",
+  is_active: true,
+};
 export const BuyerForm = ({ open, item, onClose, onSuccess }: Props) => {
   const isEdit = item !== null;
 
   const createMutation = rqClient.useMutation("post", "/api/buyers/");
   const updateMutation = rqClient.useMutation("patch", "/api/buyers/{id}/");
-
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  const { handleSubmit, control, reset } = useForm<FormValues>({
-    resolver: zodResolver(buyerSchema),
-    defaultValues: { shot_name: "", full_name: "", is_active: true },
-  });
+  const formdata = {
+    ...defaultValues,
+    ...item,
+    is_active: item?.is_active ?? true,
+  };
 
-  useEffect(() => {
-    if (open) {
-      reset(
-        item
-          ? {
-              shot_name: item.shot_name,
-              full_name: item.full_name,
-              is_active: item.is_active ?? true,
-            }
-          : { shot_name: "", full_name: "", is_active: true },
-      );
-    }
-  }, [open, item, reset]);
+  const { handleSubmit, control } = useForm<FormValues>({
+    resolver: zodResolver(buyerSchema),
+    values: formdata,
+  });
 
   const handleSuccess = (message: string) => {
     toast.success(message);
@@ -78,8 +72,7 @@ export const BuyerForm = ({ open, item, onClose, onSuccess }: Props) => {
     onSuccess();
   };
 
-  const handleError = (error) => {
-    console.log(error);
+  const handleError = () => {
     toast.error(`Не удалось сохранить закупщика`);
   };
 

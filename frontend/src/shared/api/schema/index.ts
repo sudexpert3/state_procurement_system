@@ -8,7 +8,6 @@ export type Buyer = ApiSchemas["Buyer"];
 export type Contract = ApiSchemas["Contract"];
 export type ContractItem = ApiSchemas["ContractItem"];
 export type Department = ApiSchemas["Department"];
-export type Departments = ApiSchemas["Department"];
 export type PaginatedBudgetCostsImportList =
   ApiSchemas["PaginatedBudgetCostsImportList"];
 export type PaginatedContractList = ApiSchemas["PaginatedContractList"];

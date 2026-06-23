@@ -1,5 +1,7 @@
 import type { ContractInfoValues } from "../../schema";
 
+import { useEffect } from "react";
+
 import { Controller, useFormContext } from "react-hook-form";
 
 import { ComboboxField } from "@/shared/ui/form/combobox-field";
@@ -40,7 +42,9 @@ export const ContractDetails = ({
   open: boolean;
   setOpen: (open: boolean) => void;
 }) => {
-  const { control } = useFormContext<ContractInfoValues>();
+  const { control, getValues } = useFormContext<ContractInfoValues>();
+
+  useEffect(() => {}, []);
 
   return (
     <Drawer direction="right" open={open} onOpenChange={setOpen}>

@@ -1,16 +1,19 @@
 import { useCallback, useMemo, useState } from "react";
 
+import { useDebounceValue } from "@siberiacancode/reactuse";
+
 import { rqClient } from "@/shared/api/instance";
 import { queryClient } from "@/shared/api/query-client";
 
 export const useBuyers = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const debouncedSearch = useDebounceValue(search, 500);
 
   const query = rqClient.useQuery("get", "/api/buyers/", {
     params: {
       query: {
-        search,
+        search: debouncedSearch,
       },
     },
   });

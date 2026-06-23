@@ -96,7 +96,7 @@ export const BaseInfoSection = () => {
       expenseCategory: "",
       elNumber: 0,
       economicClass: 0,
-      departmentId: "",
+      departmentId: 0,
     });
   };
 
@@ -203,7 +203,7 @@ export const BaseInfoSection = () => {
               </FieldGroup>
               <InputField
                 control={control}
-                name="allVolume"
+                name="allCost"
                 label="Общая сумма"
                 placeholder="100"
                 required
@@ -226,7 +226,11 @@ export const BaseInfoSection = () => {
         {fields.length > 0 && <Separator />}
         <CardContent className="space-y-4 px-2">
           {fields.map((item, index) => (
-            <BaseInfoAnotherSection key={item.id} index={index} />
+            <BaseInfoAnotherSection
+              key={item.id}
+              index={index}
+              remove={remove}
+            />
           ))}
         </CardContent>
       </Card>

@@ -19,7 +19,7 @@ const additionalInfoSchema = z
     subElementNumber: positiveInt("Подэлемент"),
     elementNumber: positiveInt("Элемент"),
     expenseCategory: z.string().min(1, "Обязательное поле"),
-    departmentId: z.string().min(1, "Обязательное поле"),
+    departmentId: z.coerce.number<number>(),
     volume: positiveInt("Обязательное поле"),
     cost: positiveInt("Обязательное поле"),
   })
