@@ -38,9 +38,9 @@ export const TextAreaField = <TFieldValues extends FieldValues>({
               </FieldLabel>
             )}
             <Textarea
-              aria-invalid={fieldState.invalid}
               {...props}
               {...field}
+              aria-invalid={fieldState.invalid}
               className={inputClassName}
             />
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}

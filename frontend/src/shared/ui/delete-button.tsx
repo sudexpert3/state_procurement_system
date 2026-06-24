@@ -16,6 +16,7 @@ import { Button } from "@/shared/ui/kit/button";
 interface DeleteButtonProps {
   onConfirm: () => void;
   isPending?: boolean;
+  title?: string;
   description?: string;
   iconSize?: number;
 }
@@ -23,6 +24,7 @@ interface DeleteButtonProps {
 export const DeleteButton = ({
   onConfirm,
   isPending = false,
+  title = "Подтвердите удаление",
   description = "Это действие необратимо. Запись будет удалена.",
   iconSize = 16,
 }: DeleteButtonProps) => {
@@ -38,7 +40,7 @@ export const DeleteButton = ({
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Подтвердите удаление</AlertDialogTitle>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

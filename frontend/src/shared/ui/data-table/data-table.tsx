@@ -1,7 +1,7 @@
-"use no memo";
 import type {
   ColumnDef,
   ColumnFiltersState,
+  Table as ReactTable,
   SortingState,
   VisibilityState,
 } from "@tanstack/react-table";
@@ -16,23 +16,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  ChevronDownIcon,
-  Columns3Icon,
-  RefreshCcwIcon,
-  SearchIcon,
-} from "lucide-react";
 
-import { Button } from "@/shared/ui/kit/button";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/shared/ui/kit/dropdown-menu";
-import { Input } from "@/shared/ui/kit/input";
 import { Skeleton } from "@/shared/ui/kit/skeleton";
 import {
   Table,
@@ -48,24 +32,28 @@ import { DataTablePagination } from "./data-table-pagination";
 type DataTableProps<TData> = {
   data: TData[];
   columns: ColumnDef<TData, unknown>[];
-  enableTablePagination?: boolean;
-  enableFilters?: boolean;
-  enableActions?: boolean;
   isLoading?: boolean;
   getRow?: (row: TData) => void;
+  actions?: (table: ReactTable<TData>) => React.ReactNode;
+  pagination?:
+    | false
+    | {
+        type?: "default" | "custom";
+        render?: (table: ReactTable<TData>) => React.ReactNode;
+      };
 };
 
 export const DataTable = <TData,>({
-  enableTablePagination = true,
-  enableActions = true,
   isLoading = false,
+  pagination = { type: "default" },
+  actions,
   ...props
 }: DataTableProps<TData>) => {
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
+  const [globalFilter, setGlobalFilter] = useState<string>("");
 
   const table = useReactTable({
     data: props.data,
@@ -73,86 +61,27 @@ export const DataTable = <TData,>({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    ...(enableTablePagination && {
+    ...(pagination && {
       getPaginationRowModel: getPaginationRowModel(),
     }),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      globalFilter,
     },
   });
 
   return (
     <div className="w-full">
-      {enableActions && (
-        <div className="py-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full max-w-3xs justify-between">
-                <span className="flex items-center gap-2">
-                  <Columns3Icon />
-                  Вид колонок
-                </span>{" "}
-                <ChevronDownIcon className="ml-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <div className="relative">
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8"
-                  placeholder="Search"
-                  onKeyDown={(e) => e.stopPropagation()}
-                />
-                <SearchIcon className="absolute inset-y-0 left-2 my-auto size-4" />
-              </div>
-              <DropdownMenuSeparator />
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  if (
-                    searchQuery &&
-                    !column.id.toLowerCase().includes(searchQuery.toLowerCase())
-                  ) {
-                    return null;
-                  }
-
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                      onSelect={(e) => e.preventDefault()}>
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  table.resetColumnVisibility();
-                  setSearchQuery("");
-                }}>
-                <RefreshCcwIcon /> Reset
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
-      <div className="rounded-md border">
+      {actions && <>{actions(table)}</>}
+      <div className="rounded-md border bg-white">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -210,9 +139,13 @@ export const DataTable = <TData,>({
           </TableBody>
         </Table>
       </div>
-      {enableTablePagination && (
+      {pagination !== false && (
         <div className="mt-4">
-          <DataTablePagination table={table} />
+          {pagination.render ? (
+            pagination.render(table)
+          ) : (
+            <DataTablePagination table={table} />
+          )}
         </div>
       )}
     </div>

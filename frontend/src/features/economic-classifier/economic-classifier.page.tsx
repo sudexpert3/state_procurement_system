@@ -91,7 +91,7 @@ const EconomicClassifierPage = () => {
         onAdd={handleAdd}
       />
 
-      <DataTable data={filteredData} columns={columns} enableActions={false} />
+      <DataTable data={filteredData} columns={columns} />
 
       <ClassifierForm
         open={drawerOpen}

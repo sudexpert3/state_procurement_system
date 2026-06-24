@@ -37,9 +37,9 @@ export const InputField = <TFieldValues extends FieldValues>({
               </FieldLabel>
             )}
             <Input
-              aria-invalid={fieldState.invalid}
               {...props}
               {...field}
+              aria-invalid={fieldState.invalid}
               className={props.inputClassName}
             />
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}

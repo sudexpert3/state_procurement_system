@@ -51,12 +51,7 @@ const BuyersPage = () => {
         onAdd={handleAdd}
       />
 
-      <DataTable
-        data={data}
-        columns={columns}
-        enableActions={false}
-        isLoading={isLoading}
-      />
+      <DataTable data={data} columns={columns} isLoading={isLoading} />
 
       <BuyerForm
         open={drawerOpen}

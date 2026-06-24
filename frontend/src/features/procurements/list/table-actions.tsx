@@ -1,42 +1,34 @@
-import { useState } from "react";
+import type { Table } from "@tanstack/react-table";
 
 import { SearchIcon } from "lucide-react";
-import { useNavigate } from "react-router";
 
-import { ROUTES } from "@/shared/model/routes";
-import { Button } from "@/shared/ui/kit/button";
-import { Card, CardContent } from "@/shared/ui/kit/card";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/shared/ui/kit/input-group";
 
-export const TableActions = () => {
-  const [searchText, setSearchText] = useState<string>("");
-  const navigate = useNavigate();
+import { ColumnVisibilityDropdown } from "./column-visibility-dropdown";
 
-  const handleAddProcurement = () => {
-    navigate(ROUTES.PROCUREMENT_ADD);
-  };
+type TableActionsProps<TData> = { table: Table<TData> };
+
+export const TableActions = <TData,>({ table }: TableActionsProps<TData>) => {
+  const searchText =
+    (table.getState().globalFilter as string | undefined) ?? "";
 
   return (
-    <Card>
-      <CardContent className="flex items-center gap-4">
-        <InputGroup className="max-w-sm">
-          <InputGroupAddon>
-            <SearchIcon />
-          </InputGroupAddon>
-          <InputGroupInput
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            placeholder="Поиск"
-          />
-        </InputGroup>
-        {/* <input type="file" accept=".xlsx, .csv" />
-        <Button>Обновить финансы</Button>*/}
-        <Button onClick={handleAddProcurement}>Добавить запись</Button>
-      </CardContent>
-    </Card>
+    <div className="flex items-center gap-2 px-0">
+      <InputGroup className="max-w-sm bg-white">
+        <InputGroupAddon>
+          <SearchIcon />
+        </InputGroupAddon>
+        <InputGroupInput
+          value={searchText}
+          onChange={(e) => table.setGlobalFilter(e.target.value)}
+          placeholder="Поиск"
+        />
+      </InputGroup>
+      <ColumnVisibilityDropdown table={table} />
+    </div>
   );
 };
