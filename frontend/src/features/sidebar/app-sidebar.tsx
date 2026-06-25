@@ -69,6 +69,10 @@ const data = {
           title: "Для кого закупка",
           url: ROUTES.BUYERS,
         },
+        {
+          title: "Поставщики",
+          url: ROUTES.SUPPLIERS,
+        },
       ],
     },
   ],

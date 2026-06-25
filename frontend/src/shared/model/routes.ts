@@ -9,6 +9,7 @@ export const ROUTES = {
   ECONOMIC_CLASSIFIER: `/economic-classifier`,
   CODES: `/codes`,
   BUYERS: `/buyers`,
+  SUPPLIERS: `/suppliers`,
   USERS: `/users`,
   NOT_FOUND: "*",
 } as const;

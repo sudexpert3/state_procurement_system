@@ -268,6 +268,7 @@ export const ContractSection = () => {
     setEditingItem(row);
     setDrawerOpen(true);
   }, []);
+
   const onView = useCallback((row: ProcurementContract) => {
     setEditingItem(row);
     setDrawerOpen(true);

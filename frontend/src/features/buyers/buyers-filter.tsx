@@ -20,7 +20,7 @@ type Props = {
 
 export const BuyersFilter = ({ value, onValueChange }: Props) => (
   <Select value={value} onValueChange={onValueChange}>
-    <SelectTrigger className="w-48">
+    <SelectTrigger className="w-48 bg-white">
       <SelectValue placeholder="Статус..." />
     </SelectTrigger>
     <SelectContent position="popper">

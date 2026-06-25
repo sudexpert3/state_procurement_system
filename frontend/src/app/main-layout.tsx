@@ -32,7 +32,7 @@ export const MainLayout = () => {
               <div className="bg-muted/50 aspect-video rounded-xl" />
             </div>
           </div> */}
-          <main className="bg-muted/90 flex flex-1 flex-col px-4 py-2">
+          <main className="bg-muted flex flex-1 flex-col px-4 py-2">
             <Suspense
               fallback={
                 <div className="bg-muted/50 min-h-screen flex-1 rounded-xl md:min-h-min" />

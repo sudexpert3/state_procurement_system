@@ -4,6 +4,7 @@ import { createBrowserRouter, redirect } from "react-router";
 import { Toaster } from "sonner";
 
 import * as buyers from "@/features/buyers";
+import * as suppliers from "@/features/suppliers";
 import * as economicClassifier from "@/features/economic-classifier";
 import * as procurements from "@/features/procurements";
 import { ROUTES } from "@/shared/model/routes";
@@ -50,6 +51,10 @@ export const router = createBrowserRouter([
               {
                 path: ROUTES.BUYERS,
                 lazy: buyers.list,
+              },
+              {
+                path: ROUTES.SUPPLIERS,
+                lazy: suppliers.list,
               },
               {
                 path: ROUTES.USERS,

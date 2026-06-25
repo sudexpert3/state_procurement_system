@@ -2,7 +2,18 @@ import type { ClassifierFormOutput } from "./classifier-form";
 
 import { useCallback, useMemo, useState } from "react";
 
+import { PlusIcon } from "lucide-react";
+
 import { DataTable } from "@/shared/ui/data-table/data-table";
+import { Button } from "@/shared/ui/kit/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/ui/kit/card";
 
 import { ClassifierForm } from "./classifier-form";
 import { ClassifierToolbar } from "./classifier-toolbar";
@@ -79,19 +90,32 @@ const EconomicClassifierPage = () => {
 
   const columns = useMemo(
     () => createColumns(handleEdit, handleDelete),
-
     [handleEdit, handleDelete],
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <ClassifierToolbar
-        search={search}
-        onSearchChange={setSearch}
-        onAdd={handleAdd}
-      />
-
-      <DataTable data={filteredData} columns={columns} />
+    <Card className="max-w-full gap-2 bg-transparent ring-0">
+      <CardHeader>
+        <CardTitle>ЭКР</CardTitle>
+        <CardDescription>Экономическая классификация расходов</CardDescription>
+        <CardAction>
+          <Button onClick={handleAdd}>
+            <PlusIcon size={16} />
+            Добавить
+          </Button>
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        <DataTable
+          data={filteredData}
+          columns={columns}
+          actions={() => (
+            <div className="py-4">
+              <ClassifierToolbar search={search} onSearchChange={setSearch} />
+            </div>
+          )}
+        />
+      </CardContent>
 
       <ClassifierForm
         open={drawerOpen}
@@ -100,7 +124,7 @@ const EconomicClassifierPage = () => {
         onClose={() => setDrawerOpen(false)}
         onSubmit={handleSubmit}
       />
-    </div>
+    </Card>
   );
 };
 

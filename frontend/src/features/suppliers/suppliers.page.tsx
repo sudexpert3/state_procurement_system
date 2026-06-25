@@ -1,7 +1,8 @@
-import type { Buyer } from "@/shared/api/schema";
+import type { Supplier } from "@/shared/api/schema";
+
+import { useCallback, useMemo, useState } from "react";
 
 import { PlusIcon } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
 
 import { DataTable } from "@/shared/ui/data-table/data-table";
 import { Button } from "@/shared/ui/kit/button";
@@ -14,34 +15,26 @@ import {
   CardTitle,
 } from "@/shared/ui/kit/card";
 
-import { BuyerForm } from "./buyer-form";
-import { BuyersToolbar } from "./buyers-toolbar";
 import { createColumns } from "./columns";
-import { useBuyerDelete } from "./use-buyer-delete";
-import { useBuyers } from "./use-buyers";
+import { SupplierForm } from "./supplier-form";
+import { SuppliersToolbar } from "./suppliers-toolbar";
+import { useSupplierDelete } from "./use-supplier-delete";
+import { useSuppliers } from "./use-suppliers";
 
-const BuyersPage = () => {
-  const {
-    search,
-    setSearch,
-    statusFilter,
-    setStatusFilter,
-    data,
-    isLoading,
-    invalidate,
-  } = useBuyers();
+const SuppliersPage = () => {
+  const { search, setSearch, data, isLoading, invalidate } = useSuppliers();
 
-  const { handleDelete, deletingId } = useBuyerDelete(invalidate);
+  const { handleDelete, deletingId } = useSupplierDelete(invalidate);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<Buyer | null>(null);
+  const [editingItem, setEditingItem] = useState<Supplier | null>(null);
 
   const handleAdd = () => {
     setEditingItem(null);
     setDrawerOpen(true);
   };
 
-  const handleEdit = useCallback((item: Buyer) => {
+  const handleEdit = useCallback((item: Supplier) => {
     setEditingItem(item);
     setDrawerOpen(true);
   }, []);
@@ -54,8 +47,8 @@ const BuyersPage = () => {
   return (
     <Card className="max-w-full gap-2 bg-transparent ring-0">
       <CardHeader>
-        <CardTitle>Для кого закупка</CardTitle>
-        <CardDescription>Список заказчиков</CardDescription>
+        <CardTitle>Поставщики</CardTitle>
+        <CardDescription>Справочник контрагентов</CardDescription>
         <CardAction>
           <Button onClick={handleAdd}>
             <PlusIcon size={16} />
@@ -70,18 +63,13 @@ const BuyersPage = () => {
           isLoading={isLoading}
           actions={() => (
             <div className="py-4">
-              <BuyersToolbar
-                search={search}
-                onSearchChange={setSearch}
-                statusFilter={statusFilter}
-                onStatusFilterChange={setStatusFilter}
-              />
+              <SuppliersToolbar search={search} onSearchChange={setSearch} />
             </div>
           )}
         />
       </CardContent>
 
-      <BuyerForm
+      <SupplierForm
         open={drawerOpen}
         item={editingItem}
         onClose={() => setDrawerOpen(false)}
@@ -91,4 +79,4 @@ const BuyersPage = () => {
   );
 };
 
-export const Component = BuyersPage;
+export const Component = SuppliersPage;

@@ -6,21 +6,12 @@ import {
   InputGroupInput,
 } from "@/shared/ui/kit/input-group";
 
-import { BuyersFilter } from "./buyers-filter";
-
 type Props = {
   search: string;
   onSearchChange: (value: string) => void;
-  statusFilter: string;
-  onStatusFilterChange: (value: string) => void;
 };
 
-export const BuyersToolbar = ({
-  search,
-  onSearchChange,
-  statusFilter,
-  onStatusFilterChange,
-}: Props) => (
+export const SuppliersToolbar = ({ search, onSearchChange }: Props) => (
   <div className="flex items-center gap-4">
     <InputGroup className="max-w-sm bg-white">
       <InputGroupAddon>
@@ -29,9 +20,8 @@ export const BuyersToolbar = ({
       <InputGroupInput
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
-        placeholder="Поиск по имени"
+        placeholder="Поиск по наименованию или УНП"
       />
     </InputGroup>
-    <BuyersFilter value={statusFilter} onValueChange={onStatusFilterChange} />
   </div>
 );
