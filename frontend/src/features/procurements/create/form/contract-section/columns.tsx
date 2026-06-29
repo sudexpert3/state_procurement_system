@@ -1,46 +1,25 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import type { ContractItem } from "./contract.schema";
 
 import { FileTextIcon, PencilIcon } from "lucide-react";
 
+import { DeleteButton } from "@/shared/ui/delete-button";
 import { Button } from "@/shared/ui/kit/button";
 
-type Buyer = {
-  id: number;
-  fullName: string;
-  shortName: string;
-  isActive: boolean;
-};
-
-export type ProcurementContract = {
-  id: number;
-  number: string;
-  total_cost: number;
-  supplier_id: number;
-  construction_type: string;
-  contract_date: string | null; //! или Date
-  fixed_assets_plan_item: string;
-  is_registered_in_treasury: boolean;
-  notice: string;
-  parent_contract_id: number | null;
-  payment_terms: string;
-  planned_delivery_date: string | null; //! или Date
-  procurement_method_detail_id: number;
-  buyerId: number;
-  buyerDetail: Buyer;
-};
-
-export type ContractWithoutId = Omit<ProcurementContract, "id">;
+const formatDate = (date: Date | null) =>
+  date ? date.toLocaleDateString("ru-RU") : "—";
 
 export const createColumns = (
-  onEdit: (row: ProcurementContract) => void,
-  onView: (row: ProcurementContract) => void,
-): ColumnDef<ProcurementContract>[] => {
+  onView: (row: ContractItem) => void,
+  onEdit: (row: ContractItem) => void,
+  onDelete: (id: number) => void,
+): ColumnDef<ContractItem>[] => {
   return [
     {
-      id: "select2",
+      id: "actions",
       cell: ({ row }) => {
         return (
-          <div className="flex gap-2">
+          <div>
             <Button
               variant="ghost"
               type="button"
@@ -61,6 +40,7 @@ export const createColumns = (
                 className="text-muted-foreground hover:text-foreground cursor-pointer"
               />
             </Button>
+            <DeleteButton onConfirm={() => onDelete(row.original.id)} />
           </div>
         );
       },
@@ -72,64 +52,61 @@ export const createColumns = (
       header: "ID",
     },
     {
-      accessorKey: "number",
+      accessorKey: "contractNumber",
       header: "№ договора",
     },
     {
-      accessorKey: "total_cost",
+      accessorKey: "contractSum",
       header: "Сумма договора",
-      cell: ({ row }) => {
-        const value = row.getValue("total_cost") as number;
-        return value.toLocaleString("ru-RU");
-      },
+      cell: ({ row }) => row.original.contractSum.toLocaleString("ru-RU"),
     },
     {
-      accessorKey: "supplier_id",
+      accessorKey: "supplierId",
       header: "Поставщик",
     },
     {
-      accessorKey: "construction_type",
+      accessorKey: "constructionType",
       header: "Вид строительства",
     },
     {
-      accessorKey: "contract_date",
+      accessorKey: "contractDate",
       header: "Дата договора",
-      cell: ({ row }) => row.getValue("contract_date") || "—",
+      cell: ({ row }) => formatDate(row.original.contractDate),
     },
     {
-      accessorKey: "fixed_assets_plan_item",
+      accessorKey: "fixedAssetsPlanItem",
       header: "Пункт плана ОС",
     },
     {
-      accessorKey: "is_registered_in_treasury",
+      accessorKey: "isRegisteredInTreasury",
       header: "Зарегистрирован в казначействе",
-      cell: ({ row }) =>
-        row.getValue("is_registered_in_treasury") ? "Да" : "Нет",
+      cell: ({ row }) => (row.original.isRegisteredInTreasury ? "Да" : "Нет"),
     },
     {
-      accessorKey: "notice",
+      accessorKey: "contractNotes",
       header: "Примечание",
+      cell: ({ row }) => row.original.contractNotes || "—",
     },
     {
-      accessorKey: "parent_contract_id",
+      accessorKey: "parentContractId",
       header: "Родительский договор",
-      cell: ({ row }) => row.getValue("parent_contract_id") ?? "—",
+      cell: ({ row }) => row.original.parentContractId ?? "—",
     },
     {
-      accessorKey: "payment_terms",
+      accessorKey: "contractTerms",
       header: "Условия оплаты",
     },
     {
-      accessorKey: "planned_delivery_date",
+      accessorKey: "plannedDeliveryDate",
       header: "Плановая дата поставки",
-      cell: ({ row }) => row.getValue("planned_delivery_date") || "—",
+      cell: ({ row }) => formatDate(row.original.plannedDeliveryDate),
     },
     {
-      accessorKey: "procurement_method_detail_id",
+      accessorKey: "procurementMethodDetailId",
       header: "Способ закупки",
     },
     {
-      accessorKey: "buyerDetail.shortName",
+      accessorKey: "buyer.shortName",
       header: "Покупатель",
     },
   ];
