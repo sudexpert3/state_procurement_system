@@ -1,10 +1,9 @@
 import { Plus } from "lucide-react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 
-import { cn } from "@/shared/lib/utils";
-import { DeleteButton } from "@/shared/ui/delete-button";
-import { Button } from "@/shared/ui/kit/button";
-import { Input } from "@/shared/ui/kit/input";
+import { DeleteButton } from "@/shared/components/delete-button";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
 import {
   Table,
   TableBody,
@@ -12,14 +11,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/shared/ui/kit/table";
+} from "@/shared/components/ui/table";
+import { formatAmount } from "@/shared/lib/helpers/format-amount";
+import { cn } from "@/shared/lib/utils";
 
-import {
-  calcColTotal,
-  calcRowTotal,
-  calcYearTotal,
-  formatAmount,
-} from "./helpers";
+import { calcColTotal, calcRowTotal, calcYearTotal } from "./helpers";
 import { type QuarterRow, type YearDistribution } from "./quarter.schema";
 
 const QUARTERS: { key: keyof QuarterRow; label: string }[] = [
@@ -199,7 +195,7 @@ function SummaryCards() {
   );
 }
 
-export function EditableTable() {
+export function QuarterTable() {
   const { control } = useFormContext();
 
   const { fields, append, remove } = useFieldArray({

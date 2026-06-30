@@ -7,9 +7,9 @@ import {
   type Path,
 } from "react-hook-form";
 
-import { Field, FieldError, FieldLabel } from "../kit/field";
-import { Input } from "../kit/input";
-import { RequiredField } from "../kit/required-field";
+import { Field, FieldError, FieldLabel } from "../ui/field";
+import { Input } from "../ui/input";
+import { RequiredField } from "../ui/required-field";
 
 export const InputField = <TFieldValues extends FieldValues>({
   name,

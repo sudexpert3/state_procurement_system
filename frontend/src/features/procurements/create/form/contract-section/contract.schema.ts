@@ -1,7 +1,6 @@
 import z from "zod";
 
-import { contractStatus } from "../../config";
-
+import { contractStatus } from "./config";
 import { yearDistributionSchema } from "./quarter.schema";
 
 // Покупатель, к которому привязан договор

@@ -4,11 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import z from "zod";
 
 import { rqClient } from "@/shared/api/instance";
-import { handleHttpError } from "@/shared/lib/handle-http-error";
-import { Button } from "@/shared/ui/kit/button";
+import { Button } from "@/shared/components/ui/button";
 import {
   Drawer,
   DrawerClose,
@@ -16,9 +14,9 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "@/shared/ui/kit/drawer";
-import { Field, FieldError, FieldLabel } from "@/shared/ui/kit/field";
-import { Input } from "@/shared/ui/kit/input";
+} from "@/shared/components/ui/drawer";
+import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field";
+import { Input } from "@/shared/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -26,15 +24,10 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/kit/select";
+} from "@/shared/components/ui/select";
+import { handleHttpError } from "@/shared/lib/helpers/handle-http-error";
 
-const buyerSchema = z.object({
-  shot_name: z.string().min(1, "Обязательное поле"),
-  full_name: z.string().min(1, "Обязательное поле"),
-  is_active: z.boolean(),
-});
-
-type FormValues = z.input<typeof buyerSchema>;
+import { buyerSchema, type BuyerValues } from "./buyer.schema";
 
 type Props = {
   open: boolean;
@@ -61,7 +54,7 @@ export const BuyerForm = ({ open, item, onClose, onSuccess }: Props) => {
     is_active: item?.is_active ?? true,
   };
 
-  const { handleSubmit, control } = useForm<FormValues>({
+  const { handleSubmit, control } = useForm<BuyerValues>({
     resolver: zodResolver(buyerSchema),
     values: formdata,
   });
@@ -86,14 +79,9 @@ export const BuyerForm = ({ open, item, onClose, onSuccess }: Props) => {
         },
       );
     } else {
-      // TODO: бэкенд использует одну схему Buyer для POST/GET/PUT — id нужен только в ответе, но не в теле создания. Требует разделения схем на бэке.
       createMutation.mutate(
         {
-          body: values satisfies {
-            shot_name: string;
-            full_name: string;
-            is_active: boolean;
-          },
+          body: { id: 0, ...values },
         },
         {
           onSuccess: () => handleSuccess("Закупщик добавлен"),

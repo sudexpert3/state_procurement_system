@@ -6,11 +6,16 @@ import { useCallback, useMemo, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
 import { createColumns } from "@/features/procurements/create/form/contract-section/columns";
-import { DataTable } from "@/shared/ui/data-table/data-table";
-import { InputField } from "@/shared/ui/form/input-field";
-import { Button } from "@/shared/ui/kit/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
-import { Separator } from "@/shared/ui/kit/separator";
+import { DataTable } from "@/shared/components/data-table/data-table";
+import { InputField } from "@/shared/components/form/input-field";
+import { Button } from "@/shared/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
+import { Separator } from "@/shared/components/ui/separator";
 
 import { ContractCard } from "./contract-card";
 import { ContractDrawer } from "./contract-drawer";
@@ -21,6 +26,11 @@ export const ContractSection = () => {
   const [contracts, setContracts] = useState<ContractItem[]>(
     () => getValues("contracts") ?? [],
   );
+  const [selectedId, setSelectedId] = useState<number | null>(
+    () => getValues("contracts")?.at(-1)?.id ?? null,
+  );
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<ContractItem | null>(null);
 
   const currentPlanBalance = useWatch({ control, name: "currentPlanBalance" });
 
@@ -31,12 +41,6 @@ export const ContractSection = () => {
     },
     [setValue],
   );
-
-  const [selectedId, setSelectedId] = useState<number | null>(
-    () => getValues("contracts")?.at(-1)?.id ?? null,
-  );
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<ContractItem | null>(null);
 
   const selectedContract = contracts.find((c) => c.id === selectedId) ?? null;
 

@@ -9,15 +9,15 @@ import {
   type Path,
 } from "react-hook-form";
 
-import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/kit/button";
-import { Calendar } from "@/shared/ui/kit/calendar";
-import { Field, FieldError, FieldLabel } from "@/shared/ui/kit/field";
+import { Button } from "@/shared/components/ui/button";
+import { Calendar } from "@/shared/components/ui/calendar";
+import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/shared/ui/kit/popover";
+} from "@/shared/components/ui/popover";
+import { cn } from "@/shared/lib/utils";
 
 export function DatePickerField<TFieldValues extends FieldValues>({
   label,

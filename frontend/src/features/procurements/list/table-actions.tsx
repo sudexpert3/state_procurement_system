@@ -6,7 +6,7 @@ import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@/shared/ui/kit/input-group";
+} from "@/shared/components/ui/input-group";
 
 import { ColumnVisibilityDropdown } from "./column-visibility-dropdown";
 

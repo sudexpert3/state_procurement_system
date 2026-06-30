@@ -2,7 +2,12 @@ import type { ProcurementFormInput, ProcurementFormOutput } from "../schema";
 
 import { useFormContext } from "react-hook-form";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 
 import { FormTabsNavigation } from "./form-tabs-navigation";
 

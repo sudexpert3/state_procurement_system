@@ -4,7 +4,7 @@ import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@/shared/ui/kit/input-group";
+} from "@/shared/components/ui/input-group";
 
 type Props = {
   search: string;

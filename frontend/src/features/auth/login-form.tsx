@@ -5,10 +5,10 @@ import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import z from "zod";
 
+import { Button } from "@/shared/components/ui/button";
+import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field";
+import { Input } from "@/shared/components/ui/input";
 import { ROUTES } from "@/shared/model/routes";
-import { Button } from "@/shared/ui/kit/button";
-import { Field, FieldError, FieldLabel } from "@/shared/ui/kit/field";
-import { Input } from "@/shared/ui/kit/input";
 
 const loginSchema = z.object({
   login: z.string().min(1, "Обязательное поле"),

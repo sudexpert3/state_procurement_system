@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import z from "zod";
 
-import { Button } from "@/shared/ui/kit/button";
+import { Button } from "@/shared/components/ui/button";
 import {
   Combobox,
   ComboboxContent,
@@ -14,7 +14,7 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
-} from "@/shared/ui/kit/combobox";
+} from "@/shared/components/ui/combobox";
 import {
   Drawer,
   DrawerClose,
@@ -22,9 +22,9 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "@/shared/ui/kit/drawer";
-import { Field, FieldError, FieldLabel } from "@/shared/ui/kit/field";
-import { Input } from "@/shared/ui/kit/input";
+} from "@/shared/components/ui/drawer";
+import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field";
+import { Input } from "@/shared/components/ui/input";
 
 const classifierSchema = z.object({
   code: z.string().min(1, "Обязательное поле"),
@@ -128,6 +128,7 @@ export const ClassifierForm = ({
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel>Родительский классификатор</FieldLabel>
                 <Combobox
+                  items={parentOptions}
                   onValueChange={(val: EconomicClassifier | null) =>
                     field.onChange(val?.id ?? null)
                   }

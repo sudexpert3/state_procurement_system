@@ -5,14 +5,14 @@ import { ChevronRightIcon } from "lucide-react";
 import { Controller, useFormContext } from "react-hook-form";
 
 import { rqClient } from "@/shared/api/instance";
-import { InputField } from "@/shared/ui/form/input-field";
-import { TextAreaField } from "@/shared/ui/form/text-area-field";
-import { Button } from "@/shared/ui/kit/button";
+import { InputField } from "@/shared/components/form/input-field";
+import { TextAreaField } from "@/shared/components/form/text-area-field";
+import { Button } from "@/shared/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/shared/ui/kit/collapsible";
+} from "@/shared/components/ui/collapsible";
 import {
   Combobox,
   ComboboxContent,
@@ -22,13 +22,13 @@ import {
   ComboboxList,
   ComboboxTrigger,
   ComboboxValue,
-} from "@/shared/ui/kit/combobox";
+} from "@/shared/components/ui/combobox";
 import {
   Field,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@/shared/ui/kit/field";
+} from "@/shared/components/ui/field";
 
 type DepartmentNode = Department & {
   sub_departments: DepartmentNode[];

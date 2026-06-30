@@ -6,7 +6,7 @@ import {
   InputGroupInput,
 } from "@/shared/components/ui/input-group";
 
-import { BuyersFilter } from "./buyers-filter";
+import { DepartmentsFilter } from "./departments-filter";
 
 type Props = {
   search: string;
@@ -15,7 +15,7 @@ type Props = {
   onStatusFilterChange: (value: string) => void;
 };
 
-export const BuyersToolbar = ({
+export const DepartmentsToolbar = ({
   search,
   onSearchChange,
   statusFilter,
@@ -29,9 +29,12 @@ export const BuyersToolbar = ({
       <InputGroupInput
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
-        placeholder="Поиск по имени"
+        placeholder="Поиск по наименованию"
       />
     </InputGroup>
-    <BuyersFilter value={statusFilter} onValueChange={onStatusFilterChange} />
+    <DepartmentsFilter
+      value={statusFilter}
+      onValueChange={onStatusFilterChange}
+    />
   </div>
 );

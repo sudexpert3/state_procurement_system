@@ -9,7 +9,7 @@ import {
   SearchIcon,
 } from "lucide-react";
 
-import { Button } from "@/shared/ui/kit/button";
+import { Button } from "@/shared/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -17,8 +17,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/shared/ui/kit/dropdown-menu";
-import { Input } from "@/shared/ui/kit/input";
+} from "@/shared/components/ui/dropdown-menu";
+import { Input } from "@/shared/components/ui/input";
 
 type Props<TData> = { table: Table<TData> };
 
@@ -26,7 +26,6 @@ const getColumnLabel = (column: {
   id: string;
   columnDef: { header?: unknown };
 }) => {
-  console.log(column);
   const header = column.columnDef.header;
   return typeof header === "string" ? header : column.id;
 };

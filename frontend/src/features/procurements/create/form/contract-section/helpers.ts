@@ -18,15 +18,6 @@ export const calcYearTotal = (year: YearDistribution): number =>
   calcRowTotal(year.plan) +
   calcRowTotal(year.transfer);
 
-export function formatAmount(value: number): string {
-  if (value === 0) return "—";
-  return value.toLocaleString("ru-RU");
-}
-
-// --- Производные суммы для read-only карточки договора ---
-// В форме не хранятся (по CLAUDE.md «производное — не state»), считаются на лету.
-
-// Сумма всего профинансированного (оплачено) по всем годам договора
 export const calcContractFinanced = (contract: ContractItem): number =>
   contract.quarterDistribution.reduce(
     (sum, year) => sum + calcRowTotal(year.financing),
@@ -37,7 +28,8 @@ export const calcContractFinanced = (contract: ContractItem): number =>
 export const calcTotalLiabilities = (
   contract: ContractItem,
   currentPlanBalance: number,
-): number => (contract.contractSum > 0 ? contract.contractSum : currentPlanBalance);
+): number =>
+  contract.contractSum > 0 ? contract.contractSum : currentPlanBalance;
 
 // Отклонение план/договор
 // TODO: формула предположительная — уточнить у бизнеса

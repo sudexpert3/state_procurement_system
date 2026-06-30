@@ -1,8 +1,8 @@
 import type {
   ColumnDef,
   ColumnFiltersState,
-  Table as ReactTable,
   SortingState,
+  Table as ReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
 
@@ -17,7 +17,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-import { Skeleton } from "@/shared/ui/kit/skeleton";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -25,7 +25,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/shared/ui/kit/table";
+} from "@/shared/components/ui/table";
 
 import { DataTablePagination } from "./data-table-pagination";
 

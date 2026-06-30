@@ -1,4 +1,4 @@
-import type { Buyer } from "@/shared/api/schema";
+import type { Department } from "@/shared/api/schema";
 
 import { useCallback, useMemo, useState } from "react";
 
@@ -15,13 +15,13 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 
-import { BuyerForm } from "./buyer-form";
-import { BuyersToolbar } from "./buyers-toolbar";
+import { DepartmentForm } from "./form/department-form";
+import { useDepartmentDelete } from "./hooks/use-department-delete";
+import { useDepartments } from "./hooks/use-departments";
 import { createColumns } from "./columns";
-import { useBuyerDelete } from "./use-buyer-delete";
-import { useBuyers } from "./use-buyers";
+import { DepartmentsToolbar } from "./departments-toolbar";
 
-const BuyersPage = () => {
+const DepartmentsPage = () => {
   const {
     search,
     setSearch,
@@ -30,33 +30,40 @@ const BuyersPage = () => {
     data,
     isLoading,
     invalidate,
-  } = useBuyers();
+  } = useDepartments();
 
-  const { handleDelete, deletingId } = useBuyerDelete(invalidate);
+  const { handleDelete, deletingId } = useDepartmentDelete(invalidate);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<Buyer | null>(null);
+  const [editingItem, setEditingItem] = useState<Department | null>(null);
 
   const handleAdd = () => {
     setEditingItem(null);
     setDrawerOpen(true);
   };
 
-  const handleEdit = useCallback((item: Buyer) => {
+  const handleEdit = useCallback((item: Department) => {
     setEditingItem(item);
     setDrawerOpen(true);
   }, []);
 
+  const parentNameById = useMemo(
+    () => new Map(data.map((item) => [item.id, item.short_name])),
+    [data],
+  );
+
   const columns = useMemo(
-    () => createColumns(handleEdit, handleDelete, deletingId),
-    [handleEdit, handleDelete, deletingId],
+    () => createColumns(handleEdit, handleDelete, parentNameById, deletingId),
+    [handleEdit, handleDelete, parentNameById, deletingId],
   );
 
   return (
     <Card className="max-w-full gap-2 bg-transparent ring-0">
       <CardHeader>
-        <CardTitle>Для кого закупка</CardTitle>
-        <CardDescription>Список заказчиков</CardDescription>
+        <CardTitle>Подразделения</CardTitle>
+        <CardDescription>
+          Иерархический справочник подразделений
+        </CardDescription>
         <CardAction>
           <Button onClick={handleAdd}>
             <PlusIcon size={16} />
@@ -71,7 +78,7 @@ const BuyersPage = () => {
           isLoading={isLoading}
           actions={() => (
             <div className="py-4">
-              <BuyersToolbar
+              <DepartmentsToolbar
                 search={search}
                 onSearchChange={setSearch}
                 statusFilter={statusFilter}
@@ -82,9 +89,10 @@ const BuyersPage = () => {
         />
       </CardContent>
 
-      <BuyerForm
+      <DepartmentForm
         open={drawerOpen}
         item={editingItem}
+        allItems={data}
         onClose={() => setDrawerOpen(false)}
         onSuccess={invalidate}
       />
@@ -92,4 +100,4 @@ const BuyersPage = () => {
   );
 };
 
-export const Component = BuyersPage;
+export const Component = DepartmentsPage;

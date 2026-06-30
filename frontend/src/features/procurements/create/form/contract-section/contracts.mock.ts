@@ -1,6 +1,6 @@
 import type { ContractItem } from "./contract.schema";
 
-import { contractStatus } from "../../config";
+import { contractStatus } from "./config";
 
 // Демо-данные договоров. Будут заменены ответом API при подключении.
 export const contractsMock: ContractItem[] = [
@@ -26,7 +26,15 @@ export const contractsMock: ContractItem[] = [
       shortName: "КНГ",
       isActive: true,
     },
-    quarterDistribution: [],
+    quarterDistribution: [
+      {
+        id: "yd-1-2025",
+        year: 2025,
+        financing: { q1: 3000000, q2: 3500000, q3: 3000000, q4: 3000000 },
+        plan: { q1: 3000000, q2: 3000000, q3: 2000000, q4: 1500000 },
+        transfer: { q1: 0, q2: 500000, q3: 1000000, q4: 1500000 },
+      },
+    ],
   },
   {
     id: 2,
@@ -50,7 +58,15 @@ export const contractsMock: ContractItem[] = [
       shortName: "БС",
       isActive: true,
     },
-    quarterDistribution: [],
+    quarterDistribution: [
+      {
+        id: "yd-2-2025",
+        year: 2025,
+        financing: { q1: 1000000, q2: 2500000, q3: 2700000, q4: 2500000 },
+        plan: { q1: 0, q2: 2000000, q3: 2500000, q4: 2000000 },
+        transfer: { q1: 0, q2: 0, q3: 200000, q4: 700000 },
+      },
+    ],
   },
   {
     id: 3,
@@ -98,7 +114,22 @@ export const contractsMock: ContractItem[] = [
       shortName: "КНГ",
       isActive: true,
     },
-    quarterDistribution: [],
+    quarterDistribution: [
+      {
+        id: "yd-4-2025",
+        year: 2025,
+        financing: { q1: 4300000, q2: 4500000, q3: 3500000, q4: 2200000 },
+        plan: { q1: 4300000, q2: 4000000, q3: 3000000, q4: 2000000 },
+        transfer: { q1: 0, q2: 500000, q3: 1000000, q4: 1200000 },
+      },
+      {
+        id: "yd-4-2026",
+        year: 2026,
+        financing: { q1: 2000000, q2: 1500000, q3: 1000000, q4: 500000 },
+        plan: { q1: 1500000, q2: 1500000, q3: 0, q4: 0 },
+        transfer: { q1: 0, q2: 500000, q3: 1500000, q4: 2000000 },
+      },
+    ],
   },
   {
     id: 5,
@@ -170,7 +201,15 @@ export const contractsMock: ContractItem[] = [
       shortName: "ВК",
       isActive: true,
     },
-    quarterDistribution: [],
+    quarterDistribution: [
+      {
+        id: "yd-7-2025",
+        year: 2025,
+        financing: { q1: 3500000, q2: 4200000, q3: 4000000, q4: 3700000 },
+        plan: { q1: 3000000, q2: 4000000, q3: 3500000, q4: 2000000 },
+        transfer: { q1: 0, q2: 200000, q3: 700000, q4: 1700000 },
+      },
+    ],
   },
   {
     id: 8,
@@ -242,6 +281,21 @@ export const contractsMock: ContractItem[] = [
       shortName: "ВК",
       isActive: true,
     },
-    quarterDistribution: [],
+    quarterDistribution: [
+      {
+        id: "yd-10-2025",
+        year: 2025,
+        financing: { q1: 2000000, q2: 3000000, q3: 3500000, q4: 3000000 },
+        plan: { q1: 2500000, q2: 3500000, q3: 4000000, q4: 3400000 },
+        transfer: { q1: 0, q2: 500000, q3: 1000000, q4: 1400000 },
+      },
+      {
+        id: "yd-10-2026",
+        year: 2026,
+        financing: { q1: 2000000, q2: 2000000, q3: 0, q4: 0 },
+        plan: { q1: 2500000, q2: 2000000, q3: 500000, q4: 0 },
+        transfer: { q1: 0, q2: 500000, q3: 2000000, q4: 2500000 },
+      },
+    ],
   },
 ];

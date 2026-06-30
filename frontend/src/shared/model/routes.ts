@@ -7,6 +7,7 @@ export const ROUTES = {
   PROCUREMENT_ADD: "/procurement/add",
   PROCUREMENT: "/procurement/:id",
   ECONOMIC_CLASSIFIER: `/economic-classifier`,
+  DEPARTMENTS: `/departments`,
   CODES: `/codes`,
   BUYERS: `/buyers`,
   SUPPLIERS: `/suppliers`,

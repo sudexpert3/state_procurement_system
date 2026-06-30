@@ -1,19 +1,19 @@
 import { ChevronsUpDownIcon, LogOutIcon } from "lucide-react";
 import { useNavigate } from "react-router";
 
-import { ROUTES } from "@/shared/model/routes";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/shared/ui/kit/sidebar";
+} from "@/shared/components/ui/sidebar";
+import { ROUTES } from "@/shared/model/routes";
 
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "../../shared/ui/kit/avatar";
+} from "../../shared/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +21,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../../shared/ui/kit/dropdown-menu";
+} from "../../shared/components/ui/dropdown-menu";
 
 export function NavUser({
   user,

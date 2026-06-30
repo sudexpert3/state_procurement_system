@@ -5,8 +5,8 @@ import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
+import { Button } from "@/shared/components/ui/button";
 import { ROUTES } from "@/shared/model/routes";
-import { Button } from "@/shared/ui/kit/button";
 
 import { contractsMock } from "./form/contract-section/contracts.mock";
 import { FormProcurement } from "./form/form";

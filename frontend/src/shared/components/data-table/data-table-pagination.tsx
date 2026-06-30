@@ -7,14 +7,14 @@ import {
   ArrowRightToLine,
 } from "lucide-react";
 
-import { Button } from "@/shared/ui/kit/button";
+import { Button } from "@/shared/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/kit/select";
+} from "@/shared/components/ui/select";
 
 import { useDataTablePagination } from "./hooks/use-data-table-pagination";
 

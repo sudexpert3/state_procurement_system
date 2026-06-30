@@ -7,15 +7,15 @@ import {
   UniversityIcon,
 } from "lucide-react";
 
-import { ROUTES } from "@/shared/model/routes";
-import { Separator } from "@/shared/ui/kit/separator";
+import { Separator } from "@/shared/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarMenuButton,
-} from "@/shared/ui/kit/sidebar";
+} from "@/shared/components/ui/sidebar";
+import { ROUTES } from "@/shared/model/routes";
 
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
@@ -55,7 +55,7 @@ const data = {
         },
         {
           title: "Главки",
-          url: "#",
+          url: ROUTES.DEPARTMENTS,
         },
         {
           title: "Исполнители",

@@ -3,8 +3,8 @@ import type { EconomicClassifier } from "./economic-classifier.page";
 
 import { ArrowUpDownIcon, PencilIcon } from "lucide-react";
 
-import { DeleteButton } from "@/shared/ui/delete-button";
-import { Button } from "@/shared/ui/kit/button";
+import { DeleteButton } from "@/shared/components/delete-button";
+import { Button } from "@/shared/components/ui/button";
 
 export const createColumns = (
   onEdit: (item: EconomicClassifier) => void,

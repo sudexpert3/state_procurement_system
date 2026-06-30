@@ -1,10 +1,14 @@
 import type { ContractItem } from "./contract.schema";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
-import { Separator } from "@/shared/ui/kit/separator";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
+import { Separator } from "@/shared/components/ui/separator";
 
-import { contractStatus } from "../../config";
-
+import { contractStatus } from "./config";
 import {
   calcRemainingBalance,
   calcTotalLiabilities,

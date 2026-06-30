@@ -7,9 +7,9 @@ import {
   type Path,
 } from "react-hook-form";
 
-import { Field, FieldError, FieldLabel } from "../kit/field";
-import { RequiredField } from "../kit/required-field";
-import { Textarea } from "../kit/textarea";
+import { Field, FieldError, FieldLabel } from "../ui/field";
+import { RequiredField } from "../ui/required-field";
+import { Textarea } from "../ui/textarea";
 
 export const TextAreaField = <TFieldValues extends FieldValues>({
   name,

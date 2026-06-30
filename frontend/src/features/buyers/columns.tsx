@@ -3,9 +3,9 @@ import type { Buyer } from "@/shared/api/schema";
 
 import { ArrowUpDownIcon, PencilIcon } from "lucide-react";
 
-import { DeleteButton } from "@/shared/ui/delete-button";
-import { Badge } from "@/shared/ui/kit/badge";
-import { Button } from "@/shared/ui/kit/button";
+import { DeleteButton } from "@/shared/components/delete-button";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 
 export const createColumns = (
   onEdit: (item: Buyer) => void,

@@ -3,11 +3,9 @@ import type { ContractItem } from "./contract.schema";
 
 import { FileTextIcon, PencilIcon } from "lucide-react";
 
-import { DeleteButton } from "@/shared/ui/delete-button";
-import { Button } from "@/shared/ui/kit/button";
-
-const formatDate = (date: Date | null) =>
-  date ? date.toLocaleDateString("ru-RU") : "—";
+import { DeleteButton } from "@/shared/components/delete-button";
+import { Button } from "@/shared/components/ui/button";
+import { formatDate } from "@/shared/lib/helpers/format-date";
 
 export const createColumns = (
   onView: (row: ContractItem) => void,

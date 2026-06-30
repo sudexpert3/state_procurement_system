@@ -4,7 +4,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/shared/ui/kit/card";
+} from "@/shared/components/ui/card";
 
 import { LoginForm } from "./login-form";
 

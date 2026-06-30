@@ -4,8 +4,8 @@ import { useCallback, useMemo, useState } from "react";
 
 import { PlusIcon } from "lucide-react";
 
-import { DataTable } from "@/shared/ui/data-table/data-table";
-import { Button } from "@/shared/ui/kit/button";
+import { DataTable } from "@/shared/components/data-table/data-table";
+import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardAction,
@@ -13,7 +13,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/shared/ui/kit/card";
+} from "@/shared/components/ui/card";
 
 import { ClassifierForm } from "./classifier-form";
 import { ClassifierToolbar } from "./classifier-toolbar";

@@ -1,8 +1,7 @@
 import { href, useNavigate } from "react-router";
 
-import { ROUTES } from "@/shared/model/routes";
-import { DataTable } from "@/shared/ui/data-table/data-table";
-import { Button } from "@/shared/ui/kit/button";
+import { DataTable } from "@/shared/components/data-table/data-table";
+import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardAction,
@@ -10,7 +9,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/shared/ui/kit/card";
+} from "@/shared/components/ui/card";
+import { ROUTES } from "@/shared/model/routes";
 
 import { columns } from "./columns";
 import { TableActions } from "./table-actions";
@@ -168,14 +168,14 @@ const ProcurementsPage = () => {
   };
   const year = new Date().getFullYear();
 
-  // const { data: bueyrs } = rqClient.useQuery("get", "/api/buyers/");
-  // console.log(bueyrs);
+  // const { data } = rqClient.useQuery("get", "/gpz/");
+  // console.log(data);
   // const getAuth = async () => {
-  //   const res = await fetchClient.GET("/gpz", "/");
-  //   console.log(res);
+  //   const res = await fetchClient.GET("/gpz", {});
+  //   console.log("result", res);
   // };
   // useEffect(() => {
-  //   getAuth();+
+  //   getAuth();
   // }, []);
 
   const handleAddProcurement = () => {

@@ -7,8 +7,7 @@ import { toast } from "sonner";
 import z from "zod";
 
 import { rqClient } from "@/shared/api/instance";
-import { handleHttpError } from "@/shared/lib/handle-http-error";
-import { Button } from "@/shared/ui/kit/button";
+import { Button } from "@/shared/components/ui/button";
 import {
   Drawer,
   DrawerClose,
@@ -16,9 +15,10 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "@/shared/ui/kit/drawer";
-import { Field, FieldError, FieldLabel } from "@/shared/ui/kit/field";
-import { Input } from "@/shared/ui/kit/input";
+} from "@/shared/components/ui/drawer";
+import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field";
+import { Input } from "@/shared/components/ui/input";
+import { handleHttpError } from "@/shared/lib/helpers/handle-http-error";
 
 const supplierSchema = z.object({
   name: z.string().min(1, "Обязательное поле"),
@@ -68,7 +68,7 @@ export const SupplierForm = ({ open, item, onClose, onSuccess }: Props) => {
       );
     } else {
       createMutation.mutate(
-        { body: values },
+        { body: { id: 0, ...values } },
         {
           onSuccess: () => handleSuccess("Поставщик добавлен"),
           onError: (error) =>

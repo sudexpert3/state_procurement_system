@@ -5,11 +5,16 @@ import { type FormEvent, useMemo, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 
-import { DatePickerField } from "@/shared/ui/form/date-picker-field";
-import { InputField } from "@/shared/ui/form/input-field";
-import { TextAreaField } from "@/shared/ui/form/text-area-field";
-import { Button } from "@/shared/ui/kit/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
+import { DatePickerField } from "@/shared/components/form/date-picker-field";
+import { InputField } from "@/shared/components/form/input-field";
+import { TextAreaField } from "@/shared/components/form/text-area-field";
+import { Button } from "@/shared/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import {
   Combobox,
   ComboboxContent,
@@ -17,7 +22,7 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
-} from "@/shared/ui/kit/combobox";
+} from "@/shared/components/ui/combobox";
 import {
   Drawer,
   DrawerClose,
@@ -25,8 +30,8 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "@/shared/ui/kit/drawer";
-import { Field, FieldError, FieldLabel } from "@/shared/ui/kit/field";
+} from "@/shared/components/ui/drawer";
+import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -34,23 +39,23 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/kit/select";
-import { Separator } from "@/shared/ui/kit/separator";
+} from "@/shared/components/ui/select";
+import { Separator } from "@/shared/components/ui/separator";
 
-import { contractStatus } from "../../config";
-
+import { contractStatus } from "./config";
 import {
   type ContractItem,
   type ContractItemInput,
   makeContractItemSchema,
 } from "./contract.schema";
-import { EditableTable } from "./editable-table";
+import { QuarterTable } from "./quarter-table";
 
 // TODO: заменить на список поставщиков из API
-const suppliersMock = [
-  { id: "101", value: "Поставщик 101" },
-  { id: "102", value: "Поставщик 102" },
-  { id: "103", value: "Поставщик 103" },
+const suppliersMock: Supplier[] = [
+  { id: 1, name: "Поставщик 1", unp: "123456789" },
+  { id: 2, name: "Поставщик 2", unp: "987654321" },
+  { id: 3, name: "Поставщик 3", unp: "555555555" },
+  { id: 4, name: "Поставщик 4", unp: "111111111" },
 ];
 
 type Props = {
@@ -167,36 +172,41 @@ export const ContractDrawer = ({
                 <Controller
                   name="supplierId"
                   control={control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>Поставщик</FieldLabel>
-                      <Combobox
-                        onValueChange={(val: Supplier | null) =>
-                          field.onChange(val?.id ?? null)
-                        }
-                        //TODO : исправить отображение поставщика
-                        itemToStringLabel={(val) => (val ? val.name : "")}>
-                        <ComboboxInput
-                          placeholder="Выберите поставщика"
-                          showClear
-                          aria-invalid={fieldState.invalid}
-                        />
-                        <ComboboxContent portalContainer={portalContainerRef}>
-                          <ComboboxList>
-                            {suppliersMock.map((item) => (
-                              <ComboboxItem key={item.id} value={item}>
-                                {item.value}
-                              </ComboboxItem>
-                            ))}
-                          </ComboboxList>
-                          <ComboboxEmpty>Ничего не найдено</ComboboxEmpty>
-                        </ComboboxContent>
-                      </Combobox>
-                      {fieldState.invalid && (
-                        <FieldError errors={[fieldState.error]} />
-                      )}
-                    </Field>
-                  )}
+                  render={({ field, fieldState }) => {
+                    return (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>Поставщик</FieldLabel>
+                        <Combobox
+                          items={suppliersMock}
+                          onValueChange={(val: Supplier | null) =>
+                            field.onChange(val?.id ?? null)
+                          }
+                          //TODO : исправить отображение поставщика
+                          itemToStringLabel={(val) => (val ? val.name : "")}>
+                          <ComboboxInput
+                            placeholder="Выберите поставщика"
+                            showClear
+                            aria-invalid={fieldState.invalid}
+                          />
+                          <ComboboxContent portalContainer={portalContainerRef}>
+                            <ComboboxEmpty>Ничего не найдено</ComboboxEmpty>
+                            <ComboboxList>
+                              {(supplier: (typeof suppliersMock)[0]) => (
+                                <ComboboxItem
+                                  key={supplier.id}
+                                  value={supplier}>
+                                  {supplier.name}
+                                </ComboboxItem>
+                              )}
+                            </ComboboxList>
+                          </ComboboxContent>
+                        </Combobox>
+                        {fieldState.invalid && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    );
+                  }}
                 />
                 <TextAreaField
                   control={control}
@@ -262,7 +272,7 @@ export const ContractDrawer = ({
               </CardContent>
             </Card>
 
-            <EditableTable />
+            <QuarterTable />
           </form>
         </FormProvider>
 

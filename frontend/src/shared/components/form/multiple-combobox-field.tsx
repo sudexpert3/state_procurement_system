@@ -7,19 +7,25 @@ import {
   type Path,
 } from "react-hook-form";
 
-import { Field, FieldError, FieldLabel } from "@/shared/ui/kit/field";
+import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field";
+import { cn } from "@/shared/lib/utils";
 
 import {
   Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
   ComboboxContent,
   ComboboxEmpty,
-  ComboboxInput,
   ComboboxItem,
   ComboboxList,
-} from "../kit/combobox";
+  ComboboxValue,
+  useComboboxAnchor,
+} from "../ui/combobox";
 
 type ComboboxItem = {
-  id: number | string;
+  id: string | number;
+  value: string;
 };
 
 type ComboboxFieldProps<
@@ -33,15 +39,11 @@ type ComboboxFieldProps<
   showClear?: boolean;
   autoHighlight?: boolean;
   placeholder?: string;
+  chipsClassName?: string;
   className?: string;
-  inputClassName?: string;
-  renderItemValue: (item: TItem) => string;
-} & Omit<
-  ComboboxRootProps<TItem, false>,
-  "multiple" | "value" | "onValueChange" | "items"
->;
+} & Omit<ComboboxRootProps<TItem, true>, "value" | "onValueChange" | "items">;
 
-export const ComboboxField = <
+export const ComboboxMultipleField = <
   TFieldValues extends FieldValues,
   TItem extends ComboboxItem,
 >({
@@ -49,14 +51,15 @@ export const ComboboxField = <
   name,
   label,
   items,
-  showClear = true,
-  autoHighlight = true,
+  showClear,
+  autoHighlight,
   placeholder,
+  chipsClassName,
   className,
-  inputClassName,
-  renderItemValue,
   ...props
 }: ComboboxFieldProps<TFieldValues, TItem>) => {
+  const anchor = useComboboxAnchor();
+
   return (
     <Controller
       control={control}
@@ -68,21 +71,32 @@ export const ComboboxField = <
             <Combobox
               {...props}
               items={items}
-              value={items.find((item) => item.id === field.value) ?? null}
-              onValueChange={(item) => field.onChange(item?.id)}
-              autoHighlight={autoHighlight}>
-              <ComboboxInput
-                placeholder={placeholder}
-                showClear={showClear}
-                aria-invalid={fieldState.invalid}
-                className={inputClassName}
-              />
-              <ComboboxContent>
+              value={field.value ?? []}
+              onValueChange={field.onChange}
+              autoHighlight={autoHighlight}
+              multiple>
+              <ComboboxChips
+                ref={anchor}
+                className={cn("w-full max-w-xs", chipsClassName)}>
+                <ComboboxValue>
+                  {(values: TItem[]) => (
+                    <>
+                      {values.map((value) => (
+                        <ComboboxChip key={value.id}>
+                          {value.value}
+                        </ComboboxChip>
+                      ))}
+                      <ComboboxChipsInput />
+                    </>
+                  )}
+                </ComboboxValue>
+              </ComboboxChips>
+              <ComboboxContent anchor={anchor}>
                 <ComboboxEmpty>Ничего не найдено</ComboboxEmpty>
                 <ComboboxList>
                   {(item: TItem) => (
                     <ComboboxItem key={item.id} value={item}>
-                      {renderItemValue(item)}
+                      {item.value}
                     </ComboboxItem>
                   )}
                 </ComboboxList>

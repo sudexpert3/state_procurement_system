@@ -7,8 +7,13 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { Card, CardContent } from "@/shared/ui/kit/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/kit/tabs";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/shared/components/ui/tabs";
 
 import { BaseInfoSection } from "./base-info-section";
 import { ContractSection } from "./contract-section";

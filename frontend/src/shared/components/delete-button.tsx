@@ -10,8 +10,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/shared/ui/kit/alert-dialog";
-import { Button } from "@/shared/ui/kit/button";
+} from "@/shared/components/ui/alert-dialog";
+import { Button } from "@/shared/components/ui/button";
 
 interface DeleteButtonProps {
   onConfirm: () => void;

@@ -1,16 +1,18 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Supplier } from "@/shared/api/schema";
+import type { Department } from "@/shared/api/schema";
 
 import { ArrowUpDownIcon, PencilIcon } from "lucide-react";
 
 import { DeleteButton } from "@/shared/components/delete-button";
+import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 
 export const createColumns = (
-  onEdit: (item: Supplier) => void,
+  onEdit: (item: Department) => void,
   onDelete: (id: number) => void,
+  parentNameById: Map<number, string>,
   deletingId?: number | null,
-): ColumnDef<Supplier>[] => [
+): ColumnDef<Department>[] => [
   {
     id: "actions",
     cell: ({ row }) => (
@@ -31,27 +33,45 @@ export const createColumns = (
     enableHiding: false,
   },
   {
-    accessorKey: "name",
+    accessorKey: "full_name",
     header: ({ column }) => (
       <Button
         variant="ghost"
         size="sm"
         className="-ml-3"
         onClick={column.getToggleSortingHandler()}>
-        Наименование <ArrowUpDownIcon size={14} className="ml-1" />
+        Полное наименование <ArrowUpDownIcon size={14} className="ml-1" />
       </Button>
     ),
   },
   {
-    accessorKey: "unp",
+    accessorKey: "short_name",
     header: ({ column }) => (
       <Button
         variant="ghost"
         size="sm"
         className="-ml-3"
         onClick={column.getToggleSortingHandler()}>
-        УНП <ArrowUpDownIcon size={14} className="ml-1" />
+        Краткое наименование <ArrowUpDownIcon size={14} className="ml-1" />
       </Button>
+    ),
+  },
+  {
+    accessorKey: "parent",
+    header: "Вышестоящее",
+    cell: ({ row }) => {
+      const parentId = row.original.parent;
+      if (parentId == null) return "—";
+      return parentNameById.get(parentId) ?? `#${parentId}`;
+    },
+  },
+  {
+    accessorKey: "is_active",
+    header: "Статус",
+    cell: ({ row }) => (
+      <Badge variant={row.original.is_active ? "default" : "secondary"}>
+        {row.original.is_active ? "Действующее" : "Не действующее"}
+      </Badge>
     ),
   },
 ];

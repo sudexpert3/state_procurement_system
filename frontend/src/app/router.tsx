@@ -4,9 +4,10 @@ import { createBrowserRouter, redirect } from "react-router";
 import { Toaster } from "sonner";
 
 import * as buyers from "@/features/buyers";
-import * as suppliers from "@/features/suppliers";
+import * as departments from "@/features/departments";
 import * as economicClassifier from "@/features/economic-classifier";
 import * as procurements from "@/features/procurements";
+import * as suppliers from "@/features/suppliers";
 import { ROUTES } from "@/shared/model/routes";
 
 import { App } from "./app";
@@ -47,6 +48,10 @@ export const router = createBrowserRouter([
               {
                 path: ROUTES.ECONOMIC_CLASSIFIER,
                 lazy: economicClassifier.list,
+              },
+              {
+                path: ROUTES.DEPARTMENTS,
+                lazy: departments.list,
               },
               {
                 path: ROUTES.BUYERS,

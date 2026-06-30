@@ -8,6 +8,7 @@ export const handleHttpError = (
   const errorMessage = error instanceof Error ? error.message : defaultMessage;
 
   if (print) {
+    // eslint-disable-next-line no-console
     console.log({
       message: defaultMessage,
       description: errorMessage,

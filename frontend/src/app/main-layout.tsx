@@ -3,13 +3,13 @@ import { Suspense } from "react";
 import { Outlet } from "react-router";
 
 import { AppSidebar } from "@/features/sidebar";
-import { Separator } from "@/shared/ui/kit/separator";
+import { Separator } from "@/shared/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/shared/ui/kit/sidebar";
-import { TooltipProvider } from "@/shared/ui/kit/tooltip";
+} from "@/shared/components/ui/sidebar";
+import { TooltipProvider } from "@/shared/components/ui/tooltip";
 
 export const MainLayout = () => {
   return (
