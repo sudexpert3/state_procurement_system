@@ -116,7 +116,7 @@ class Command(BaseCommand):
         # JSON...}
         #
         # # Создаем или обновляем пункт плана
-        # plan_obj, created = Plan.objects.update_or_create(
+        # plan_obj, created = PlanItem.objects.update_or_create(
         #     id=data['id'],
         #     defaults={
         #         'purchases_id': data['purchases_id'],

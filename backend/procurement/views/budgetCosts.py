@@ -5,7 +5,7 @@ from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 
 from procurement.models.budgetCosts import BudgetCosts
-from procurement.serializers import BudgetCostsImportSerializer  # Укажите ваш относительный или абсолютный путь
+from procurement.serializers import BudgetCostsImportSerializer, BudgetCostsSerializer  # Укажите ваш относительный или абсолютный путь
 
 
 class BudgetCostsViewSet(viewsets.ModelViewSet):
@@ -14,11 +14,12 @@ class BudgetCostsViewSet(viewsets.ModelViewSet):
     Принимает сырые коды казначейства и автоматически увязывает их с иерархией ЭКР ГКСЭ.
     """
     queryset = BudgetCosts.objects.all().select_related(
-        'functional_class', 'program_class', 'external_economic_class',
-        'economic_class', 'economic_section', 'economic_subsection',
-        'economic_kind', 'economic_article'
+        'functional_class', 'program_class', 'economic_class',
+        'internal_economic_class', 'internal_economic_section', 'internal_economic_subsection',
+        'internal_economic_kind', 'internal_economic_article'
     )
-    serializer_class = BudgetCostsImportSerializer
+
+    serializer_class = BudgetCostsSerializer
     permission_classes = [AllowAny]  # Временный отладочный режим системы без авторизации
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['year', 'purchases_items_id', 'budget_code']

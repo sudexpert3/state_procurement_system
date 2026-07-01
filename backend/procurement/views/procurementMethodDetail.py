@@ -2,35 +2,30 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
 
-from ..serializers import ProcurementMethodDetailSerializer
-from ..models import ProcurementMethodDetail
+from procurement.serializers import ProcurementMethodDetailSerializer, ProcurementMethodTreeSerializer
+from procurement.models import ProcurementMethodDetail
 
 
 class ProcurementMethodDetailViewSet(viewsets.ModelViewSet):
     """Эндпоинт вывода пунктов и статей процедур госзакупок РБ"""
-    queryset = ProcurementMethodDetail.objects.all()
+    queryset = ProcurementMethodDetail.objects.filter(is_active=True).select_related('parent')
     serializer_class = ProcurementMethodDetailSerializer
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['parent']
+    filterset_fields = ['parent', 'is_active']
     pagination_class = None
 
+    def get_serializer_class(self):
+        if self.request.query_params.get('list', 'false') == 'true':
+            return ProcurementMethodDetailSerializer
+        return ProcurementMethodTreeSerializer
+
     def get_queryset(self):
-        queryset = ProcurementMethodDetail.objects.all()
+        if not self.request:
+            return super().get_queryset()
 
-        params = self.request.query_params
-        print(params)
+        is_flat_list = self.request.query_params.get('list', 'false').lower() == 'true'
+        if is_flat_list:
+            return super().get_queryset()
 
-        is_active = params.get('is_active', 'True').lower() == 'true'
-        queryset = queryset.filter(is_active=is_active)
-
-        parent = params.get('parent', None)
-        no_parent = params.get('parent__isnull', '').lower() == 'true'
-
-        if parent and int(parent):
-            queryset = queryset.filter(parent=parent)
-            
-        if no_parent:
-            queryset = queryset.filter(parent__isnull=True)
-
-        return queryset
+        return ProcurementMethodDetail.objects.filter(is_active=True, parent__isnull=True).prefetch_related('sub_methods')

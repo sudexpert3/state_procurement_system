@@ -20,20 +20,19 @@ class DepartmentViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         """
-        Динамический выбор сериализатора.
-        Если в GET-запросе передан флаг ?tree=true, бэкенд возвращает вложенное дерево.
+        Динамический выбор сериализатора. По умолчанию возвращает сериализатор вложенного дерева.
+        Если в GET-запросе передан флаг ?list=true, бэкенд возвращает плоский список подразделений.
         """
-        if self.request.query_params.get('tree') == 'true':
-            return DepartmentTreeSerializer
-        return DepartmentSerializer
+        if self.request.query_params.get('list', 'false') == 'true':
+            return DepartmentSerializer
+        return DepartmentTreeSerializer
 
     def get_queryset(self):
-        """
-        Оптимизация базы данных: если запрашивается дерево, то выбираются
-        только корневые элементы (parent=None), чтобы избежать дублирования веток.
-        """
-        queryset = super().get_queryset()
-        if self.request.query_params.get('tree') == 'true':
-            return queryset.filter(parent__isnull=True).prefetch_related('sub_departments')
-        return queryset
+        if not self.request:
+            return super().get_queryset()
 
+        is_flat_list = self.request.query_params.get('list', 'false').lower() == 'true'
+        if is_flat_list:
+            return super().get_queryset()
+
+        return Department.objects.filter(is_active=True, parent__isnull=True).prefetch_related('sub_departments')

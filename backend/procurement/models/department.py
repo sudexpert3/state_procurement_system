@@ -5,16 +5,8 @@ class Department(models.Model):
     full_name = models.CharField("Полное наименование подразделения", max_length=512, unique=True)
     short_name = models.CharField("Краткое наименование подразделения", max_length=16, unique=True)
     is_active = models.BooleanField("Действующее подразделение", default=True)
-
     # Рекурсивная связь для построения древовидной структуры ведомства
-    parent = models.ForeignKey(
-        'self',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='sub_departments',
-        verbose_name="Вышестоящее подразделение (Агрегатор)"
-    )
+    parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='sub_departments', verbose_name="Вышестоящее подразделение (Агрегатор)")
 
     class Meta:
         verbose_name = "Подразделение"

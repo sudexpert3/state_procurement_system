@@ -19,22 +19,38 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from django.conf import settings
-from procurement.views import (get_purchases_view, ContractViewSet, SupplierViewSet, ProcurementMethodDetailViewSet,
-                               TreasuryPaymentViewSet, BuyerViewSet, BudgetCostsViewSet, UnitOfMeasurementViewSet, DepartmentViewSet,
-                               GosZakupkiPushDraftAPIView, GosZakupkiPullActualAPIView)
+from procurement.views import (PurchasesViewSet,
+                               PlanItemViewSet, UnitOfMeasurementViewSet, OkrbProductViewSet,
+                               BudgetCostsViewSet, FunctionalCodeViewSet, ExternalEconomicCodeViewSet,
+                               InternalEconomicClassifierViewSet, ProgramCodeViewSet,
+                               ContractViewSet, SupplierViewSet, BuyerViewSet, ProcurementMethodDetailViewSet,
+                               TreasuryPaymentViewSet,
+                               DepartmentViewSet,
+                               GosZakupkiPushDraftAPIView, GosZakupkiPullActualAPIView,
+                               )
+from procurement.views import (get_purchases_view, get_purchases_items, get_data_gpz)
+
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-
 router = DefaultRouter()
-router.register(r'contracts', ContractViewSet, basename='contract')
-router.register(r'suppliers', SupplierViewSet, basename='supplier')
-router.register(r'procurement_methods', ProcurementMethodDetailViewSet, basename='procurement_method')
-router.register(r'payments', TreasuryPaymentViewSet, basename='payment')
-router.register(r'buyers', BuyerViewSet, basename='buyer')
-router.register(r'budget_costs', BudgetCostsViewSet, basename='budget_cost')
+router.register(r'purchases', PurchasesViewSet, basename='purchases')
+router.register(r'plan_items', PlanItemViewSet, basename='plan_items')
 router.register(r'units_of_measurement', UnitOfMeasurementViewSet, basename='unit_of_measurement')
-router.register(r'departments', DepartmentViewSet, basename='department')
+router.register(r'okrb', OkrbProductViewSet, basename='okrb')
+router.register(r'budget_costs', BudgetCostsViewSet, basename='budget_costs')
+router.register(r'functional_code', FunctionalCodeViewSet, basename='functional_code')
+router.register(r'economic_code', ExternalEconomicCodeViewSet, basename='economic_code')
+router.register(r'internal_economic_code', InternalEconomicClassifierViewSet, basename='internal_economic_classifier')
+router.register(r'program_code', ProgramCodeViewSet, basename='program_code')
+router.register(r'contracts', ContractViewSet, basename='contracts')
+router.register(r'suppliers', SupplierViewSet, basename='suppliers')
+router.register(r'buyers', BuyerViewSet, basename='buyers')
+router.register(r'procurement_methods', ProcurementMethodDetailViewSet, basename='procurement_methods')
+router.register(r'payments', TreasuryPaymentViewSet, basename='payments')
+router.register(r'departments', DepartmentViewSet, basename='departments')
 
+
+# router.register(r'api_purchases', PurchasesViewSet, basename='api_purchases')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -43,16 +59,19 @@ urlpatterns = [
     # path('api/auth/', include('djoser.urls')),
     # path('api/auth/', include('djoser.urls.jwt')),
 
-    path('gpz/', get_purchases_view, name='get_gpz'),
-
-    path('api/', include(router.urls)),
     # Скачивание схемы в формате YAML (из неё будем делать типы)
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     # Интерактивная документация Swagger для обсуждения с фронтендером
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 
-path('api/goszakupki/push-draft/', GosZakupkiPushDraftAPIView.as_view(), name='gz-push-draft'),
-path('api/goszakupki/pull-actual/', GosZakupkiPullActualAPIView.as_view(), name='gz-pull-actual'),
+    path('api/gosakupki/get_purchases_all', get_purchases_view, name='get_purchases_all'),
+    path('api/gosakupki/get_purchases_items/<int:purchase_id>/', get_purchases_items, name='get_purchases_items'),
+    path('api/gosakupki/get_gpz/<int:purchase_id>/', get_data_gpz, name='get_data_gpz'),
+
+    path('api/goszakupki/push-draft/', GosZakupkiPushDraftAPIView.as_view(), name='gz-push-draft'),
+    path('api/goszakupki/pull-actual/', GosZakupkiPullActualAPIView.as_view(), name='gz-pull-actual'),
+
+    path('api/', include(router.urls)),
 ]
 
 # Добавляем раздачу медиа-файлов (только для разработки)

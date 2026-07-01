@@ -2,7 +2,7 @@ import os
 from django.core.management.base import BaseCommand
 from django.db import transaction
 import openpyxl
-from procurement.models.okrb import OkrbProduct
+from procurement.models.okrbProduct import OkrbProduct
 
 
 class Command(BaseCommand):

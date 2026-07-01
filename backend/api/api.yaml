@@ -1,0 +1,990 @@
+openapi: 3.0.0
+info:
+  title: 'API GZ'
+  description: 'Описание API goszakupki.by'
+  version: 2.0.0
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Аутентификация
+      summary: Аутентификация
+      operationId: authLogin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                username:
+                  description: 'Имя пользователя'
+                  type: string
+                password:
+                  description: Пароль
+                  type: string
+              type: object
+      responses:
+        '200':
+          description: Токены
+          content:
+            application/json:
+              schema:
+                properties:
+                  token: { description: 'JWT token', type: string }
+                  refresh_token: { description: 'Refresh token', type: string }
+                type: object
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestHttpException'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedHttpException'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenHttpException'
+        '404':
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundHttpException'
+  /auth/refresh-token:
+    post:
+      tags:
+        - Аутентификация
+      summary: 'Получение новых токенов'
+      operationId: authRefreshToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                refresh_token:
+                  description: 'Refresh token'
+                  type: string
+              type: object
+      responses:
+        '200':
+          description: Токены
+          content:
+            application/json:
+              schema:
+                properties:
+                  token: { description: 'JWT token', type: string }
+                  refresh_token: { description: 'Refresh token', type: string }
+                type: object
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestHttpException'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedHttpException'
+  '/purchase/{id}':
+    get:
+      tags:
+        - 'Планы закупок'
+      summary: 'Получение плана по ID'
+      operationId: purchaseGet
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID плана'
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Данные плана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchases'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedHttpException'
+        '404':
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundHttpException'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenHttpException'
+      security:
+        -
+          bearerAuth: []
+  /purchase/all:
+    get:
+      tags:
+        - 'Планы закупок'
+      summary: 'Получение списка планов'
+      operationId: purchaseAll
+      responses:
+        '200':
+          description: 'Список планов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PurchasesAllElement'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedHttpException'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenHttpException'
+      security:
+        -
+          bearerAuth: []
+  '/purchase/items/{id}':
+    get:
+      tags:
+        - 'Планы закупок'
+      summary: 'Получение позиций плана'
+      operationId: purchaseItemsGet
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID плана'
+          required: true
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Данные позиций плана'
+          headers:
+            x-pagination-current-page:
+              description: 'Номер текущей страницы'
+              schema:
+                type: integer
+            x-pagination-page-count:
+              description: 'Количество страниц'
+              schema:
+                type: integer
+            x-pagination-per-page:
+              description: 'Количество источников на странице'
+              schema:
+                type: integer
+            x-pagination-total-count:
+              description: 'Общее количество источников'
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PurchasesItemsGet'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedHttpException'
+        '404':
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundHttpException'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenHttpException'
+      security:
+        -
+          bearerAuth: []
+  '/purchase/budget-cost/{purchases_items_id}':
+    get:
+      tags:
+        - 'Планы закупок'
+      summary: 'Получение источников финансирования позиции плана'
+      operationId: purchaseItemBudgetCostGet
+      parameters:
+        -
+          name: purchases_items_id
+          in: path
+          description: 'ID позиции плана'
+          required: true
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Источники финансирования позиции плана'
+          headers:
+            x-pagination-current-page:
+              description: 'Номер текущей страницы'
+              schema:
+                type: integer
+            x-pagination-page-count:
+              description: 'Количество страниц'
+              schema:
+                type: integer
+            x-pagination-per-page:
+              description: 'Количество источников на странице'
+              schema:
+                type: integer
+            x-pagination-total-count:
+              description: 'Общее количество источников'
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BudgetCostPurchItems'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedHttpException'
+        '404':
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundHttpException'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenHttpException'
+      security:
+        -
+          bearerAuth: []
+  /purchase/create:
+    post:
+      tags:
+        - 'Планы закупок'
+      summary: 'Добавление нового плана'
+      operationId: createPurchase
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                year:
+                  description: 'Год плана'
+                  type: integer
+                date_sign:
+                  description: 'Дата утверждения плана закупок'
+                  type: integer
+                signer_descrip:
+                  description: 'Сведения о лице, утвердившем годовой план государственных закупок или изменения и (или) дополнения к нему'
+                  type: string
+              type: object
+      responses:
+        '200':
+          description: 'Данные плана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchases'
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestHttpException'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedHttpException'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenHttpException'
+      security:
+        -
+          bearerAuth: []
+  '/purchase/update/{id}':
+    put:
+      tags:
+        - 'Планы закупок'
+      summary: 'Редактирование плана'
+      operationId: updatePurchase
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID плана'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                year:
+                  description: 'Год плана'
+                  type: integer
+                date_sign:
+                  description: 'Дата утверждения плана закупок'
+                  type: integer
+                signer_descrip:
+                  description: 'Сведения о лице, утвердившем годовой план государственных закупок или изменения и (или) дополнения к нему'
+                  type: string
+              type: object
+      responses:
+        '200':
+          description: 'Данные плана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchases'
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestHttpException'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedHttpException'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenHttpException'
+        '404':
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundHttpException'
+      security:
+        -
+          bearerAuth: []
+  '/purchase/create-item/{purchase_id}':
+    post:
+      tags:
+        - 'Планы закупок'
+      summary: 'Добавление позиции плана'
+      operationId: createPurchaseItem
+      parameters:
+        -
+          name: purchase_id
+          in: path
+          description: 'ID плана'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                title:
+                  description: 'Название позиции годового плана закупок'
+                  type: string
+                okrb:
+                  description: 'Код ОКРБ 007 позиции годового плана закупок'
+                  type: string
+                type:
+                  description: "Вид предмета закупки для позиции годового плана ('product','job')"
+                  type: string
+                val_type:
+                  description: 'Код ОКРБ 008 позиции годового плана'
+                  type: string
+                val_amount:
+                  description: 'Объем закупки позиции годового плана'
+                  type: integer
+                procedure_months:
+                  description: 'Месяцы проведения закупок по позиции годового плана'
+                  type: array
+                  items: { type: integer }
+                is_by_organizator:
+                  description: 'Отметка о проведении закупки по позиции годового плана организатором'
+                  type: boolean
+                fund_cost:
+                  description: 'Цена позиции годового плана за счет средств внебюджетных фондов'
+                  type: integer
+                inner_cost:
+                  description: 'Цена позиции годового плана за счет собственных средств'
+                  type: integer
+                unp_budget:
+                  description: 'УНП организации (обособленного подразделения/ филиала/ бюджетной организации), в чьих интересах планируется закупка'
+                  type: string
+                budget_costs:
+                  description: 'Бюджетные средства и средства государственных внебюджетных фондов: перечисление средств осуществляется со счетов органов государственного казначейства'
+                  type: array
+                  items: { properties: { number: { description: 'Порядковый номер', type: integer }, cost: { description: 'Ориентировочная стоимость предмета закупки по источнику финансирования позиции плана', type: number }, functional_code: { description: "Код функциональной классификации позиции плана (пример: '10 00 00 847')", type: string }, department_code: { description: "Код ведомственной классификации позиции плана (пример: '010')", type: string }, economic_code: { description: "Код экономической классификации позиции плана (пример: '1 00 00 00')", type: string }, program_code: { description: "Код программной классификации позиции плана (пример: '010 00')", type: string }, year: { description: 'Год финансирования из бюджета позиции плана', type: integer }, budget_code: { description: 'Код бюджета позиции плана', type: integer } }, type: object }
+              type: object
+      responses:
+        '200':
+          description: 'Данные позиции плана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchasesItems'
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestHttpException'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedHttpException'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenHttpException'
+        '404':
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundHttpException'
+      security:
+        -
+          bearerAuth: []
+  '/purchase/update-item/{id}':
+    put:
+      tags:
+        - 'Планы закупок'
+      summary: 'Редактирование позиции плана'
+      operationId: updatePurchaseItem
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID позиции плана'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                title:
+                  description: 'Название позиции годового плана закупок'
+                  type: string
+                okrb:
+                  description: 'Код ОКРБ 007 позиции годового плана закупок'
+                  type: string
+                type:
+                  description: "Вид предмета закупки для позиции годового плана ('product','job')"
+                  type: string
+                val_type:
+                  description: 'Код ОКРБ 008 позиции годового плана'
+                  type: string
+                val_amount:
+                  description: 'Объем закупки позиции годового плана'
+                  type: integer
+                procedure_months:
+                  description: 'Месяцы проведения закупок по позиции годового плана'
+                  type: array
+                  items: { type: integer }
+                is_by_organizator:
+                  description: 'Отметка о проведении закупки по позиции годового плана организатором'
+                  type: boolean
+                fund_cost:
+                  description: 'Цена позиции годового плана за счет средств внебюджетных фондов'
+                  type: integer
+                inner_cost:
+                  description: 'Цена позиции годового плана за счет собственных средств'
+                  type: integer
+                unp_budget:
+                  description: 'УНП организации (обособленного подразделения/ филиала/ бюджетной организации), в чьих интересах планируется закупка'
+                  type: string
+                budget_costs:
+                  description: 'Бюджетные средства и средства государственных внебюджетных фондов: перечисление средств осуществляется со счетов органов государственного казначейства'
+                  type: array
+                  items: { properties: { number: { description: 'Порядковый номер', type: integer }, cost: { description: 'Ориентировочная стоимость предмета закупки по источнику финансирования позиции плана', type: number }, functional_code: { description: "Код функциональной классификации позиции плана (пример: '10 00 00 847')", type: string }, department_code: { description: "Код ведомственной классификации позиции плана (пример: '010')", type: string }, economic_code: { description: "Код экономической классификации позиции плана (пример: '1 00 00 00')", type: string }, program_code: { description: "Код программной классификации позиции плана (пример: '010 00')", type: string }, year: { description: 'Год финансирования из бюджета позиции плана', type: integer }, budget_code: { description: 'Код бюджета позиции плана', type: integer } }, type: object }
+              type: object
+      responses:
+        '200':
+          description: 'Данные позиции плана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchasesItems'
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestHttpException'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedHttpException'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenHttpException'
+        '404':
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundHttpException'
+      security:
+        -
+          bearerAuth: []
+  '/purchase/view-item/{id}':
+    get:
+      tags:
+        - 'Планы закупок'
+      summary: 'Получение позиции плана'
+      operationId: viewPurchaseItem
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID позиции плана'
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Данные позиции плана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchasesItems'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedHttpException'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenHttpException'
+        '404':
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundHttpException'
+      security:
+        -
+          bearerAuth: []
+  '/purchase/delete-items/{purchase_id}':
+    put:
+      tags:
+        - 'Планы закупок'
+      summary: 'Удаление позиций плана'
+      operationId: deletePurchaseItems
+      parameters:
+        -
+          name: purchase_id
+          in: path
+          description: 'ID плана'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                ids:
+                  description: 'id позиций, которые необходимо удалить'
+                  type: array
+                  items: { type: integer }
+              type: object
+      responses:
+        '200':
+          description: 'id удалённых позиций плана'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestHttpException'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedHttpException'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenHttpException'
+        '404':
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundHttpException'
+      security:
+        -
+          bearerAuth: []
+components:
+  schemas:
+    BadRequestHttpException:
+      title: responseError400
+      description: 'Bad Request'
+      properties:
+        name:
+          description: 'Наименование (validate error -> ошибки валидации, bad request -> не переданы данные, и т.д.)'
+          type: string
+        message:
+          description: 'Текст ошибки'
+          type: string
+        status:
+          description: 'Цифровой код ответа'
+          type: integer
+        errors:
+          description: "Будет присутствовать если `name` равен 'validate error'"
+          type: object
+      type: object
+    ForbiddenHttpException:
+      title: responseError403
+      description: 'Структура от фреймворка'
+      properties:
+        name:
+          description: Forbidden
+          type: string
+        message:
+          description: 'Текст ошибки'
+          type: string
+        code:
+          description: 'Какой-то код'
+          type: integer
+        status:
+          description: 'Цифровой код ответа'
+          type: integer
+      type: object
+    NotFoundHttpException:
+      title: responseError404
+      description: 'Структура от фреймворка'
+      properties:
+        name:
+          description: 'Not Found'
+          type: string
+        message:
+          description: 'Текст ошибки'
+          type: string
+        code:
+          description: 'Какой-то код'
+          type: integer
+        status:
+          description: 'Цифровой код ответа'
+          type: integer
+      type: object
+    PurchasesAllElement:
+      description: План
+      properties:
+        id:
+          description: id
+          type: integer
+        year:
+          description: 'Год плана закупок'
+          type: integer
+        is_draft:
+          description: 'Признак черновика плана закупок'
+          type: integer
+        date_added:
+          description: 'Метка времени добавления плана закупок'
+          type: integer
+      type: object
+    PurchasesItemsGet:
+      description: 'Позиция план'
+      properties:
+        id:
+          description: id
+          type: integer
+        purchases_id:
+          description: 'Идентификатор годового плана закупок, к которому относится позиция'
+          type: integer
+        unp_budget:
+          description: 'УНП получателя бюджетны средств, для которого размещена позиция плана'
+          type: string
+        num:
+          description: 'Регистрационный номер позиции годового плана закупок'
+          type: string
+        title:
+          description: 'Название позиции годового плана закупок'
+          type: string
+        okrb:
+          description: 'Код ОКРБ 007 позиции годового плана закупок'
+          type: string
+        okrb_title:
+          description: 'Наименование позиции годового плана закупок согласно ОКРБ 007'
+          type: string
+        type:
+          description: "Вид предмета закупки для позиции годового плана ('product','job')"
+          type: string
+        val_amount:
+          description: 'Объем закупки позиции годового плана'
+          type: number
+        val_type:
+          description: 'Код ОКРБ 008 позиции годового плана'
+          type: string
+        fund_cost:
+          description: 'Цена позиции годового плана за счет средств внебюджетных фондов'
+          type: number
+        inner_cost:
+          description: 'Цена позиции годового плана за счет собственных средств'
+          type: number
+        val_currency:
+          description: 'Валюта позиции годового плана закупок'
+          type: string
+        is_by_organizator:
+          description: 'Отметка о проведении закупки по позиции годового плана организатором'
+          type: boolean
+        procedure_months:
+          description: 'Месяцы проведения закупок по позиции годового плана'
+          type: array
+          items:
+            type: string
+      type: object
+    UnauthorizedHttpException:
+      title: responseError401
+      description: 'Структура от фреймворка'
+      properties:
+        name:
+          description: Unauthorized
+          type: string
+        message:
+          description: 'Your request was made with invalid or expired JSON Web Token.'
+          type: string
+        code:
+          description: 'Какой-то код'
+          type: integer
+        status:
+          description: 'Цифровой код ответа'
+          type: integer
+      type: object
+    PurchasesItems:
+      description: 'Позиция план'
+      properties:
+        id:
+          description: id
+          type: integer
+        purchases_id:
+          description: 'Идентификатор годового плана закупок, к которому относится позиция'
+          type: integer
+        unp_budget:
+          description: 'УНП получателя бюджетны средств, для которого размещена позиция плана'
+          type: string
+        num:
+          description: 'Регистрационный номер позиции годового плана закупок'
+          type: string
+        title:
+          description: 'Название позиции годового плана закупок'
+          type: string
+        okrb:
+          description: 'Код ОКРБ 007 позиции годового плана закупок'
+          type: string
+        okrb_title:
+          description: 'Наименование позиции годового плана закупок согласно ОКРБ 007'
+          type: string
+        type:
+          description: "Вид предмета закупки для позиции годового плана ('product','job')"
+          type: string
+        val_amount:
+          description: 'Объем закупки позиции годового плана'
+          type: number
+        val_type:
+          description: 'Код ОКРБ 008 позиции годового плана'
+          type: string
+        fund_cost:
+          description: 'Цена позиции годового плана за счет средств внебюджетных фондов'
+          type: number
+        inner_cost:
+          description: 'Цена позиции годового плана за счет собственных средств'
+          type: number
+        val_currency:
+          description: 'Валюта позиции годового плана закупок'
+          type: string
+        is_by_organizator:
+          description: 'Отметка о проведении закупки по позиции годового плана организатором'
+          type: boolean
+        procedure_months:
+          description: 'Месяцы проведения закупок по позиции годового плана'
+          type: array
+          items:
+            type: string
+        budget_costs:
+          description: ''
+          type: array
+          items:
+            $ref: '#/components/schemas/BudgetCostPurchItems'
+      type: object
+    Purchases:
+      description: План
+      properties:
+        id:
+          description: id
+          type: integer
+        num:
+          description: 'Регистрационный номер годового плана закупок'
+          type: string
+        company:
+          description: 'Наименование организации, разместившей годовой план закупок'
+          type: string
+        ved:
+          description: 'Ведомственная принадлежность организации, разместившай годовой план закупок'
+          type: string
+        country:
+          description: 'Страна организации, разместившей годовой план закупок'
+          type: string
+        region:
+          description: 'Область (регион) организации, разместившей годовой план закупок'
+          type: string
+        city:
+          description: 'Город (населенный пункт) организации, разместившей годовой план закупок'
+          type: string
+        address:
+          description: 'Адрес организации, разместивше годовой план закупок'
+          type: string
+        establishment:
+          description: 'Идентификатор ведомства, к которому относится организация, разместившая план закупок'
+          type: string
+        date_added:
+          description: 'Метка времени добавления плана закупок'
+          type: integer
+        date_edit:
+          description: 'Метка времени редактирования плана закупок'
+          type: integer
+        date_sign:
+          description: 'Дата утверждения плана закупок'
+          type: integer
+        signer_descrip:
+          description: 'Сведения о лице, утвердившем годовой план государственных закупок или изменения и (или) дополнения к нему'
+          type: string
+        sender_descrip:
+          description: 'Сведения о лице, разместившем план закупок'
+          type: string
+        year:
+          description: 'Год плана закупок'
+          type: integer
+        is_draft:
+          description: 'Признак черновика плана закупок'
+          type: integer
+        at_updated:
+          description: 'Метка времени последего обновления плана закупок'
+          type: string
+      type: object
+    BudgetCostPurchItems:
+      description: 'Бюджетные средства и средства государственных внебюджетных фондов: перечисление средств осуществляется со счетов органов государственного казначейства'
+      properties:
+        purchases_items_id:
+          description: 'Идентификатор позиции плана закупок'
+          type: integer
+        cost:
+          description: 'Ориентировочная стоимость предмета закупки по источнику финансирования позиции плана'
+          type: number
+        functional_code:
+          description: "Код функциональной классификации позиции плана (пример: '10 00 00 847')"
+          type: string
+        department_code:
+          description: "Код ведомственной классификации позиции плана (пример: '010')"
+          type: string
+        economic_code:
+          description: "Код экономической классификации позиции плана (пример: '1 00 00 00')"
+          type: string
+        program_code:
+          description: "Код программной классификации позиции плана (пример: '010 00')"
+          type: string
+        budget_code:
+          description: 'Код бюджета позиции плана'
+          type: integer
+        budget_code_name:
+          description: 'Описание кода бюджета позиции плана'
+          type: string
+        unk:
+          description: 'УНК заказчика позиции плана'
+          type: string
+        tk_id:
+          description: 'Код территориального казначейства позиции плана'
+          type: integer
+        year:
+          description: 'Год финансирования из бюджета позиции плана'
+          type: integer
+      type: object
+  securitySchemes:
+    bearerAuth:
+      type: http
+      bearerFormat: JWT
+      scheme: bearer
+tags:
+  -
+    name: Аутентификация
+    description: Аутентификация
+  -
+    name: 'Планы закупок'
+    description: 'Планы закупок'

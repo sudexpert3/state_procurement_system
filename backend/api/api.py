@@ -1,17 +1,17 @@
-# goszakupki_api.py
 import requests
 import urllib3
 from django.core.cache import cache
+from django.conf import settings
 
 # Отключаем предупреждения SSL в консоли Docker
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-class GosZakupkiAPI:
+class GoszakupkiAPI:
     BASE_URL = "https://api.goszakupki.by"
     TIMEOUT = 15
 
-    def __init__(self, username, password):
+    def __init__(self, username=settings.GPZ_USERNAME, password=settings.GPZ_PASSWORD):
         self.username = username
         self.password = password
         # Создаем сессию для стабильного TLS-соединения (Keep-Alive)
@@ -79,7 +79,6 @@ class GosZakupkiAPI:
 
         try:
             response = self.session.get(url, headers=headers, params=params, timeout=self.TIMEOUT, verify=False)
-            print(response.headers)
         except requests.exceptions:
             response = self.session.get(url, headers=headers, params=params, timeout=self.TIMEOUT, verify=False)
             print("Детали ошибки от сервера:", response.text)
@@ -90,6 +89,5 @@ class GosZakupkiAPI:
             headers = self._get_auth_headers()
             response = self.session.get(url, headers=headers, params=params, timeout=self.TIMEOUT, verify=False)
 
-
         response.raise_for_status()
-        return response.json()
+        return response.json(), response.headers

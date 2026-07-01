@@ -20,7 +20,7 @@ class DepartmentTreeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Department
-        fields = ['id', 'full_name', 'short_name', 'is_active', 'is_root', 'sub_departments']
+        fields = ['id', 'full_name', 'short_name', 'is_active', 'is_root', 'parent', 'sub_departments']
 
     def get_sub_departments(self, obj):
         """Рекурсивно подтягивает только активные дочерние подразделения"""

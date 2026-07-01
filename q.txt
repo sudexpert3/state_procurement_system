@@ -26,3 +26,145 @@ npm run generate-types
 
 
 
+{
+  "id": 119050286,
+  "purchases_id": 68009,
+  "unp_budget": "102377498",
+  "num": "2026-102377498-111",
+  "title": "Услуги по выпуску сертификатов пользователям ГосСУОК",
+  "okrb": "58.29.50.000",
+  "okrb_title": "Услуги по предоставлению лицензий на право использования программного обеспечения",
+  "type": "job",
+  "val_amount": 80,
+  "val_type": "0876",
+  "fund_cost": 0,
+  "inner_cost": 0,
+  "val_currency": "BYN",
+  "procedure_months": [1],
+  "is_by_organizator": false,
+  "budget_costs": [
+    {
+      "purchases_items_id": 119050286,
+      "cost": 12000,
+      "functional_code": "3 12 0 39",
+      "department_code": "55",
+      "economic_code": "1 10 10 99",
+      "program_code": "99 0",
+      "budget_code": 90000,
+      "budget_code_name": "Республиканский бюджет",
+      "unk": "1534",
+      "tk_id": 104,
+      "year": 2026
+    }
+  ]
+}
+
+
+ imported_plan_item_count += 1
+
+        # =====================================================================
+        # РЕАЛИЗАЦИЯ ВАШЕЙ ВЕДОМСТВЕННОЙ СВЕРКИ И РОТАЦИИ (Ветка else)
+        # =====================================================================
+        else:
+            # Вытягиваем саму существующую позицию СУБД
+            existing_plan_item = local_plan_item_qs.first()
+
+            # СЦЕНАРИЙ 2: У нас есть черновик (UPLOAD / DRAFT_APPROVED), который закупщик подписал ЭЦП
+            # Делаем рокировку статусов: старую ACTIVE гасим в ARCHIVE, черновик вводим в ACTIVE
+            pending_snapshot = PlanItemVersion.objects.filter(
+                plan_item=existing_plan_item,
+                status__in=[PlanStatus.DRAFT_APPROVED, PlanStatus.UPLOAD],
+                is_active=True
+            ).first()
+
+            if pending_snapshot:
+                # 1. Отправляем текущую ACTIVE версию в архив (ARCHIVE)
+                PlanItemVersion.objects.filter(plan_item=existing_plan_item, status=PlanStatus.ACTIVE).update(
+                    status=PlanStatus.ARCHIVE,
+                    is_active=False
+                )
+                BudgetCosts.objects.filter(plan_item=existing_plan_item, status=PlanStatus.ACTIVE).update(
+                    status=PlanStatus.ARCHIVE
+                )
+
+                # 2. Наш черновик переводим в статус ACTIVE — лимиты ОИ/ОК вступили в юридическую силу!
+                pending_snapshot.status = PlanStatus.ACTIVE
+                pending_snapshot.changed_at = timezone.now()
+                pending_snapshot.save()
+
+                # Активируем и связанный с ним черновик бюджета BudgetCosts
+                BudgetCosts.objects.filter(plan_item=existing_plan_item, status=PlanStatus.DRAFT).update(
+                    status=PlanStatus.ACTIVE
+                )
+
+                rotated_plan_item_count += 1
+                continue
+
+            # СЦЕНАРИЙ 3: Позиция ACTIVE есть, черновиков нет. Глубокая проверка полей на идентичность
+            active_version = PlanItemVersion.objects.filter(plan_item=existing_plan_item, status=PlanStatus.ACTIVE, is_active=True).first()
+            if active_version:
+                # Сверяем контрольную сумму критических полей СУБД и портала ТЕНДЕР
+                is_identical = (
+                    active_version.title == external_item.get('title') and
+                    active_version.okrb == external_item.get('okrb', '') and
+                    float(active_version.fund_cost) == float(external_item.get('fund_cost', 0)) and
+                    float(active_version.inner_cost) == float(external_item.get('inner_cost', 0)) and
+                    float(active_version.val_amount) == float(external_item.get('val_amount', 0))
+                )
+
+                # Если на портале данные изменились в обход нашей системы — создаем новый текстовый снимок
+                if not is_identical:
+                    active_version.is_active = False  # Архивируем старый снимок текста
+                    active_version.save()
+
+                    next_version_num = (PlanItemVersion.objects.filter(plan_item=existing_plan_item).aggregate(Max('version_number'))['version_number__max'] or 1) + 1
+
+                    # Генерируем инкремент текстовой версии
+                    PlanItemVersion.objects.create(
+                        plan_item=existing_plan_item,
+                        status=PlanStatus.ACTIVE,
+                        purchases_item_id=ext_item_id,
+                        purchases_id=external_item.get('purchases_id'),
+                        unp_budget=external_item.get('unp_budget'),
+                        num=ext_num,
+                        title=external_item.get('title'),
+                        okrb=external_item.get('okrb', ''),
+                        okrb_title=external_item.get('okrb_title'),
+                        type=external_item.get('type'),
+                        val_amount=external_item.get('val_amount', 0),
+                        val_type=external_item.get('val_type', ''),
+                        fund_cost=external_item.get('fund_cost', 0),
+                        inner_cost=external_item.get('inner_cost', 0),
+                        val_currency=external_item.get('val_currency', 'BYN'),
+                        version_number=next_version_num,
+                        is_active=True
+
+
+
+class ContractQuarterlyFinance(models.Model):
+
+Проверить на ошибку: отображение:
+    def __str__(self):
+        return f"Договор № {self.contract.number} — {self.get_quarter_display()} {self.year} г."
+
+
+Почему в     "budget_costs": [
+      {
+        "purchases_items_id": 120595861,
+        "cost": 375.36,
+        "functional_code": "03 12 00 039",
+        "department_code": "055",
+        "economic_code": "1 10 10 99",
+        "program_code": "099 00",
+        "budget_code": 90000,
+        "budget_code_name": "Республиканский бюджет",
+        "unk": "1534",
+        "tk_id": 104,
+        "year": 2026
+      }
+    ],
+    cost: 375.36, это число, а у меня в БД это строка?
+    при этом в модели:
+    cost = models.DecimalField("Ориентировочная стоимость позиции ГПЗ", max_digits=15, decimal_places=2, default=0)
+
+

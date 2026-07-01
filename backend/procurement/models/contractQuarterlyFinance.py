@@ -1,21 +1,17 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils import timezone
 from .contract import Contract
+from ..services import get_current_year
+from core.choices import QuarterTypes
 
 
-class QuarterTypes(models.TextChoices):
-    Q1 = 'Q1', 'I Квартал'
-    Q2 = 'Q2', 'II Квартал'
-    Q3 = 'Q3', 'III Квартал'
-    Q4 = 'Q4', 'IV Квартал'
 
 
 class ContractQuarterlyFinance(models.Model):
     """Квартальное казначейское планирование и кассовое исполнение договора"""
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='quarterly_finances', verbose_name="Договор")
     quarter = models.CharField("Квартал", max_length=2, choices=QuarterTypes.choices, db_index=True)
-    year = models.PositiveIntegerField("Год", db_index=True, default=timezone.now().year)
+    year = models.PositiveIntegerField("Год", db_index=True, default=get_current_year)
 
     planned_cost = models.DecimalField("Прогнозируемый (планируемый) расход", max_digits=15, decimal_places=2, default=0)
     actual_cost = models.DecimalField("Фактический расход (по платежным поручениям)", max_digits=15, decimal_places=2, default=0)

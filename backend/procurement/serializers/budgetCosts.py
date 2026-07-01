@@ -1,90 +1,203 @@
+from django.db import transaction
 from rest_framework import serializers
-from ..models import FunctionalCode, ProgramCode, BudgetCosts, ExternalEconomicCode
+from core.choices import PlanItemStatus
+from procurement.models import FunctionalCode, ProgramCode, BudgetCosts, ExternalEconomicCode
+
+from .internalEconomicClassifier import InternalEconomicClassifierSerializer
+from .externalEconomicCode import ExternalEconomicCodeSerializer
+from .functionalCode import FunctionalCodeSerializer
+from .programCode import ProgramCodeSerializer
 
 
 # =====================================================================
 # 1. СЕРИАЛИЗАТОР ИМПОРТА (для парсинга goszakupki.by)
 # =====================================================================
 class BudgetCostsImportSerializer(serializers.ModelSerializer):
-    """Используется ТОЛЬКО для POST-запросов импорта 'сырых' данных извне"""
-    functional_code = serializers.CharField(write_only=True, required=False)
-    program_code = serializers.CharField(write_only=True, required=False)
-    economic_code = serializers.CharField(write_only=True, required=False)
+    """Используется для POST/каскадного импорта 'сырых' финансовых данных из ИС Тендеры"""
+    # functional_class: "03_12_00 § 039" - это справочник для functional_code: "3 12 0 39"
+    # economic_class "1.10.10.99 Прочие текущие расходы" - это справочник для economic_code: "1 10 10 99"
+    # program_class: "99 00"  - это справочник для program_code: "99 0"
 
     class Meta:
         model = BudgetCosts
         fields = [
-            "purchases_items_id", "year", "cost", "functional_code",
-            "program_code", "economic_code", "budget_code", "budget_code_name",
-            "department_code", "unk", "tk_id", "economic_class"
+            "purchases_items_id", "cost", "functional_code", 'functional_class', "department_code",
+            "economic_code", 'economic_class', "program_code", 'program_class', "budget_code", "budget_code_name",
+            "unk", "tk_id", "year", "plan_item", "status", "internal_economic_class", "internal_economic_section",
+            "internal_economic_subsection", "internal_economic_kind", "internal_economic_article", 'created_at', 'changed_at',
         ]
 
-    def validate(self, attrs):
-        raw_func_code = attrs.pop("functional_code", None)
-        raw_prog_code = attrs.pop("program_code", None)
-        raw_econ_code = attrs.pop("economic_code", None)
+        extra_kwargs = {
+            'plan_item': {'required': False},
+            'status': {'required': False},
+            'created_at': {'required': False},
+            'changed_at': {'required': False},
+            'functional_class': {'required': False, 'allow_null': True},
+            'economic_class': {'required': False, 'allow_null': True},
+            'program_class': {'required': False, 'allow_null': True},
+            'internal_economic_class': {'required': False, 'allow_null': True},
+            'internal_economic_section': {'required': False, 'allow_null': True},
+            'internal_economic_subsection': {'required': False, 'allow_null': True},
+            'internal_economic_kind': {'required': False, 'allow_null': True},
+            'internal_economic_article': {'required': False, 'allow_null': True},
+        }
 
+
+    def to_internal_value(self, data):
+        """ Очистка сырых данных, полученных от goszakupki.by """
+        if not isinstance(data, dict):
+            return super().to_internal_value(data)
+
+        raw_data = data.copy()
+        for field in ['functional_code', 'department_code', 'economic_code', 'program_code', 'budget_code_name', 'unk']:
+            if field in raw_data and (raw_data[field] is None or str(raw_data[field]).strip() == ""):
+                raw_data[field] = None
+            else:
+                raw_data[field] = str(raw_data[field]).strip()
+
+        # Страхуем входящие числовые поля, если API прислало их в виде текста
+        for decimal_field in ['cost']:
+            if decimal_field in raw_data and isinstance(raw_data[decimal_field], str):
+                raw_data[decimal_field] = raw_data[decimal_field].replace(',', '.').strip()
+
+        return super().to_internal_value(raw_data)
+
+    def validate(self, attrs):
+        """ Автоматическое связывание со справочниками.
+           Превращает сырые коды Минфина в полноценные объекты СУБД PostgreSQL.
+        """
+
+        raw_func_code = attrs.get("functional_code", None)
         if raw_func_code:
             func_obj, _ = FunctionalCode.objects.get_or_create(
-                code_api=raw_func_code.strip(),
-                defaults={"description": f"Новый код из API: {raw_func_code}"}
+                code_api=raw_func_code,
+                defaults={"description": f"Новый код из API: {raw_func_code}", "is_active": True}
             )
             attrs["functional_class"] = func_obj
 
+        raw_prog_code = attrs.get("program_code", None)
         if raw_prog_code:
-            clean_prog_code = raw_prog_code.strip()
             prog_obj, _ = ProgramCode.objects.get_or_create(
-                code_api=clean_prog_code,
-                defaults={"description": f"Программа {clean_prog_code}"}
+                code_api=raw_prog_code,
+                defaults={"description": f"Программа {raw_prog_code}", "is_active": True}
             )
             attrs["program_class"] = prog_obj
 
+        raw_econ_code = attrs.get("economic_code", None)
         if raw_econ_code:
-            clean_econ_code = raw_econ_code.strip()
             econ_obj, _ = ExternalEconomicCode.objects.get_or_create(
-                code_api=clean_econ_code,
-                defaults={"description": f"Новый код {clean_econ_code}"}
+                code_api=raw_econ_code,
+                defaults={"description": f"Новый код {raw_econ_code}", "is_active": True}
             )
-            attrs["external_economic_class"] = econ_obj
+            attrs["economic_class"] = econ_obj
 
         return attrs
+
+    def create(self, validated_data):
+        """Идемпотентная запись: проверка дубликатов и сохранение строки финансирования"""
+        plan_item = validated_data.get('plan_item')
+
+        existing_bc_qs = BudgetCosts.objects.filter(
+            plan_item=plan_item,
+            purchases_items_id=validated_data.get('purchases_items_id'),
+            cost=validated_data.get('cost'),
+            functional_code=validated_data.get('functional_code'),
+            department_code=validated_data.get('department_code'),
+            economic_code=validated_data.get('economic_code'),
+            program_code=validated_data.get('program_code'),
+            budget_code=validated_data.get('budget_code'),
+            budget_code_name=validated_data.get('budget_code_name'),
+            unk=validated_data.get('unk'),
+            tk_id=validated_data.get('tk_id'),
+            year=validated_data.get('year'),
+        )
+
+        target_record = existing_bc_qs.first()
+
+        # Сценарий А: Полный дубликат уже активен в системе
+        if target_record and target_record.status == PlanItemStatus.ACTIVE:
+            return target_record
+
+        # Сценарий Б: Идентичный черновик/пакет ротируется в ACTIVE
+        elif target_record and target_record.status == PlanItemStatus.UPLOAD:
+            with transaction.atomic():
+                BudgetCosts.objects.filter(
+                    plan_item=plan_item,
+                    status=PlanItemStatus.ACTIVE
+                ).update(status=PlanItemStatus.ARCHIVE)
+
+                # Активируем найденный пакет и сохраняем изменения в СУБД
+                target_record.status = PlanItemStatus.ACTIVE
+                target_record.save(update_fields=['status', 'changed_at'])
+
+            return target_record
+
+        # Сценарий В: Если запись найдена в промежуточных черновиках — уводим в архив
+        elif target_record:
+            if target_record.status in [PlanItemStatus.DRAFT, PlanItemStatus.DRAFT_ON_REVIEW,
+                                        PlanItemStatus.DRAFT_APPROVED, PlanItemStatus.DRAFT_REJECTED]:
+                target_record.delete()
+                target_record = None
+
+        if 'status' not in validated_data:
+            validated_data['status'] = PlanItemStatus.ACTIVE
+
+        return super().create(validated_data)
+
+
 
 
 # =====================================================================
 # 2. СЕРИАЛИЗАТОР ОТОБРАЖЕНИЯ (для вывода на фронтенде)
 # =====================================================================
-class BudgetCostsAnalyticSerializer(serializers.ModelSerializer):
-    """Используется ТОЛЬКО для GET-запросов отрисовки таблиц ГКСЭ на фронтенде"""
-    economic_class_code = serializers.CharField(source='economic_class.code', read_only=True)
-    economic_class_name = serializers.CharField(source='economic_class.name', read_only=True)
+class BudgetCostsSerializer(serializers.ModelSerializer):
+    functional_class_detail = FunctionalCodeSerializer(source='functional_class', read_only=True)
+    functional_class_code_api = serializers.CharField(source='functional_class.code_api', read_only=True)
 
-    economic_section_code = serializers.CharField(source='economic_section.code', read_only=True)
-    economic_subsection_code = serializers.CharField(source='economic_subsection.code', read_only=True)
-    economic_kind_code = serializers.CharField(source='economic_kind.code', read_only=True)
-    economic_article_code = serializers.CharField(source='economic_article.code', read_only=True)
+    economic_class_detail = ExternalEconomicCodeSerializer(source='economic_class', read_only=True)
+    economic_class_code_api = serializers.CharField(source='economic_class.code_api', read_only=True)
 
-    root_department_cost = serializers.SerializerMethodField()
+    program_class_detail = ProgramCodeSerializer(source='program_class', read_only=True)
+    program_class_code_api = serializers.CharField(source='program_class.code_api', read_only=True)
+
+    internal_economic_class_detail = InternalEconomicClassifierSerializer(source='internal_economic_class',
+                                                                          read_only=True)
+    internal_economic_class_code = serializers.CharField(source='internal_economic_class.code', read_only=True)
+
+    internal_economic_section_detail = InternalEconomicClassifierSerializer(source='internal_economic_section',
+                                                                            read_only=True)
+    internal_economic_section_code = serializers.CharField(source='internal_economic_section.code', read_only=True)
+
+    internal_economic_subsection_detail = InternalEconomicClassifierSerializer(source='internal_economic_subsection',
+                                                                               read_only=True)
+    internal_economic_subsection_code = serializers.CharField(source='internal_economic_subsection.code',
+                                                              read_only=True)
+
+    internal_economic_kind_detail = InternalEconomicClassifierSerializer(source='internal_economic_kind',
+                                                                         read_only=True)
+    internal_economic_kind_code = serializers.CharField(source='internal_economic_kind.code', read_only=True)
+
+    internal_economic_article_detail = InternalEconomicClassifierSerializer(source='internal_economic_article',
+                                                                            read_only=True)
+    internal_economic_article_code = serializers.CharField(source='internal_economic_article.code', read_only=True)
 
     class Meta:
         model = BudgetCosts
-        fields = [
-            'id', 'plan_version', 'purchases_items_id', 'year', 'cost',
-            'functional_class', 'external_economic_class', 'program_class',
-            'department_code', 'budget_code', 'budget_code_name', 'unk', 'tk_id',
-            'economic_class', 'economic_class_code', 'economic_class_name',
-            'economic_section', 'economic_section_code',
-            'economic_subsection', 'economic_subsection_code',
-            'economic_kind', 'economic_kind_code',
-            'economic_article', 'economic_article_code',
-            'root_department_cost'
-        ]
+        fields = ['id', 'plan_item', 'status', 'purchases_items_id', 'cost',
+                  # FUNCTIONAL_CODE:
+                  'functional_class', 'functional_class_code_api', 'functional_class_detail',
+                  'department_code',
+                  # ECONOMIC_CODE:
+                  'economic_class', 'economic_class_code_api', 'economic_class_detail',
+                  # PROGRAM_CODE:
+                  'program_class', 'program_class_code_api', 'program_class_detail',
+                  'budget_code', 'budget_code_name',
+                  'unk', 'tk_id', 'year',
 
-    def get_root_department_cost(self, obj) -> float:
-        request = self.context.get('request')
-        if request and 'root_dep_id' in request.query_params:
-            try:
-                dep_id = int(request.query_params.get('root_dep_id'))
-                return float(obj.get_total_cost_for_root_department(dep_id))
-            except (ValueError, TypeError):
-                return 0
-        return 0
+                  'internal_economic_class', 'internal_economic_class_code', 'internal_economic_class_detail',
+                  'internal_economic_section', 'internal_economic_section_code', 'internal_economic_section_detail',
+                  'internal_economic_subsection', 'internal_economic_subsection_code',
+                  'internal_economic_subsection_detail',
+                  'internal_economic_kind', 'internal_economic_kind_code', 'internal_economic_kind_detail',
+                  'internal_economic_article', 'internal_economic_article_code', 'internal_economic_article_detail',
+                  ]

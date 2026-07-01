@@ -1,13 +1,24 @@
 from django.db import models
 
 
-class PlanStatus(models.TextChoices):
+class PlanItemStatus(models.TextChoices):
+    ACTIVE = 'ACTIVE', 'Актуальный (Доступен для договоров)'
+
     DRAFT = 'DRAFT', 'Черновик (Редактирование)'
-    ON_REVIEW = 'ON_REVIEW', 'На проверке у финансиста'
-    ACTIVE = 'ACTIVE', 'Утвержден (Доступен для договоров)'
-    PUBLISHED = 'PUBLISHED', 'Опубликован на goszakupki.by'
-    REJECTED = 'REJECTED', 'Отклонен финансистом'
-    DELETED = 'DELETED', 'Исключен'
+    EXCLUSION = 'EXCLUSION', 'Запланирован к исключению из плана'
+
+    DRAFT_ON_REVIEW = 'DRAFT_ON_REVIEW', 'На проверке у финансиста'
+    EXCLUSION_ON_REVIEW = 'EXCLUSION_ON_REVIEW', 'На проверке у финансиста'
+
+    DRAFT_APPROVED = 'DRAFT_APPROVED', 'Одобрен финансистом'
+    EXCLUSION_APPROVED = 'EXCLUSION_APPROVED', 'Одобрен финансистом'
+
+    DRAFT_REJECTED = 'DRAFT_REJECTED', 'Отклонен финансистом'
+    EXCLUSION_REJECTED = 'EXCLUSION_REJECTED', 'Отклонен финансистом'
+
+    UPLOAD = 'UPLOAD', 'Загружен на площадку'
+
+    ARCHIVE = 'ARCHIVE', 'В архиве'
 
 
 class ProcurementItemTypes(models.TextChoices):
@@ -22,6 +33,13 @@ class CurrencyTypes(models.TextChoices):
     USD = 'USD', 'Доллар США (USD)'
     EUR = 'EUR', 'Евро (EUR)'
     CNY = 'CNY', 'Китайский юань (CNY)'
+
+
+class QuarterTypes(models.TextChoices):
+    Q1 = 'Q1', 'I Квартал'
+    Q2 = 'Q2', 'II Квартал'
+    Q3 = 'Q3', 'III Квартал'
+    Q4 = 'Q4', 'IV Квартал'
 
 
 # class UnitOfMeasurementType(models.TextChoices):

@@ -18,4 +18,4 @@ class ProgramCode(models.Model):
     def __str__(self):
         if self.description:
             return f"{self.code_api} — {self.description}"
-        return self.code_api
+        return f"{self.code_api}"

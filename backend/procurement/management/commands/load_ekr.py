@@ -3,7 +3,7 @@ import os
 from django.core.management.base import BaseCommand
 from django.db import transaction
 import openpyxl
-from procurement.models import EconomicClassifier
+from procurement.models import InternalEconomicClassifier
 
 
 class Command(BaseCommand):
@@ -41,7 +41,7 @@ class Command(BaseCommand):
                 ("2000000", "КАПИТАЛЬНЫЕ РАСХОДЫ"),
             ]
             for code, name in root_codes:
-                EconomicClassifier.objects.get_or_create(code=code, defaults={"name": name})
+                InternalEconomicClassifier.objects.get_or_create(code=code, defaults={"name": name})
 
             # Читаем строки Excel
             for row in sheet.iter_rows(min_row=1, max_col=2, values_only=True):
@@ -65,14 +65,14 @@ class Command(BaseCommand):
                     else:  # Это Статья (например, 1100303)
                         parent_code = code[:5] + "00"  # Родителем будет Подгруппа (1100300)
 
-                    parent_obj = EconomicClassifier.objects.filter(code=parent_code).first()
+                    parent_obj = InternalEconomicClassifier.objects.filter(code=parent_code).first()
 
                 elif len(code) == 10:  # Это Концевой элемент (например, 1100303022)
                     parent_code = code[:7]  # Родителем ВСЕГДА будет Статья (1100303)
-                    parent_obj = EconomicClassifier.objects.filter(code=parent_code).first()
+                    parent_obj = InternalEconomicClassifier.objects.filter(code=parent_code).first()
 
                 # Сохраняем/обновляем запись с правильным parent
-                EconomicClassifier.objects.update_or_create(
+                InternalEconomicClassifier.objects.update_or_create(
                     code=code,
                     defaults={"name": name, "parent": parent_obj}
                 )

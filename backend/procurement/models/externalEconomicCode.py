@@ -11,9 +11,11 @@ class ExternalEconomicCode(models.Model):
     is_active = models.BooleanField("Действующий код", default=True)
 
     class Meta:
-        verbose_name = "Внешний код ЭКР"
-        verbose_name_plural = "Справочник внешних кодов ЭКР"
+        verbose_name = "Код ЭКР (goszakupki.by)"
+        verbose_name_plural = "Справочник кодов ЭКР (goszakupki.by)"
         ordering = ["code_api"]
 
     def __str__(self):
-        return f"{self.code_api} {self.description}"
+        if self.description:
+            return f"{self.code_api} - {self.description}"
+        return f"{self.code_api}"

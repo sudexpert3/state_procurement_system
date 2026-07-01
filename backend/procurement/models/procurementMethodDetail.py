@@ -5,7 +5,6 @@ from django.db import models
 class ProcurementMethodDetail(models.Model):
     """Справочник видов процедур закупок РБ с детализацией по пунктам нормативных актов"""
     name = models.CharField("Наименование процедуры / пункта", max_length=512, help_text="Например: 'ОИ по пункту 26 (Коммунальные услуги)' или 'Электронный аукцион'")
-
     # Рекурсивная связь: пункт (дочерний элемент) ссылается на базовый метод закупки (родительский элемент)
     parent = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, related_name='sub_methods', verbose_name="Родительский метод закупки",
         help_text="Оставьте пустым, если это верхнеуровневый метод (например, просто 'Закупка из одного источника')"

@@ -2,7 +2,7 @@ import string
 
 import requests
 from django.utils import timezone
-from procurement.models import Plan, PlanVersion
+from procurement.models import PlanItem, PlanItemDetail
 
 
 class GosZakupkiAPIService:
@@ -25,7 +25,7 @@ class GosZakupkiAPIService:
         Пакетная отправка подготовленных изменений.
         Формирует проект изменений на goszakupki.by.
         """
-        active_versions = PlanVersion.objects.filter(
+        active_versions = PlanItemDetail.objects.filter(
             plan_id__in=plan_ids,
             is_active=True
         ).select_related('plan', 'okrb_product', 'val_unit')
@@ -34,7 +34,7 @@ class GosZakupkiAPIService:
 
         for version in active_versions:
             # Аппаратное ведомственное ограничение проекта:
-            if not version.plan.is_public:
+            if not version.planitem.is_public:
                 continue
 
             payload_items.append({
@@ -61,7 +61,7 @@ class GosZakupkiAPIService:
 
             if response.status_code == 201:
                 # Меняем статус позиций плана в нашей СУБД на 'На проверке/портале'
-                Plan.objects.filter(id__in=plan_ids).update(status='ON_REVIEW', updated_at=timezone.now())
+                PlanItem.objects.filter(id__in=plan_ids).update(status='ON_REVIEW', updated_at=timezone.now())
                 return {"status": "success", "project_id": response.json().get("project_id")}
             return {"status": "error", "message": response.text}
 
@@ -86,7 +86,7 @@ class GosZakupkiAPIService:
             for item in published_items:
                 # Находим наш локальный мастер-план по регистрационному номеру
                 reg_num = item.get("num")
-                plan_master = Plan.objects.filter(num=reg_num).first()
+                plan_master = PlanItem.objects.filter(num=reg_num).first()
 
                 if plan_master:
                     # Переводим в статус 'Опубликован'
@@ -94,7 +94,7 @@ class GosZakupkiAPIService:
                     plan_master.save()
 
                     # Записываем официальные ID, присвоенные порталом госзакупок
-                    PlanVersion.objects.filter(plan=plan_master, is_active=True).update(
+                    PlanItemDetail.objects.filter(plan=plan_master, is_active=True).update(
                         plan_goszakupki_id=item.get("id"),
                         purchases_id=item.get("purchases_id")
                     )

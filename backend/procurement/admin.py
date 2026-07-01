@@ -2,9 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .models import (BudgetCosts, Buyer, Contract, ContractItem, Supplier, ContractQuarterlyFinance, \
-                     Department, EconomicClassifier, ExternalEconomicCode, FunctionalCode, OkrbProduct, \
-                     Plan, PlanVersion, PlanShare, ProcurementMethodDetail, ProgramCode, \
-                     TreasuryPayment, UnitOfMeasurement, )
+                     Department, InternalEconomicClassifier, ExternalEconomicCode, FunctionalCode, OkrbProduct, \
+                     PlanItem, PlanItemDetail, PlanShare, ProcurementMethodDetail, ProgramCode, \
+                     TreasuryPayment, UnitOfMeasurement, Purchases)
 
 
 # @admin.register(CustomUser)
@@ -30,21 +30,28 @@ from .models import (BudgetCosts, Buyer, Contract, ContractItem, Supplier, Contr
 #         }),
 #     )
 
+@admin.register(Purchases)
+class PurchasesAdmin(admin.ModelAdmin):
+    list_display = ["purchase_id", "purchase_num", "year", "date_added", "date_edit", "date_sign", "is_draft"]
+    search_fields = ["purchase_id", "purchase_num", "year"]
+    list_filter = ("year", "is_draft",)
 
-@admin.register(Plan)
-class PlanAdmin(admin.ModelAdmin):
-    list_display = ["num", "is_public", "status", "created_at", "updated_at"]
-    search_fields = ['num', 'is_public', "status", ]
-    list_filter = ("is_public", "status",)
+
+@admin.register(PlanItem)
+class PlanItemAdmin(admin.ModelAdmin):
+    # list_display = ["num", "is_public", "is_active", "purchase", "created_at", "updated_at"]
+    list_display = ["num", "is_public", "is_active", "created_at", "updated_at"]
+    search_fields = ["num",]
+    # list_filter = ("is_public", "is_active", "purchase",)
+    list_filter = ("is_public", "is_active",)
 
 
-@admin.register(PlanVersion)
-class PlanVersionAdmin(admin.ModelAdmin):
-    list_display = ["plan", "version_number", "is_active", "plan_goszakupki_id", "purchases_id", "unp_budget", "title",
-                    "okrb", "okrb_title", "type", "val_amount", "val_type", "val_currency", "procedure_months",
-                    "changed_at"]
-    search_fields = ["is_active", "okrb", "type"]
-    list_filter = ("type", "is_active", "okrb",)
+@admin.register(PlanItemDetail)
+class PlanItemDetailAdmin(admin.ModelAdmin):
+    list_display = ["purchases_item_id", "plan_item", "title", "okrb", "type", "val_unit", "val_amount", "val_currency", "procedure_months",
+                    "status", "created_at", "changed_at"]
+    search_fields = ["okrb", "type"]
+    list_filter = ("type", "status", "okrb",)
 
 
 @admin.register(PlanShare)
@@ -55,11 +62,11 @@ class PlanShareAdmin(admin.ModelAdmin):
 
 @admin.register(BudgetCosts)
 class BudgetCostsAdmin(admin.ModelAdmin):
-    list_display = ["year", "purchases_items_id", "plan_version", "cost", "functional_class",
-                    "external_economic_class", "program_class", "economic_class", "economic_section",
-                    "economic_subsection",
-                    "economic_kind", "economic_article"]
-    list_filter = ("year", "functional_class", "external_economic_class", "economic_class")
+    list_display = ["year", "purchases_items_id", "cost", "functional_class",
+                    "economic_class", "program_class", "internal_economic_class", "internal_economic_section",
+                    "internal_economic_subsection",
+                    "internal_economic_kind", "internal_economic_article"]
+    list_filter = ("year", "functional_class", "economic_class", "internal_economic_class")
 
 
 @admin.register(Contract)
@@ -100,11 +107,11 @@ class SupplierAdmin(admin.ModelAdmin):
     search_fields = ["name", "unp"]
 
 
-@admin.register(EconomicClassifier)
+@admin.register(InternalEconomicClassifier)
 class EconomicClassifierAdmin(admin.ModelAdmin):
     list_display = ["code", "name", "parent"]
     search_fields = ["code", "name"]
-    list_filter = ("code",)
+    list_filter = ('is_active', "code", )
 
 
 @admin.register(ProgramCode)
@@ -158,6 +165,6 @@ class ProcurementMethodDetailAdmin(admin.ModelAdmin):
 
 @admin.register(TreasuryPayment)
 class TreasuryPaymentAdmin(admin.ModelAdmin):
-    list_display = ["contract", "payment_number", "payment_date", "amount", "created_at"]
-    search_fields = ["contract", "payment_number"]
-    list_filter = ("created_at",)
+    list_display = ['payment_date', 'quarter', "amount", "contract", "notice", "payment_number", "created_at", ]
+    search_fields = ["contract", "payment_number", "notice", 'payment_date', "amount"]
+    list_filter = ('quarter',)
