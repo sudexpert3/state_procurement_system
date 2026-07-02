@@ -9,7 +9,8 @@ const dateTimeFormatter = new Intl.DateTimeFormat("ru-RU", {
   timeStyle: "short",
 });
 
-const formatDateTime = (value: string) => dateTimeFormatter.format(new Date(value));
+const formatDateTime = (value: string) =>
+  dateTimeFormatter.format(new Date(value));
 
 // Соответствие статуса плана варианту Badge
 const statusVariant: Record<

@@ -1,3 +1,5 @@
+import type { Supplier } from "@/shared/api/schema";
+import type { ContractItem } from "../create/form/contract-section/contract.schema";
 import type { ProcurementFormValues } from "../create/schema";
 
 import { contractsMock } from "../create/form/contract-section/contracts.mock";
@@ -16,6 +18,7 @@ export type ProcurementStatus =
 export type FinancingDepartment = {
   id: number;
   name: string; // наименование подразделения
+  shortName?: string; // краткое наименование подразделения (Department.short_name)
   quantity: number; // количество
   units: string; // ед. измерения
   totalSum: number; // общая сумма подразделения, BYN
@@ -44,13 +47,57 @@ export type FinancingYear = {
   departments: FinancingDepartment[]; // разбивка по подразделениям
 };
 
+// Договор на странице деталей: реквизиты договора + поставщик (supplier_detail
+// с бэка) + разбивка по подразделениям (позиции договора, аналог items).
+export type ContractDetail = ContractItem & {
+  supplier: Supplier;
+  departments: FinancingDepartment[];
+};
+
 // План закупки целиком (как его отдаст GET /api/procurements/{id}/).
 // id и status добавлены поверх формы — на бэке они есть, в схеме формы нет.
-export type ProcurementDetail = ProcurementFormValues & {
+// contracts переопределены на ContractDetail (с поставщиком и позициями).
+export type ProcurementDetail = Omit<ProcurementFormValues, "contracts"> & {
   id: number;
   status: ProcurementStatus;
+  contracts: ContractDetail[];
   financing: FinancingYear[];
 };
+
+// Обогащение мок-договора данными поставщика и позициями договора.
+// TODO: убрать, когда бэкенд отдаст supplier_detail и items напрямую.
+const toContractDetail = (contract: ContractItem): ContractDetail => ({
+  ...contract,
+  supplier: {
+    id: Number(contract.supplierId),
+    name: contract.buyer.fullName,
+    unp: String(100_000_000 + contract.id * 111_111),
+  },
+  departments: [
+    {
+      id: 1,
+      name: "Отдел информационных технологий",
+      shortName: "ОИТ",
+      quantity: 10,
+      units: "шт",
+      totalSum: Math.round(contract.contractSum * 0.6),
+      treasurySum: Math.round(contract.contractSum * 0.48),
+      ownFunds: Math.round(contract.contractSum * 0.03),
+      customerPaymentSum: Math.round(contract.contractSum * 0.09),
+    },
+    {
+      id: 2,
+      name: "Административно-хозяйственный отдел",
+      shortName: "АХО",
+      quantity: 5,
+      units: "шт",
+      totalSum: Math.round(contract.contractSum * 0.4),
+      treasurySum: Math.round(contract.contractSum * 0.32),
+      ownFunds: Math.round(contract.contractSum * 0.02),
+      customerPaymentSum: Math.round(contract.contractSum * 0.06),
+    },
+  ],
+});
 
 // Демо-данные по финансированию (максимум 3 года). Заменятся ответом API.
 export const financingMock: FinancingYear[] = [
@@ -203,7 +250,7 @@ export const procurementDetailMock: ProcurementDetail[] = [
     // contracts
     currentPlanBalance: 125000,
     customerAccounts: ["3600000000001", "3600000000002"],
-    contracts: contractsMock.slice(0, 2),
+    contracts: contractsMock.slice(0, 2).map(toContractDetail),
     financing: financingMock.slice(0, 3),
   },
   {
@@ -241,7 +288,7 @@ export const procurementDetailMock: ProcurementDetail[] = [
     planChangeDate: new Date("2026-03-05"),
     currentPlanBalance: 18500,
     customerAccounts: ["3600000000010"],
-    contracts: contractsMock.slice(2, 4),
+    contracts: contractsMock.slice(2, 4).map(toContractDetail),
     financing: financingMock.slice(0, 1),
   },
   {
