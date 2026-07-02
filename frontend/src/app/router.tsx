@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import * as buyers from "@/features/buyers";
 import * as departments from "@/features/departments";
 import * as economicClassifier from "@/features/economic-classifier";
+import * as plans from "@/features/plans";
 import * as procurements from "@/features/procurements";
 import * as suppliers from "@/features/suppliers";
 import { ROUTES } from "@/shared/model/routes";
@@ -33,6 +34,10 @@ export const router = createBrowserRouter([
           {
             element: <MainLayout />,
             children: [
+              {
+                path: ROUTES.PLANS,
+                lazy: plans.list,
+              },
               {
                 path: ROUTES.PROCUREMENTS,
                 lazy: procurements.list,
@@ -79,7 +84,7 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.HOME,
-        loader: () => redirect(ROUTES.PROCUREMENTS),
+        loader: () => redirect(ROUTES.PLANS),
       },
       {
         path: ROUTES.NOT_FOUND,

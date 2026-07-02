@@ -2,6 +2,7 @@ import * as React from "react";
 
 import {
   BookOpen,
+  CalendarRange,
   GalleryVerticalEnd,
   SquareTerminal,
   UniversityIcon,
@@ -34,6 +35,11 @@ const data = {
     },
   ],
   navMain: [
+    {
+      title: "Годовые планы",
+      url: ROUTES.PLANS,
+      icon: <CalendarRange />,
+    },
     {
       title: "Реестр закупок",
       url: ROUTES.PROCUREMENTS,

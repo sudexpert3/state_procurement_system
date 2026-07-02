@@ -3,6 +3,7 @@ import "react-router/dom";
 export const ROUTES = {
   HOME: "/",
   LOGIN: "/login",
+  PLANS: "/plans",
   PROCUREMENTS: "/procurements",
   PROCUREMENT_ADD: "/procurement/add",
   PROCUREMENT: "/procurement/:id",

@@ -116,7 +116,9 @@ export const DataTable = <TData,>({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}>
+                  data-state={row.getIsSelected() && "selected"}
+                  onClick={() => props.getRow?.(row.original)}
+                  className={props.getRow ? "cursor-pointer" : undefined}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
