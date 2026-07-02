@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { ContractDetail, ProcurementDetail } from "../procurement.mock";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { DataTable } from "@/shared/components/data-table/data-table";
 import { CardContent } from "@/shared/components/ui/card";
@@ -61,6 +61,11 @@ export const ContractsTab = ({ plan }: { plan: ProcurementDetail }) => {
   );
   const balance = plan.allCost - contractsTotal;
 
+  // Выбранный договор: по умолчанию — последний добавленный, по клику в таблице — выбранный.
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const selectedContract =
+    plan.contracts.find((c) => c.id === selectedId) ?? plan.contracts.at(-1);
+
   return (
     <SectionCard title="Договоры">
       <CardContent className="space-y-4 px-2">
@@ -82,38 +87,43 @@ export const ContractsTab = ({ plan }: { plan: ProcurementDetail }) => {
         </div>
 
         {/* Список договоров пункта плана */}
-        <DataTable data={plan.contracts} columns={columns} pagination={false} />
-        {/* По одному блоку на договор (как таб «Информация») */}
-        {plan.contracts.length === 0 ? (
+        <DataTable
+          data={plan.contracts}
+          columns={columns}
+          pagination={false}
+          getRow={(contract) => setSelectedId(contract.id)}
+        />
+
+        {/* Сведения о выбранном договоре (по умолчанию — последний добавленный) */}
+        {!selectedContract ? (
           <p className="text-muted-foreground text-sm">
             По этому плану договоров нет.
           </p>
         ) : (
-          plan.contracts.map((contract) => (
-            <div
-              key={contract.id}
-              className="grid grid-cols-2 gap-4 rounded-md border p-3 md:grid-cols-3">
-              <DetailField label="№ договора" value={contract.contractNumber} />
-              <DetailField
-                label="Дата договора"
-                value={formatDate(contract.contractDate)}
-              />
-              <DetailField label="Поставщик" value={contract.supplier.name} />
-              <DetailField
-                label="УНП поставщика"
-                value={contract.supplier.unp}
-              />
-              <DetailField
-                label="Сумма договора, BYN"
-                value={formatByn(contract.contractSum)}
-              />
+          <div className="grid grid-cols-2 gap-4 rounded-md border p-3 md:grid-cols-3">
+            <DetailField
+              label="№ договора"
+              value={selectedContract.contractNumber}
+            />
+            <DetailField
+              label="Дата договора"
+              value={formatDate(selectedContract.contractDate)}
+            />
+            <DetailField label="Поставщик" value={selectedContract.supplier.name} />
+            <DetailField
+              label="УНП поставщика"
+              value={selectedContract.supplier.unp}
+            />
+            <DetailField
+              label="Сумма договора, BYN"
+              value={formatByn(selectedContract.contractSum)}
+            />
 
-              <DepartmentsTable
-                title="Позиция договора"
-                data={contract.departments}
-              />
-            </div>
-          ))
+            <DepartmentsTable
+              title="Позиция договора"
+              data={selectedContract.departments}
+            />
+          </div>
         )}
       </CardContent>
     </SectionCard>
