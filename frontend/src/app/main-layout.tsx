@@ -2,6 +2,7 @@ import { Suspense } from "react";
 
 import { Outlet } from "react-router";
 
+import { AppSidebar } from "@/features/sidebar";
 import { Separator } from "@/shared/ui/kit/separator";
 import {
   SidebarInset,
@@ -9,7 +10,6 @@ import {
   SidebarTrigger,
 } from "@/shared/ui/kit/sidebar";
 import { TooltipProvider } from "@/shared/ui/kit/tooltip";
-import { AppSidebar } from "@/shared/ui/sidebar";
 
 export const MainLayout = () => {
   return (
