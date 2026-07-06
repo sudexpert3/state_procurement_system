@@ -10,6 +10,9 @@ backend/__pycache__/
 backend/*.pyc
 backend/db.sqlite3
 
+**/__pycache__/
+*.pyc
+
 # 1. Позволяем Git заходить в эти папки (убираем их из потенциального игнора)
 !backend/db/
 !backend/db/backups/
