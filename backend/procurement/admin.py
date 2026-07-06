@@ -39,19 +39,17 @@ class PurchasesAdmin(admin.ModelAdmin):
 
 @admin.register(PlanItem)
 class PlanItemAdmin(admin.ModelAdmin):
-    # list_display = ["num", "is_public", "is_active", "purchase", "created_at", "updated_at"]
-    list_display = ["num", "is_public", "is_active", "created_at", "updated_at"]
-    search_fields = ["num",]
-    # list_filter = ("is_public", "is_active", "purchase",)
-    list_filter = ("is_public", "is_active",)
+    list_display = ["num", "is_public", "is_active", "plan_purchase", "created_at", "updated_at"]
+    search_fields = ["num", ]
+    list_filter = ("is_public", "is_active", "plan_purchase",)
 
 
 @admin.register(PlanItemDetail)
 class PlanItemDetailAdmin(admin.ModelAdmin):
-    list_display = ["purchases_item_id", "plan_item", "title", "okrb", "type", "val_unit", "val_amount", "val_currency", "procedure_months",
-                    "status", "created_at", "changed_at"]
-    search_fields = ["okrb", "type"]
-    list_filter = ("type", "status", "okrb",)
+    list_display = ["num", "purchases_item_id", "status", "title", "okrb", "type", "val_unit", "val_amount", "val_currency",
+                    "procedure_months", "created_at", "changed_at"]
+    search_fields = ["okrb", "type", "num", "plan_item__num",]
+    list_filter = ('created_at', "type", "status", 'num')
 
 
 @admin.register(PlanShare)
@@ -62,11 +60,12 @@ class PlanShareAdmin(admin.ModelAdmin):
 
 @admin.register(BudgetCosts)
 class BudgetCostsAdmin(admin.ModelAdmin):
-    list_display = ["year", "purchases_items_id", "cost", "functional_class",
+    list_display = ["plan_item__num", 'year', 'status', "purchases_items_id", "cost", "functional_class",
                     "economic_class", "program_class", "internal_economic_class", "internal_economic_section",
                     "internal_economic_subsection",
                     "internal_economic_kind", "internal_economic_article"]
-    list_filter = ("year", "functional_class", "economic_class", "internal_economic_class")
+    search_fields = ["plan_item__num", ]
+    list_filter = ("year", 'status', "plan_item__num", "functional_class", "economic_class", "internal_economic_class", )
 
 
 @admin.register(Contract)
@@ -111,7 +110,7 @@ class SupplierAdmin(admin.ModelAdmin):
 class EconomicClassifierAdmin(admin.ModelAdmin):
     list_display = ["code", "name", "parent"]
     search_fields = ["code", "name"]
-    list_filter = ('is_active', "code", )
+    list_filter = ('is_active', "code",)
 
 
 @admin.register(ProgramCode)

@@ -4,17 +4,17 @@ from django.db import models
 class PlanItemStatus(models.TextChoices):
     ACTIVE = 'ACTIVE', 'Актуальный (Доступен для договоров)'
 
-    DRAFT = 'DRAFT', 'Черновик (Редактирование)'
-    EXCLUSION = 'EXCLUSION', 'Запланирован к исключению из плана'
+    DRAFT = 'DRAFT', 'Черновик (изменения)'
+    EXCLUSION = 'EXCLUSION', 'Черновик (исключение)'
 
-    DRAFT_ON_REVIEW = 'DRAFT_ON_REVIEW', 'На проверке у финансиста'
-    EXCLUSION_ON_REVIEW = 'EXCLUSION_ON_REVIEW', 'На проверке у финансиста'
+    DRAFT_ON_REVIEW = 'DRAFT_ON_REVIEW', 'На проверке у финансиста (изменение)'
+    EXCLUSION_ON_REVIEW = 'EXCLUSION_ON_REVIEW', 'На проверке у финансиста (исключение)'
 
-    DRAFT_APPROVED = 'DRAFT_APPROVED', 'Одобрен финансистом'
-    EXCLUSION_APPROVED = 'EXCLUSION_APPROVED', 'Одобрен финансистом'
+    DRAFT_APPROVED = 'DRAFT_APPROVED', 'Одобрен финансистом (изменение)'
+    EXCLUSION_APPROVED = 'EXCLUSION_APPROVED', 'Одобрен финансистом (исключение)'
 
-    DRAFT_REJECTED = 'DRAFT_REJECTED', 'Отклонен финансистом'
-    EXCLUSION_REJECTED = 'EXCLUSION_REJECTED', 'Отклонен финансистом'
+    DRAFT_REJECTED = 'DRAFT_REJECTED', 'Отклонен финансистом (изменение)'
+    EXCLUSION_REJECTED = 'EXCLUSION_REJECTED', 'Отклонен финансистом (исключение)'
 
     UPLOAD = 'UPLOAD', 'Загружен на площадку'
 

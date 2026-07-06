@@ -60,6 +60,26 @@ class BudgetCostsImportSerializer(serializers.ModelSerializer):
             if decimal_field in raw_data and isinstance(raw_data[decimal_field], str):
                 raw_data[decimal_field] = raw_data[decimal_field].replace(',', '.').strip()
 
+        if raw_data['functional_code']:
+            if raw_data['functional_code'] == "3 12 0 39":
+                raw_data['functional_code'] = "03 12 00 039"
+
+        if raw_data['economic_code']:
+            if raw_data['economic_code'] == "1 10 3 99":
+                raw_data['economic_code'] = "1 10 03 99"
+            elif raw_data['economic_code'] == "1 10 4 0":
+                raw_data['economic_code'] = "1 10 04 00"
+            elif raw_data['economic_code'] == "1 10 5 0":
+                raw_data['economic_code'] = "1 10 05 00"
+            elif raw_data['economic_code'] == "1 10 6 0":
+                raw_data['economic_code'] = "1 10 06 00"
+            elif raw_data['economic_code'] == "1 10 7 99":
+                raw_data['economic_code'] = "1 10 07 99"
+
+        if raw_data['program_code']:
+            if raw_data['program_code'] == "99 0":
+                raw_data['program_code'] = "099 00"
+
         return super().to_internal_value(raw_data)
 
     def validate(self, attrs):
@@ -79,7 +99,7 @@ class BudgetCostsImportSerializer(serializers.ModelSerializer):
         if raw_prog_code:
             prog_obj, _ = ProgramCode.objects.get_or_create(
                 code_api=raw_prog_code,
-                defaults={"description": f"Программа {raw_prog_code}", "is_active": True}
+                defaults={"description": f"Новый код из API: {raw_prog_code}", "is_active": True}
             )
             attrs["program_class"] = prog_obj
 
@@ -87,7 +107,7 @@ class BudgetCostsImportSerializer(serializers.ModelSerializer):
         if raw_econ_code:
             econ_obj, _ = ExternalEconomicCode.objects.get_or_create(
                 code_api=raw_econ_code,
-                defaults={"description": f"Новый код {raw_econ_code}", "is_active": True}
+                defaults={"description": f"Новый код из API: {raw_econ_code}", "is_active": True}
             )
             attrs["economic_class"] = econ_obj
 
@@ -201,3 +221,18 @@ class BudgetCostsSerializer(serializers.ModelSerializer):
                   'internal_economic_kind', 'internal_economic_kind_code', 'internal_economic_kind_detail',
                   'internal_economic_article', 'internal_economic_article_code', 'internal_economic_article_detail',
                   ]
+
+    def update(self, instance, validated_data):
+        status = validated_data.pop('status', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        if status is None or status == PlanItemStatus.ACTIVE:
+            instance.status = PlanItemStatus.DRAFT
+        else:
+            instance.status = status
+
+        instance.save()
+
+        return instance

@@ -52,9 +52,6 @@ class BudgetCosts(models.Model):
     class Meta:
         verbose_name = "Бюджетное финансирование"
         verbose_name_plural = "Бюджетное финансирование"
-        # constraints = [
-        #     models.UniqueConstraint(fields=['plan', 'year', 'internal_economic_class'], name='unique_plan_year_economic_ekr')
-        # ]
 
     def save(self, *args, **kwargs):
         """Автоматическая привязка к существующим родительским статьям ЭКР при сохранении"""
@@ -113,19 +110,19 @@ class BudgetCosts(models.Model):
     def __str__(self):
         return f"{self.plan_item.num} {self.year} {self.purchases_items_id})"
 
-    def get_total_cost_for_root_department(self, department_id):
-        """
-        Возвращает сумму всех расходов по конкретному ГУ (включая все его подотделы)
-        для данной годовой бюджетной строки.
-        """
-        from django.db.models import Sum, Q
-
-        # Находим сумму долей, привязанных напрямую к ГУ + долей его дочерних подразделений
-        total = self.shares.filter(
-            Q(department_id=department_id) | Q(department__parent_id=department_id)
-        ).aggregate(total_sum=Sum('shared_cost'))['total_sum']
-
-        return total or 0
+    # def get_total_cost_for_root_department(self, department_id):
+    #     """
+    #     Возвращает сумму всех расходов по конкретному ГУ (включая все его подотделы)
+    #     для данной годовой бюджетной строки.
+    #     """
+    #     from django.db.models import Sum, Q
+    #
+    #     # Находим сумму долей, привязанных напрямую к ГУ + долей его дочерних подразделений
+    #     total = self.shares.filter(
+    #         Q(department_id=department_id) | Q(department__parent_id=department_id)
+    #     ).aggregate(total_sum=Sum('shared_cost'))['total_sum']
+    #
+    #     return total or 0
 
     # Это должно быть не здесь!!! Идея хорошая, но проверяется не так!!!
     # def validate_limits(self):

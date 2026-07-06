@@ -119,3 +119,19 @@ class PlanItemDetail(models.Model):
 
     def __str__(self):
         return f"{self.num} {self.title[:60]}"
+
+    def save(self, *args, **kwargs):
+        # Проверяем, существует ли запись в базе (идет ли процесс UPDATE)
+        if self.pk:
+            # Делаем сверхлегкий запрос к БД, чтобы узнать, какие значения были до сохранения
+            orig = PlanItemDetail.objects.filter(pk=self.pk).values('status').first()
+
+            if orig:
+                # Если пользователь в админке или на фронтенде пытается поставить ACTIVE
+                if self.status == PlanItemStatus.ACTIVE:
+                    self.status = PlanItemStatus.DRAFT
+
+                elif orig['status'] == PlanItemStatus.ACTIVE and self.status == orig['status']:
+                    self.status = PlanItemStatus.DRAFT
+
+        super().save(*args, **kwargs)

@@ -11,7 +11,7 @@ from .externalEconomicCode import ExternalEconomicCodeSerializer
 from .internalEconomicClassifier import InternalEconomicClassifierSerializer, InternalEconomicClassifierTreeSerializer
 from .programCode import ProgramCodeSerializer
 
-
+from .planShare import PlanShareSerializer
 from .department import DepartmentSerializer, DepartmentTreeSerializer
 
 from .contract import ContractSerializer, ContractItemSerializer
@@ -43,6 +43,7 @@ __all__ = [
     'InternalEconomicClassifierSerializer',
     'InternalEconomicClassifierTreeSerializer',
 
+    'PlanShareSerializer',
     'DepartmentSerializer',
     'DepartmentTreeSerializer',
 

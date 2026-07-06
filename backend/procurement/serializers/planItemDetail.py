@@ -21,6 +21,21 @@ class PlanItemDetailSerializer(serializers.ModelSerializer):
             'purchases_item_id': {'required': False},
         }
 
+    def update(self, instance, validated_data):
+        status = validated_data.pop('status', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        if status is None or status == PlanItemStatus.ACTIVE:
+            instance.status = PlanItemStatus.DRAFT
+        else:
+            instance.status = status
+
+        instance.save()
+
+        return instance
+
 
 class PlanItemDetailImportSerializer(serializers.ModelSerializer):
     """
@@ -37,10 +52,8 @@ class PlanItemDetailImportSerializer(serializers.ModelSerializer):
             'val_currency', 'procedure_months', 'is_by_organizator'
         ]
         extra_kwargs = {
-            'purchases_item_id': {'required': False},  # Передается программно в цикле вьюхи
-            # 'fund_cost': {'required': False, 'allow_null': True},
-            # 'inner_cost': {'required': False, 'allow_null': True},
             'plan_item': {'required': False},  # Передается программно в цикле вьюхи
+            'purchases_item_id': {'required': False},  # Передается программно в цикле вьюхи
             'okrb_product': {'required': False, 'allow_null': True},  # Разрешается в validate()
             'val_unit': {'required': False, 'allow_null': True},  # Разрешается в validate()
             'status': {'required': False},  # По умолчанию выставляется программно
@@ -88,7 +101,7 @@ class PlanItemDetailImportSerializer(serializers.ModelSerializer):
         if okrb_code:
             okrb_obj, _ = OkrbProduct.objects.get_or_create(
                 code=okrb_code,
-                defaults={"title": okrb_title, "is_active": True}
+                defaults={"title": f"НОВЫЙ: {okrb_title}", "is_active": True}
             )
             attrs["okrb_product"] = okrb_obj
 
@@ -96,7 +109,7 @@ class PlanItemDetailImportSerializer(serializers.ModelSerializer):
         if val_type_code:
             val_unit_obj, _ = UnitOfMeasurement.objects.get_or_create(
                 code=val_type_code,
-                defaults={"short_name": f"Необходима расшифровка: {val_type_code}", "is_active": True}
+                defaults={"short_name": f"НОВЫЙ: {val_type_code}", "is_active": True}
             )
             attrs["val_unit"] = val_unit_obj
 
@@ -115,18 +128,19 @@ class PlanItemDetailImportSerializer(serializers.ModelSerializer):
         """Идемпотентная запись: проверка дубликатов и сохранение записи подробной информации plan_item_detail"""
 
         plan_item = validated_data.get('plan_item')
-        purchases_items_id = validated_data.get('purchases_items_id')
+        purchases_item_id = validated_data.get('purchases_item_id')
+        print(f'PlanItemDetailImportSerializer. plan_item=', plan_item)
+        print(f'PlanItemDetailImportSerializer. purchases_item_id=', purchases_item_id)
         api_months = validated_data.get('procedure_months', [])
 
         existing_pid_qs = PlanItemDetail.objects.filter(
             plan_item=plan_item,
-            purchases_item_id=purchases_items_id,
+            purchases_item_id=purchases_item_id,
             purchases_id=validated_data.get('purchases_id'),
             unp_budget=validated_data.get('unp_budget'),
             num=validated_data.get('num'),
             title=validated_data.get('title'),
             okrb=validated_data.get('okrb'),
-            okrb_title=validated_data.get('okrb_title'),
             val_amount=validated_data.get('val_amount'),
             val_type=validated_data.get('val_type'),
             fund_cost=validated_data.get('fund_cost'),
@@ -134,14 +148,26 @@ class PlanItemDetailImportSerializer(serializers.ModelSerializer):
             val_currency=validated_data.get('val_currency'),
             is_by_organizator=validated_data.get('is_by_organizator')
         )
+        print(f'PlanItemDetailImportSerializer. validated_data=', validated_data)
+        print(f'PlanItemDetailImportSerializer. existing_pid_qs=', existing_pid_qs)
 
+        # Здесь нужно формировать массив данных, а не брать первую запись!!!!
+        # Код ниже требует переработки
         target_record = None
         for record in existing_pid_qs:
             # Сравниваем списки месяцев без привязки к порядку элементов
+            print(f'PlanItemDetailImportSerializer. {sorted(record.procedure_months)} == {sorted(api_months)}', sorted(record.procedure_months) == sorted(api_months))
             if sorted(record.procedure_months) == sorted(api_months):
                 target_record = record
                 break
+        # Здесь нужно формировать массив данных, а не брать первую запись!!!!
 
+
+        # Если у нас массив данных, то нужно анализировать какие записи в него вошли, какие статусы у этих записей
+        # и в зависимости от состава, что дальше с ними делать!!!!
+        # Код ниже требует переработки
+
+        print(f'PlanItemDetailImportSerializer. target_record=', target_record)
         # Сценарий А: Полный дубликат уже активен в системе
         if target_record and target_record.status == PlanItemStatus.ACTIVE:
             return target_record
@@ -166,6 +192,10 @@ class PlanItemDetailImportSerializer(serializers.ModelSerializer):
                                         PlanItemStatus.DRAFT_APPROVED, PlanItemStatus.DRAFT_REJECTED]:
                 target_record.delete()
                 target_record = None
+
+
+        # Если у нас массив данных, то нужно анализировать какие записи в него вошли, какие статусы у этих записей
+        # и в зависимости от состава, что дальше с ними делать!!!!
 
         if 'status' not in validated_data:
             validated_data['status'] = PlanItemStatus.ACTIVE

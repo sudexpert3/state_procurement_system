@@ -168,3 +168,6 @@ class ContractQuarterlyFinance(models.Model):
     cost = models.DecimalField("Ориентировочная стоимость позиции ГПЗ", max_digits=15, decimal_places=2, default=0)
 
 
+100. Исправить def create(self, validated_data): в class PlanItemDetailImportSerializer(serializers.ModelSerializer):
+     Не правильно обновляет данные при импорте с goszakupki.by. Нужен правильный алгоритм.
+101. Представление для короткого просмотра позиций плана PlanItemShortSerializer!!! Сделал get_aggregated_cost!

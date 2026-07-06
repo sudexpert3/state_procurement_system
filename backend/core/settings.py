@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
 
     # модули
-    'procurement',
+    'procurement.apps.ProcurementConfig',
 ]
 
 MIDDLEWARE = [
@@ -86,14 +86,21 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
+db_host = os.environ.get('POSTGRES_HOST', os.environ.get('DB_HOST', 'localhost'))
+
+# То же самое для порта: в Docker используем 5432, локально на ПК — DB_PORT (5460)
+db_port = os.environ.get('POSTGRES_PORT', os.environ.get('DB_PORT', '5432'))
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST', default='localhost'),  # Используйте имя сервиса из compose.yaml
-        'PORT': os.getenv('DB_PORT', default='5460'),
+        'HOST': db_host,
+        'PORT': db_port,
     }
 }
 
