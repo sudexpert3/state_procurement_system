@@ -1,11 +1,10 @@
 from decimal import Decimal
-
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from core.choices import PlanItemStatus
 from procurement.models import PlanItem, PlanShare, ContractItem
 from .budgetCosts import BudgetCostsSerializer
 from .planItemDetail import PlanItemDetailSerializer
-from .contract import ContractItemSerializer
 
 
 class PlanItemSerializer(serializers.ModelSerializer):
@@ -41,11 +40,12 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
             # 'active_details', 'active_budget_costs'
         ]
 
-
+    @extend_schema_field(serializers.ListField(child=serializers.IntegerField()))
     def get_years(self, obj):
         active_budgets = obj.budget_costs.filter(status=PlanItemStatus.ACTIVE)
         return [bc.year for bc in active_budgets] if active_budgets else []
 
+    @extend_schema_field(serializers.DecimalField(max_digits=15, decimal_places=2))
     def get_aggregated_cost(self, obj):
         """
         Казначейский расчет полной стоимости позиции закупки.
@@ -69,14 +69,17 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
 
         return float(portal_cost + budget_cost)
 
+    @extend_schema_field(serializers.ListField(child=serializers.CharField()))
     def get_economic_codes_api(self, obj):
         active_budgets = obj.budget_costs.filter(status=PlanItemStatus.ACTIVE)
         return [bc.economic_code for bc in active_budgets] if active_budgets else []
 
+    @extend_schema_field(serializers.ListField(child=serializers.CharField()))
     def get_functional_codes_api(self, obj):
         active_budgets = obj.budget_costs.filter(status=PlanItemStatus.ACTIVE)
         return [bc.functional_code for bc in active_budgets] if active_budgets else []
 
+    @extend_schema_field(serializers.BooleanField)
     def get_contracts(self, obj):
         active_budgets = obj.budget_costs.filter(status=PlanItemStatus.ACTIVE)
         plan_shares = PlanShare.objects.filter(
@@ -88,11 +91,12 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
         # return ContractItemSerializer(contracts_queryset, many=True, context=self.context).data
         return contracts_queryset.exists()
 
-
+    @extend_schema_field(PlanItemDetailSerializer(many=True))
     def get_active_details(self, obj):
         active_details = obj.details.filter(status=PlanItemStatus.ACTIVE)
         return PlanItemDetailSerializer(active_details, many=True, context=self.context).data
 
+    @extend_schema_field(BudgetCostsSerializer(many=True))
     def get_active_budget_costs(self, obj):
         active_budgets = obj.budget_costs.filter(status=PlanItemStatus.ACTIVE)
         return BudgetCostsSerializer(active_budgets, many=True, context=self.context).data
@@ -130,4 +134,3 @@ class PlanItemFullSerializer(serializers.ModelSerializer):
 
     def get_all_budget_costs(self, obj):
         return BudgetCostsSerializer(obj.budget_costs.all(), many=True, context=self.context).data
-
