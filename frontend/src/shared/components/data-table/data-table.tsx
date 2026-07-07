@@ -1,8 +1,8 @@
 import type {
   ColumnDef,
   ColumnFiltersState,
-  SortingState,
   Table as ReactTable,
+  SortingState,
   VisibilityState,
 } from "@tanstack/react-table";
 
@@ -34,6 +34,7 @@ type DataTableProps<TData> = {
   columns: ColumnDef<TData, unknown>[];
   isLoading?: boolean;
   getRow?: (row: TData) => void;
+  cellClassName?: string;
   actions?: (table: ReactTable<TData>) => React.ReactNode;
   pagination?:
     | false
@@ -88,7 +89,14 @@ export const DataTable = <TData,>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      style={
+                        header.column.columnDef.size !== undefined
+                          ? { width: header.getSize() }
+                          : undefined
+                      }
+                      className={props.cellClassName}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -120,7 +128,14 @@ export const DataTable = <TData,>({
                   onClick={() => props.getRow?.(row.original)}
                   className={props.getRow ? "cursor-pointer" : undefined}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className={props.cellClassName}
+                      style={
+                        cell.column.columnDef.size !== undefined
+                          ? { width: cell.column.getSize() }
+                          : undefined
+                      }>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

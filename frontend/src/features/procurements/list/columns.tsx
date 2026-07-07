@@ -1,76 +1,99 @@
+import type { PlanItemShort } from "@/shared/api/schema";
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { PencilIcon } from "lucide-react";
+import {
+  DataTableCell,
+  DataTableCellList,
+  DataTableColumnHeader,
+} from "@/shared/components/data-table/data-table-cell";
+import { formatMoney } from "@/shared/lib/helpers/format-money";
 
-export const createColumns = (): ColumnDef<PlanItem>[] => [
+export const createColumns = (): ColumnDef<PlanItemShort>[] => [
   {
-    id: "select2",
-    cell: ({ row }) => {
-      return (
-        <div className="flex gap-2">
-          {/* <Link
-            to={href(ROUTES.PROCUREMENT, { id: row.original.id })}
-            state={row.original}>
-            <FileTextIcon
-              size={18}
-              className="text-muted-foreground hover:text-foreground cursor-pointer"
-            />
-          </Link> */}
+    accessorKey: "num",
+    header: () => <DataTableColumnHeader>Номер пункта</DataTableColumnHeader>,
+    size: 30,
+    cell: ({ row }) => (
+      <DataTableCell className="text-left font-medium wrap-break-word whitespace-normal">
+        {row.getValue("num")}
+      </DataTableCell>
+    ),
+  },
+  {
+    accessorKey: "title",
+    header: () => (
+      <DataTableColumnHeader className="text-left wrap-break-word whitespace-normal">
+        Наименование товара
+      </DataTableColumnHeader>
+    ),
+    size: 280,
+    cell: ({ row }) => (
+      <DataTableCell className="text-left wrap-break-word whitespace-normal">
+        {row.getValue("title")}
+      </DataTableCell>
+    ),
+  },
+  {
+    accessorKey: "val_amount",
+    header: () => <DataTableColumnHeader>Кол-во</DataTableColumnHeader>,
+  },
+  {
+    accessorKey: "val_unit",
+    header: () => <DataTableColumnHeader>Ед. измерения</DataTableColumnHeader>,
+  },
+  {
+    accessorKey: "aggregated_cost",
+    header: () => <DataTableColumnHeader>Сумма</DataTableColumnHeader>,
+    cell: ({ row }) => (
+      <DataTableCell>
+        {formatMoney(row.getValue("aggregated_cost"))}
+      </DataTableCell>
+    ),
+  },
+  {
+    accessorKey: "years",
+    header: () => (
+      <DataTableColumnHeader>Годы финансирования</DataTableColumnHeader>
+    ),
+    cell: ({ row }) => (
+      <DataTableCellList items={row.getValue<number[]>("years")} />
+    ),
+  },
+  {
+    accessorKey: "functional_codes_api",
+    header: () => (
+      <DataTableColumnHeader>Функциональный код</DataTableColumnHeader>
+    ),
+    cell: ({ row }) => (
+      <DataTableCellList
+        items={row.getValue<string[]>("functional_codes_api")}
+      />
+    ),
+  },
+  {
+    accessorKey: "economic_codes_api",
+    header: () => (
+      <DataTableColumnHeader>Экономический код</DataTableColumnHeader>
+    ),
+    cell: ({ row }) => (
+      <DataTableCellList items={row.getValue<string[]>("economic_codes_api")} />
+    ),
+  },
 
-          <PencilIcon
-            size={18}
-            className="text-muted-foreground hover:text-foreground cursor-pointer"
-          />
-        </div>
+  {
+    accessorKey: "contracts",
+    header: () => (
+      <DataTableColumnHeader>Наличие договора</DataTableColumnHeader>
+    ),
+    cell: ({ row }) => {
+      const isExists: boolean = row.getValue("contracts");
+
+      return (
+        <DataTableCell className="text-center">
+          {isExists && <span className="bg-green-200 text-center">Да</span>}
+          {!isExists && <span className="text-center">Нет</span>}
+        </DataTableCell>
       );
     },
-    enableSorting: false,
-    enableHiding: false,
   },
-  // {
-  //   accessorKey: "planPointNumber",
-  //   header: "Номер пункта плана",
-  //   cell: ({ row }) => (
-  //     <div className="font-medium">{row.getValue("planPointNumber")}</div>
-  //   ),
-  // },
-  // {
-  //   accessorKey: "goodsName",
-  //   header: "Наименование однородных товаров (работ, услуг)",
-  //   cell: ({ row }) => (
-  //     <div className="capitalize">{row.getValue("goodsName")}</div>
-  //   ),
-  // },
-  // {
-  //   accessorKey: "volume",
-  //   header: "Ориентировочные объемы",
-  //   cell: ({ row }) => {
-  //     return (
-  //       <div className="text-right font-medium">
-  //         {row.getValue("volume")} единица{" "}
-  //       </div>
-  //     );
-  //   },
-  // },
-  // {
-  //   accessorKey: "cost",
-  //   header: "Ориентировочная стоимость",
-  //   cell: ({ row }) => {
-  //     const amount = parseFloat(row.getValue("cost"));
-
-  //     const formatted = new Intl.NumberFormat("by-BY", {
-  //       style: "currency",
-  //       currency: "BYN",
-  //     }).format(amount);
-
-  //     return <div className="text-right font-medium">{formatted}</div>;
-  //   },
-  // },
-  // {
-  //   accessorKey: "customer",
-  //   header: "Исполнитель",
-  //   cell: ({ row }) => {
-  //     return <div className="capitalize">{row.getValue("customer")}</div>;
-  //   },
-  // },
 ];

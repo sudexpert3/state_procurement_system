@@ -1,3 +1,7 @@
+import type { PlanItemShort } from "@/shared/api/schema";
+
+import { useMemo } from "react";
+
 import { href, useNavigate } from "react-router";
 
 import { rqClient } from "@/shared/api/instance";
@@ -18,20 +22,16 @@ import { TableActions } from "./table-actions";
 
 const ProcurementsPage = () => {
   const navigate = useNavigate();
-  const getRow = (row: unknown) => {
+  const getRow = (row: PlanItemShort) => {
     navigate(href(ROUTES.PROCUREMENT, { id: row?.id }), { state: row });
   };
-  const { data } = rqClient.useQuery("get", "/api/plan_items/{id}/", {
-    params: {
-      path: {
-        id: 8,
-      },
-    },
-  });
-  const year = new Date().getFullYear();
-  const columns = () => {
+  const { data } = rqClient.useQuery("get", "/api/plan_items/", {});
+
+  // const year = new Date().getFullYear();
+
+  const columns = useMemo(() => {
     return createColumns();
-  };
+  }, []);
 
   // const { data } = rqClient.useQuery("get", "/gpz/");
   // console.log(data);
@@ -51,16 +51,17 @@ const ProcurementsPage = () => {
     <Card className="max-w-full gap-2 bg-transparent ring-0">
       <CardHeader>
         <CardTitle>Реестр закупок</CardTitle>
-        <CardDescription className="text-[12px]">{`Планы закупок на ${year} год`}</CardDescription>
+        <CardDescription className="text-[12px]">{`Планы закупок на ${data?.results[0]?.years[0]} год`}</CardDescription>
         <CardAction>
           <Button onClick={handleAddProcurement}>Добавить запись</Button>
         </CardAction>
       </CardHeader>
       <CardContent>
         <DataTable
-          data={data}
+          data={data?.results ?? []}
           columns={columns}
           getRow={getRow}
+          cellClassName="p-4 text-center"
           actions={(table) => (
             <div className="py-4">
               <TableActions table={table} />
