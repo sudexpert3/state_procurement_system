@@ -3,16 +3,21 @@ import type { BaseInfoValues } from "../schema";
 import { PlusIcon } from "lucide-react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 
-import { ComboboxField } from "@/shared/ui/form/combobox-field";
-import { InputField } from "@/shared/ui/form/input-field";
-import { TextAreaField } from "@/shared/ui/form/text-area-field";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
+import { ComboboxField } from "@/shared/components/form/combobox-field";
+import { InputField } from "@/shared/components/form/input-field";
+import { TextAreaField } from "@/shared/components/form/text-area-field";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import {
   Field,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@/shared/ui/kit/field";
+} from "@/shared/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -20,8 +25,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/kit/select";
-import { Separator } from "@/shared/ui/kit/separator";
+} from "@/shared/components/ui/select";
+import { Separator } from "@/shared/components/ui/separator";
 
 import { BaseInfoAnotherSection } from "./base-info-another-section";
 
@@ -96,7 +101,7 @@ export const BaseInfoSection = () => {
       expenseCategory: "",
       elNumber: 0,
       economicClass: 0,
-      departmentId: "",
+      departmentId: 0,
     });
   };
 
@@ -203,7 +208,7 @@ export const BaseInfoSection = () => {
               </FieldGroup>
               <InputField
                 control={control}
-                name="allVolume"
+                name="allCost"
                 label="Общая сумма"
                 placeholder="100"
                 required
@@ -226,7 +231,11 @@ export const BaseInfoSection = () => {
         {fields.length > 0 && <Separator />}
         <CardContent className="space-y-4 px-2">
           {fields.map((item, index) => (
-            <BaseInfoAnotherSection key={item.id} item={item} index={index} />
+            <BaseInfoAnotherSection
+              key={item.id}
+              index={index}
+              remove={remove}
+            />
           ))}
         </CardContent>
       </Card>

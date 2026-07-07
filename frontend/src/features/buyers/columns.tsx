@@ -1,16 +1,17 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import type { Buyer } from "@/shared/api/schema";
 
-import { ArrowUpDownIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import { ArrowUpDownIcon, PencilIcon } from "lucide-react";
 
-import { Badge } from "@/shared/ui/kit/badge";
-import { Button } from "@/shared/ui/kit/button";
-
-import type { BuyerItem } from "./buyer-form";
+import { DeleteButton } from "@/shared/components/delete-button";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 
 export const createColumns = (
-  onEdit: (item: BuyerItem) => void,
+  onEdit: (item: Buyer) => void,
   onDelete: (id: number) => void,
-): ColumnDef<BuyerItem>[] => [
+  deletingId?: number | null,
+): ColumnDef<Buyer>[] => [
   {
     id: "actions",
     cell: ({ row }) => (
@@ -21,15 +22,10 @@ export const createColumns = (
           onClick={() => onEdit(row.original)}>
           <PencilIcon size={16} className="text-muted-foreground" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onDelete(row.original.id)}>
-          <Trash2Icon
-            size={16}
-            className="text-muted-foreground hover:text-destructive"
-          />
-        </Button>
+        <DeleteButton
+          onConfirm={() => onDelete(row.original.id)}
+          isPending={deletingId === row.original.id}
+        />
       </div>
     ),
     enableSorting: false,

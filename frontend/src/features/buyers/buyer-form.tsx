@@ -1,18 +1,12 @@
-import { useEffect } from "react";
+import type { Buyer } from "@/shared/api/schema";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2Icon } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
-import z from "zod";
+import { toast } from "sonner";
 
-import { Button } from "@/shared/ui/kit/button";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/shared/ui/kit/combobox";
+import { rqClient } from "@/shared/api/instance";
+import { Button } from "@/shared/components/ui/button";
 import {
   Drawer,
   DrawerClose,
@@ -20,63 +14,82 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "@/shared/ui/kit/drawer";
-import { Field, FieldError, FieldLabel } from "@/shared/ui/kit/field";
-import { Input } from "@/shared/ui/kit/input";
+} from "@/shared/components/ui/drawer";
+import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field";
+import { Input } from "@/shared/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import { handleHttpError } from "@/shared/lib/helpers/handle-http-error";
 
-const buyerSchema = z.object({
-  shot_name: z.string().min(1, "Обязательное поле"),
-  full_name: z.string().min(1, "Обязательное поле"),
-  is_active: z.boolean(),
-});
-
-type FormValues = z.input<typeof buyerSchema>;
-export type BuyerFormOutput = z.output<typeof buyerSchema>;
-
-export type BuyerItem = {
-  id: number;
-  shot_name: string;
-  full_name: string;
-  is_active: boolean;
-};
-
-const STATUS_OPTIONS = [
-  { value: "true", label: "Действующий" },
-  { value: "false", label: "Не действующий" },
-];
+import { buyerSchema, type BuyerValues } from "./buyer.schema";
 
 type Props = {
   open: boolean;
-  item: BuyerItem | null;
+  item: Buyer | null;
   onClose: () => void;
-  onSubmit: (values: BuyerFormOutput, id?: number) => void;
+  onSuccess: () => void;
 };
 
-export const BuyerForm = ({ open, item, onClose, onSubmit }: Props) => {
+const defaultValues = {
+  shot_name: "",
+  full_name: "",
+  is_active: true,
+};
+export const BuyerForm = ({ open, item, onClose, onSuccess }: Props) => {
   const isEdit = item !== null;
 
-  const { handleSubmit, control, reset } = useForm<FormValues>({
+  const createMutation = rqClient.useMutation("post", "/api/buyers/");
+  const updateMutation = rqClient.useMutation("patch", "/api/buyers/{id}/");
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  const formdata = {
+    ...defaultValues,
+    ...item,
+    is_active: item?.is_active ?? true,
+  };
+
+  const { handleSubmit, control } = useForm<BuyerValues>({
     resolver: zodResolver(buyerSchema),
-    defaultValues: { shot_name: "", full_name: "", is_active: true },
+    values: formdata,
   });
 
-  useEffect(() => {
-    if (open) {
-      reset(
-        item
-          ? {
-              shot_name: item.shot_name,
-              full_name: item.full_name,
-              is_active: item.is_active,
-            }
-          : { shot_name: "", full_name: "", is_active: true },
-      );
-    }
-  }, [open, item, reset]);
+  const handleSuccess = (message: string) => {
+    toast.success(message);
+    onClose();
+    onSuccess();
+  };
+
+  const handleError = () => {
+    toast.error(`Не удалось сохранить закупщика`);
+  };
 
   const submit = handleSubmit((values) => {
-    onSubmit(values as BuyerFormOutput, item?.id);
-    onClose();
+    if (item) {
+      updateMutation.mutate(
+        { params: { path: { id: item.id } }, body: values },
+        {
+          onSuccess: () => handleSuccess("Закупщик обновлён"),
+          onError: handleError,
+        },
+      );
+    } else {
+      createMutation.mutate(
+        {
+          body: { id: 0, ...values },
+        },
+        {
+          onSuccess: () => handleSuccess("Закупщик добавлен"),
+          onError: (error) =>
+            handleHttpError(error, "Не удалось создать запись", true),
+        },
+      );
+    }
   });
 
   return (
@@ -89,6 +102,7 @@ export const BuyerForm = ({ open, item, onClose, onSubmit }: Props) => {
         </DrawerHeader>
 
         <form
+          id="buyer-form"
           onSubmit={submit}
           className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-2">
           <Controller
@@ -137,25 +151,20 @@ export const BuyerForm = ({ open, item, onClose, onSubmit }: Props) => {
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel>Статус</FieldLabel>
-                <Combobox
+                <Select
+                  name={field.name}
                   value={String(field.value)}
                   onValueChange={(val) => field.onChange(val === "true")}>
-                  <ComboboxInput
-                    placeholder="Выберите статус..."
-                    showClear={false}
-                    aria-invalid={fieldState.invalid}
-                  />
-                  <ComboboxContent>
-                    <ComboboxList>
-                      {STATUS_OPTIONS.map((opt) => (
-                        <ComboboxItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </ComboboxItem>
-                      ))}
-                      <ComboboxEmpty>Ничего не найдено</ComboboxEmpty>
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
+                  <SelectTrigger aria-invalid={fieldState.invalid}>
+                    <SelectValue placeholder="Выберите статус" />
+                  </SelectTrigger>
+                  <SelectContent position="popper">
+                    <SelectGroup>
+                      <SelectItem value="true">Действующий</SelectItem>
+                      <SelectItem value="false">Не действующий</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
@@ -165,11 +174,12 @@ export const BuyerForm = ({ open, item, onClose, onSubmit }: Props) => {
         </form>
 
         <DrawerFooter>
-          <Button type="button" onClick={submit}>
+          <Button type="submit" form="buyer-form" disabled={isPending}>
+            {isPending && <Loader2Icon size={16} className="animate-spin" />}
             {isEdit ? "Сохранить" : "Добавить"}
           </Button>
           <DrawerClose asChild>
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} disabled={isPending}>
               Отмена
             </Button>
           </DrawerClose>

@@ -4,9 +4,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/shared/ui/kit/card"
+} from "@/shared/components/ui/card";
 
-import { LoginForm } from "./login-form"
+import { LoginForm } from "./login-form";
 
 const LoginPage = () => {
   return (
@@ -23,7 +23,7 @@ const LoginPage = () => {
         </CardContent>
       </Card>
     </main>
-  )
-}
+  );
+};
 
-export const Component = LoginPage
+export const Component = LoginPage;

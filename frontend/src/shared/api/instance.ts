@@ -24,9 +24,19 @@ fetchClient.use({
 
   async onResponse({ response }) {
     if (!response.ok) {
-      throw new Error(
-        `${response.url}: ${response.status} ${response.statusText}`,
-      );
+      let message = `${response.status} ${response.statusText}`;
+      try {
+        const body = await response.json();
+        if (typeof body?.message === "string") {
+          message = body.message;
+        } else if (body && typeof body === "object") {
+          const flat = Object.values(body).flat();
+          if (flat.length > 0 && flat.every((e) => typeof e === "string")) {
+            message = flat.join(", ");
+          }
+        }
+      } catch {}
+      throw new Error(message);
     }
   },
 });

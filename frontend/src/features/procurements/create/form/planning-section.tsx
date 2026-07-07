@@ -2,12 +2,17 @@ import type { PlanningInfoValues } from "../schema";
 
 import { useFormContext } from "react-hook-form";
 
-import { ComboboxField } from "@/shared/ui/form/combobox-field";
-import { DatePickerField } from "@/shared/ui/form/date-picker-field";
-import { InputField } from "@/shared/ui/form/input-field";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
-import { FieldGroup } from "@/shared/ui/kit/field";
-import { Separator } from "@/shared/ui/kit/separator";
+import { ComboboxField } from "@/shared/components/form/combobox-field";
+import { DatePickerField } from "@/shared/components/form/date-picker-field";
+import { InputField } from "@/shared/components/form/input-field";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
+import { FieldGroup } from "@/shared/components/ui/field";
+import { Separator } from "@/shared/components/ui/separator";
 
 const viewObjectsMock = [
   { id: "1", value: "Объект 1", disabled: true },

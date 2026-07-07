@@ -5,9 +5,10 @@ import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
+import { Button } from "@/shared/components/ui/button";
 import { ROUTES } from "@/shared/model/routes";
-import { Button } from "@/shared/ui/kit/button";
 
+import { contractsMock } from "./form/contract-section/contracts.mock";
 import { FormProcurement } from "./form/form";
 import {
   type ProcurementFormInput,
@@ -39,23 +40,13 @@ const ProcurementNewPage = () => {
     units: "",
     currentPlanBalance: 0,
     customerAccounts: [],
-    remainingBalance: 0.0,
-    totalLiabilities: 0.0,
-    variance: 0.0,
-    contractNumber: "",
-    contractDate: new Date(),
-    supplierId: "",
-    contractTerms: "",
-    contractNotes: "",
-    contractStatus: "",
-    contractSum: 0.0,
+    contracts: contractsMock,
     itemList: "",
     planChangeDate: new Date(),
     planDate: new Date(),
     planNumber: 0,
     viewObject: "",
     viewProcedure: "",
-    quarterDistribution: [],
   };
 
   const form = useForm<ProcurementFormInput, unknown, ProcurementFormOutput>({
