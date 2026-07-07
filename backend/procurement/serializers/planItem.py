@@ -37,8 +37,11 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
         ]
 
     def _get_active_detail(self, obj):
-        if not hasattr(obj, '_cached_active_detail'):
-            obj._cached_active_detail = obj.details.filter(status=PlanItemStatus.ACTIVE).first()
+        # if not hasattr(obj, '_cached_active_detail'):
+        #     obj._cached_active_detail = obj.details.filter(status=PlanItemStatus.ACTIVE).first()
+
+        active_pids = getattr(obj, 'active_plan_item_detail_prefetched', None)
+        obj._cached_active_detail = obj.details.filter(status=PlanItemStatus.ACTIVE).first() if active_pids is None else active_pids[0]
         return obj._cached_active_detail
 
     @extend_schema_field(serializers.CharField())
@@ -67,15 +70,10 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
         Казначейский расчет полной стоимости позиции закупки.
         Суммирует только ACTIVE финансовые лимиты Минфина РБ.
         """
-        active_pids = getattr(obj, 'active_plan_item_detail_prefetched', None)
-        if active_pids is None:
-            active_pids = obj.details.filter(status=PlanItemStatus.ACTIVE)
-
         portal_cost = Decimal('0.00')
-        if active_pids:
-            active_detail = active_pids[0] if isinstance(active_pids, list) else active_pids.first()
-            if active_detail:
-                portal_cost = active_detail.fund_cost + active_detail.inner_cost
+        detail = self._get_active_detail(obj)
+        if detail:
+            portal_cost = detail.fund_cost + detail.inner_cost
 
         active_bcs = getattr(obj, 'active_budget_costs_prefetched', [])
         if not active_bcs:
@@ -146,8 +144,8 @@ class PlanItemFullSerializer(serializers.ModelSerializer):
             'id', 'plan_purchase', 'num', 'is_public', 'is_active', 'created_at', 'updated_at',
             'title', 'okrb', 'okrb_title', 'type', 'val_unit', 'val_amount', 'aggregated_cost',
 
-            'purchase_year',
-            'active_details', 'all_details', 'active_budget_costs', 'all_budget_costs'
+            # 'purchase_year',
+            # 'active_details', 'all_details', 'active_budget_costs', 'all_budget_costs'
         ]
 
 
