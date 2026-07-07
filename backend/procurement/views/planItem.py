@@ -13,7 +13,6 @@ class PlanItemViewSet(viewsets.ModelViewSet):
     Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
     """
-
     permission_classes = [AllowAny]  # Временный режим отладки системы
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     # search_fields = ['num', 'details__title', 'details__okrb']
