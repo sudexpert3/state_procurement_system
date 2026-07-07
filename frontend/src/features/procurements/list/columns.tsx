@@ -1,23 +1,21 @@
-import { type ColumnDef } from "@tanstack/react-table";
-import { FileTextIcon, PencilIcon } from "lucide-react";
-import { href, Link } from "react-router";
+import type { ColumnDef } from "@tanstack/react-table";
 
-import { ROUTES } from "@/shared/model/routes";
+import { PencilIcon } from "lucide-react";
 
-export const columns: ColumnDef<{}>[] = [
+export const createColumns = (): ColumnDef<PlanItem>[] => [
   {
     id: "select2",
     cell: ({ row }) => {
       return (
         <div className="flex gap-2">
-          <Link
+          {/* <Link
             to={href(ROUTES.PROCUREMENT, { id: row.original.id })}
             state={row.original}>
             <FileTextIcon
               size={18}
               className="text-muted-foreground hover:text-foreground cursor-pointer"
             />
-          </Link>
+          </Link> */}
 
           <PencilIcon
             size={18}
@@ -29,50 +27,50 @@ export const columns: ColumnDef<{}>[] = [
     enableSorting: false,
     enableHiding: false,
   },
-  {
-    accessorKey: "planPointNumber",
-    header: "Номер пункта плана",
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("planPointNumber")}</div>
-    ),
-  },
-  {
-    accessorKey: "goodsName",
-    header: "Наименование однородных товаров (работ, услуг)",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("goodsName")}</div>
-    ),
-  },
-  {
-    accessorKey: "volume",
-    header: "Ориентировочные объемы",
-    cell: ({ row }) => {
-      return (
-        <div className="text-right font-medium">
-          {row.getValue("volume")} единица{" "}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "cost",
-    header: "Ориентировочная стоимость",
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("cost"));
+  // {
+  //   accessorKey: "planPointNumber",
+  //   header: "Номер пункта плана",
+  //   cell: ({ row }) => (
+  //     <div className="font-medium">{row.getValue("planPointNumber")}</div>
+  //   ),
+  // },
+  // {
+  //   accessorKey: "goodsName",
+  //   header: "Наименование однородных товаров (работ, услуг)",
+  //   cell: ({ row }) => (
+  //     <div className="capitalize">{row.getValue("goodsName")}</div>
+  //   ),
+  // },
+  // {
+  //   accessorKey: "volume",
+  //   header: "Ориентировочные объемы",
+  //   cell: ({ row }) => {
+  //     return (
+  //       <div className="text-right font-medium">
+  //         {row.getValue("volume")} единица{" "}
+  //       </div>
+  //     );
+  //   },
+  // },
+  // {
+  //   accessorKey: "cost",
+  //   header: "Ориентировочная стоимость",
+  //   cell: ({ row }) => {
+  //     const amount = parseFloat(row.getValue("cost"));
 
-      const formatted = new Intl.NumberFormat("by-BY", {
-        style: "currency",
-        currency: "BYN",
-      }).format(amount);
+  //     const formatted = new Intl.NumberFormat("by-BY", {
+  //       style: "currency",
+  //       currency: "BYN",
+  //     }).format(amount);
 
-      return <div className="text-right font-medium">{formatted}</div>;
-    },
-  },
-  {
-    accessorKey: "customer",
-    header: "Исполнитель",
-    cell: ({ row }) => {
-      return <div className="capitalize">{row.getValue("customer")}</div>;
-    },
-  },
+  //     return <div className="text-right font-medium">{formatted}</div>;
+  //   },
+  // },
+  // {
+  //   accessorKey: "customer",
+  //   header: "Исполнитель",
+  //   cell: ({ row }) => {
+  //     return <div className="capitalize">{row.getValue("customer")}</div>;
+  //   },
+  // },
 ];
