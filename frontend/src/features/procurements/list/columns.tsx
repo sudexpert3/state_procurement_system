@@ -11,7 +11,11 @@ import { formatMoney } from "@/shared/lib/helpers/format-money";
 export const createColumns = (): ColumnDef<PlanItemShort>[] => [
   {
     accessorKey: "num",
-    header: () => <DataTableColumnHeader>Номер пункта</DataTableColumnHeader>,
+    header: () => (
+      <DataTableColumnHeader className="text-left">
+        Номер пункта
+      </DataTableColumnHeader>
+    ),
     size: 30,
     cell: ({ row }) => (
       <DataTableCell className="text-left font-medium wrap-break-word whitespace-normal">
@@ -43,43 +47,70 @@ export const createColumns = (): ColumnDef<PlanItemShort>[] => [
   },
   {
     accessorKey: "aggregated_cost",
-    header: () => <DataTableColumnHeader>Сумма</DataTableColumnHeader>,
+    header: () => <DataTableColumnHeader>Общая сумма</DataTableColumnHeader>,
     cell: ({ row }) => (
       <DataTableCell>
-        {formatMoney(row.getValue("aggregated_cost"))}
+        {formatMoney(Number(row.getValue("aggregated_cost")))}
       </DataTableCell>
     ),
   },
   {
-    accessorKey: "years",
+    id: "years",
+    accessorFn: (row) => row.economic_details.map((d) => d.year ?? "—"),
     header: () => (
       <DataTableColumnHeader>Годы финансирования</DataTableColumnHeader>
     ),
-    cell: ({ row }) => (
-      <DataTableCellList items={row.getValue<number[]>("years")} />
+    cell: ({ getValue }) => (
+      <DataTableCellList items={getValue<(string | number)[]>()} />
     ),
   },
   {
-    accessorKey: "functional_codes_api",
+    id: "full_cost",
+    accessorFn: (row) =>
+      row.economic_details.map((d) => formatMoney(Number(d.full_cost)) ?? "—"),
+    header: () => <DataTableColumnHeader>Сумма по годам</DataTableColumnHeader>,
+    cell: ({ getValue }) => <DataTableCellList items={getValue<string[]>()} />,
+  },
+  {
+    id: "functional_code",
+    accessorFn: (row) =>
+      row.economic_details.map((d) => d.functional_code ?? "—"),
     header: () => (
       <DataTableColumnHeader>Функциональный код</DataTableColumnHeader>
     ),
-    cell: ({ row }) => (
-      <DataTableCellList
-        items={row.getValue<string[]>("functional_codes_api")}
-      />
+    cell: ({ getValue }) => (
+      <DataTableCellList items={getValue<(string | number)[]>()} />
     ),
   },
   {
-    accessorKey: "economic_codes_api",
+    id: "economic_code",
+    accessorFn: (row) =>
+      row.economic_details.map((d) => d.economic_code ?? "—"),
     header: () => (
       <DataTableColumnHeader>Экономический код</DataTableColumnHeader>
     ),
-    cell: ({ row }) => (
-      <DataTableCellList items={row.getValue<string[]>("economic_codes_api")} />
+    cell: ({ getValue }) => (
+      <DataTableCellList items={getValue<(string | number)[]>()} />
     ),
   },
-
+  {
+    id: "internal_economic_class_detail",
+    accessorFn: (row) =>
+      row.economic_details.map((d) => {
+        const ecr = d.internal_economic_class_detail;
+        if (!ecr || !ecr.code || !ecr.name) {
+          return "—";
+        }
+        return `${ecr.code} - ${ecr.name}`;
+      }),
+    header: () => <DataTableColumnHeader>ЭКР внутренний</DataTableColumnHeader>,
+    cell: ({ getValue }) => (
+      <DataTableCellList
+        className="mx-auto max-w-[218px] wrap-break-word whitespace-normal"
+        items={getValue<(string | number)[]>()}
+      />
+    ),
+  },
   {
     accessorKey: "contracts",
     header: () => (

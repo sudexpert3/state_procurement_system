@@ -23,8 +23,8 @@ export const DataTableCellList = ({
 }: ComponentProps<"div"> & { items: readonly (string | number)[] }) => {
   return (
     <div className={cn("flex flex-col gap-2", className)} {...props}>
-      {items.map((item) => (
-        <span key={item}>{item}</span>
+      {items.map((item, idx) => (
+        <div key={idx}>{item}</div>
       ))}
     </div>
   );
