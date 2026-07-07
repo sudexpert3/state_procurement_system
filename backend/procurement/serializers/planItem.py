@@ -18,18 +18,15 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
     Канонический сериализатор позиций ГПЗ для собственного React-фронтенда.
     Автоматически собирает плоский корень, активный текст и финансовые лимиты.
     """
-    # 1. Выводим год и номер родительского плана Purchases для заголовков таблиц
-    title = serializers.CharField(source='details.title', read_only=True)
-    val_unit = serializers.CharField(source='details.val_unit.short_name', read_only=True)
-    val_amount = serializers.DecimalField(source='details.val_amount', read_only=True, max_digits=12, decimal_places=3)
+
+    title = serializers.SerializerMethodField()
+    val_unit = serializers.SerializerMethodField()
+    val_amount = serializers.SerializerMethodField()
     years = serializers.SerializerMethodField()
     aggregated_cost = serializers.SerializerMethodField()
     economic_codes_api = serializers.SerializerMethodField()
     functional_codes_api = serializers.SerializerMethodField()
     contracts = serializers.SerializerMethodField()
-
-    # active_details = serializers.SerializerMethodField()
-    # active_budget_costs = serializers.SerializerMethodField()
 
     class Meta:
         model = PlanItem
@@ -37,8 +34,27 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
             'id', 'num', 'title', 'val_unit', 'val_amount', 'aggregated_cost', 'years', 'economic_codes_api',
             'functional_codes_api', 'contracts',
             'is_public', 'is_active', 'created_at', 'updated_at',
-            # 'active_details', 'active_budget_costs'
         ]
+
+    def _get_active_detail(self, obj):
+        if not hasattr(obj, '_cached_active_detail'):
+            obj._cached_active_detail = obj.details.filter(status=PlanItemStatus.ACTIVE).first()
+        return obj._cached_active_detail
+
+    @extend_schema_field(serializers.CharField())
+    def get_title(self, obj):
+        detail = self._get_active_detail(obj)
+        return detail.title if detail else None
+
+    @extend_schema_field(serializers.CharField())
+    def get_val_unit(self, obj):
+        detail = self._get_active_detail(obj)
+        return detail.val_unit.short_name if detail and detail.val_unit else None
+
+    @extend_schema_field(serializers.DecimalField(max_digits=12, decimal_places=3))
+    def get_val_amount(self, obj):
+        detail = self._get_active_detail(obj)
+        return detail.val_amount if detail else None
 
     @extend_schema_field(serializers.ListField(child=serializers.IntegerField()))
     def get_years(self, obj):
@@ -108,18 +124,48 @@ class PlanItemFullSerializer(serializers.ModelSerializer):
     Автоматически собирает плоский корень, активный текст и финансовые лимиты.
     """
     # 1. Выводим год и номер родительского плана Purchases для заголовков таблиц
-    purchase_year = serializers.IntegerField(source='plan_purchase.year', read_only=True)
-    active_details = serializers.SerializerMethodField()
-    all_details = serializers.SerializerMethodField()
-    active_budget_costs = serializers.SerializerMethodField()
-    all_budget_costs = serializers.SerializerMethodField()
+    title = serializers.CharField(source='details.title', read_only=True)
+    okrb = serializers.CharField(source='details.okrb', read_only=True)
+    okrb_title = serializers.CharField(source='details.okrb_title', read_only=True)
+    type = serializers.CharField(source='details.type', read_only=True)
+    val_unit = serializers.CharField(source='details.val_unit.short_name', read_only=True)
+    val_amount = serializers.CharField(source='details.val_amount', read_only=True)
+    aggregated_cost = serializers.SerializerMethodField()
+
+
+
+    # purchase_year = serializers.IntegerField(source='plan_purchase.year', read_only=True)
+    # active_details = serializers.SerializerMethodField()
+    # all_details = serializers.SerializerMethodField()
+    # active_budget_costs = serializers.SerializerMethodField()
+    # all_budget_costs = serializers.SerializerMethodField()
 
     class Meta:
         model = PlanItem
         fields = [
-            'id', 'plan_purchase', 'purchase_year', 'num', 'is_public', 'is_active', 'created_at', 'updated_at',
+            'id', 'plan_purchase', 'num', 'is_public', 'is_active', 'created_at', 'updated_at',
+            'title', 'okrb', 'okrb_title', 'type', 'val_unit', 'val_amount', 'aggregated_cost',
+
+            'purchase_year',
             'active_details', 'all_details', 'active_budget_costs', 'all_budget_costs'
         ]
+
+
+
+    @extend_schema_field(serializers.DecimalField(max_digits=15, decimal_places=2))
+    def get_aggregated_cost(self, obj):
+        """
+        Казначейский расчет полной стоимости позиции закупки.
+        Суммирует только ACTIVE финансовые лимиты Минфина РБ.
+        """
+
+        active_detail = obj.details.filter(status=PlanItemStatus.ACTIVE).first()
+        portal_cost = (active_detail.fund_cost + active_detail.inner_cost) if active_detail else Decimal('0.00')
+
+        active_bcs = obj.budget_costs.filter(status=PlanItemStatus.ACTIVE)
+        budget_cost = sum(Decimal(str(bc.cost)) for bc in active_bcs) if active_bcs else Decimal('0.00')
+
+        return float(portal_cost + budget_cost)
 
     def get_active_details(self, obj):
         active_details = obj.details.filter(status=PlanItemStatus.ACTIVE)
