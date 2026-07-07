@@ -1,8 +1,6 @@
 import z from "zod";
 
-import { yearDistributionSchema } from "@/features/procurements/create/form/contract-section/quarter.schema";
-
-import { contractStatus } from "./config";
+import { contractItemSchema } from "@/features/procurements/create/form/contract-section/contract.schema";
 
 const positiveInt = (label: string) =>
   z.coerce
@@ -19,7 +17,7 @@ const additionalInfoSchema = z
     subElementNumber: positiveInt("Подэлемент"),
     elementNumber: positiveInt("Элемент"),
     expenseCategory: z.string().min(1, "Обязательное поле"),
-    departmentId: z.string().min(1, "Обязательное поле"),
+    departmentId: z.coerce.number<number>(),
     volume: positiveInt("Обязательное поле"),
     cost: positiveInt("Обязательное поле"),
   })
@@ -38,22 +36,13 @@ export const baseInfoSchema = z.object({
   procurementItems: z.array(additionalInfoSchema),
 });
 
+// Поля уровня плана + массив договоров.
+// Реквизиты/суммы конкретного договора — в contractItemSchema.
+// Производные (обязательства/отклонение/остаток) не храним — считаются в UI.
 const contractInfoSchema = z.object({
-  contractNumber: z.string().min(1, "Обязательное поле"),
-  contractDate: z.coerce.date<Date>({
-    error: "Введите дату договора",
-  }),
-  supplierId: z.string().min(1, "Обязательное поле"),
-  contractTerms: z.string().min(1, "Обязательное поле"),
-  contractNotes: z.string().min(1, "Обязательное поле"),
-  contractStatus: z.enum(contractStatus),
-  customerAccounts: z.array(z.string().min(1, "Обязательное поле")),
   currentPlanBalance: z.coerce.number<number>().positive("Обязательное поле"),
-  contractSum: z.coerce.number<number>().positive("Обязательное поле"),
-  totalLiabilities: z.coerce.number<number>().positive("Обязательное поле"),
-  variance: z.coerce.number<number>(),
-  remainingBalance: z.coerce.number<number>(),
-  quarterDistribution: z.array(yearDistributionSchema),
+  customerAccounts: z.array(z.string().min(1, "Обязательное поле")),
+  contracts: z.array(contractItemSchema),
 });
 
 const planningInfoSchema = z.object({
@@ -70,16 +59,11 @@ const planningInfoSchema = z.object({
   }),
 });
 
-export const procurementSchema = z
-  .object({
-    ...baseInfoSchema.shape,
-    ...planningInfoSchema.shape,
-    ...contractInfoSchema.shape,
-  })
-  .refine((data) => data.currentPlanBalance > data.contractSum, {
-    error: "Сумма договора не может быть больше текущей суммы плана",
-    path: ["contractSum"],
-  });
+export const procurementSchema = z.object({
+  ...baseInfoSchema.shape,
+  ...planningInfoSchema.shape,
+  ...contractInfoSchema.shape,
+});
 
 export type BaseInfoValues = z.infer<typeof baseInfoSchema>;
 export type ContractInfoValues = z.infer<typeof contractInfoSchema>;

@@ -1,18 +1,18 @@
-import type { Departments } from "@/shared/api/schema";
+import type { Department } from "@/shared/api/schema";
 import type { BaseInfoValues } from "../schema";
 
 import { ChevronRightIcon } from "lucide-react";
 import { Controller, useFormContext } from "react-hook-form";
 
 import { rqClient } from "@/shared/api/instance";
-import { InputField } from "@/shared/ui/form/input-field";
-import { TextAreaField } from "@/shared/ui/form/text-area-field";
-import { Button } from "@/shared/ui/kit/button";
+import { InputField } from "@/shared/components/form/input-field";
+import { TextAreaField } from "@/shared/components/form/text-area-field";
+import { Button } from "@/shared/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/shared/ui/kit/collapsible";
+} from "@/shared/components/ui/collapsible";
 import {
   Combobox,
   ComboboxContent,
@@ -22,55 +22,58 @@ import {
   ComboboxList,
   ComboboxTrigger,
   ComboboxValue,
-} from "@/shared/ui/kit/combobox";
+} from "@/shared/components/ui/combobox";
 import {
   Field,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@/shared/ui/kit/field";
+} from "@/shared/components/ui/field";
 
-type DepartmentNode = Departments & {
+type DepartmentNode = Department & {
   sub_departments: DepartmentNode[];
 };
 
-export const BaseInfoAnotherSection = ({ index }: { index: number }) => {
+export const BaseInfoAnotherSection = ({
+  index,
+  remove,
+}: {
+  index: number;
+  remove: (index?: number | number[]) => void;
+}) => {
   const { control } = useFormContext<BaseInfoValues>();
 
-  // function buildTree(
-  //   items: Departments[],
-  //   parent: number | null = null,
-  // ): DepartmentNode[] {
-  //   return items
-  //     .filter((item) => item.parent === parent)
-  //     .map((item) => ({
-  //       ...item,
-  //       sub_departments: buildTree(items, item.id),
-  //     }));
-  // }
-
-  const getDepartments = rqClient.useQuery("get", "/api/departments/", {
-    params: {
-      query: {
-        tree: true,
-      } as
-        | {
-            is_active?: boolean;
-            parent?: number;
-            search?: string;
-            tree?: boolean;
-          }
-        | undefined,
+  const getDepartments = rqClient.useQuery(
+    "get",
+    "/api/departments/",
+    {
+      params: {
+        query: {
+          tree: true,
+        } as
+          | {
+              is_active?: boolean;
+              parent?: number;
+              search?: string;
+              tree?: boolean;
+            }
+          | undefined,
+      },
     },
-  });
-  // const departmentsByParentId = buildTree(getDepartments.data || []);
-  // const a: typeof departments = [];
-  // console.log(departments);
+    {
+      select: (data) => {
+        return data as DepartmentNode[];
+      },
+    },
+  );
 
-  const renderItem = (item: DepartmentNode): React.ReactNode => {
+  const renderItem = (
+    item: DepartmentNode,
+    index?: number,
+  ): React.ReactNode => {
     if (item?.sub_departments?.length > 0) {
       return (
-        <Collapsible key={item.id}>
+        <Collapsible key={item.id + `${index}`}>
           <CollapsibleTrigger asChild>
             <Button
               variant="ghost"
@@ -89,7 +92,7 @@ export const BaseInfoAnotherSection = ({ index }: { index: number }) => {
       );
     }
     return (
-      <ComboboxItem key={item.id} value={item} className="px-3">
+      <ComboboxItem key={item.id + `${index}`} value={item} className="px-3">
         {item.short_name}
       </ComboboxItem>
     );
@@ -174,15 +177,9 @@ export const BaseInfoAnotherSection = ({ index }: { index: number }) => {
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel>Подразделение</FieldLabel>
                 <Combobox
-                  items={getDepartments.data || []}
-                  value={
-                    getDepartments.data?.find(
-                      (item) => item.id === Number(field.value),
-                    ) ?? null
-                  }
-                  itemToStringLabel={(item) =>
-                    item !== null ? item.short_name : ""
-                  }
+                  itemToStringLabel={(item: Department) => {
+                    return item ? item.short_name : "";
+                  }}
                   onValueChange={(item) => field.onChange(item?.id ?? null)}
                   autoHighlight>
                   <ComboboxTrigger
@@ -198,9 +195,11 @@ export const BaseInfoAnotherSection = ({ index }: { index: number }) => {
                     <ComboboxInput showTrigger={false} placeholder="Search" />
                     <ComboboxEmpty>Подразделение не найдено</ComboboxEmpty>
                     <ComboboxList>
-                      {(item) => {
-                        return renderItem(item);
-                      }}
+                      {getDepartments.data?.map(
+                        (item: DepartmentNode, index) => {
+                          return renderItem(item, index);
+                        },
+                      )}
                     </ComboboxList>
                   </ComboboxContent>
                 </Combobox>
@@ -226,6 +225,9 @@ export const BaseInfoAnotherSection = ({ index }: { index: number }) => {
           required
         />
       </FieldGroup>
+      <Button variant="destructive" onClick={() => remove(index)}>
+        Удалить
+      </Button>
     </FieldGroup>
   );
 };

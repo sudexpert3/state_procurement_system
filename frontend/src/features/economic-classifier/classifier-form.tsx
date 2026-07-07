@@ -1,12 +1,12 @@
 import type { EconomicClassifier } from "./economic-classifier.page";
 
-import { useEffect } from "react";
+import { useMemo, useRef } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import z from "zod";
 
-import { Button } from "@/shared/ui/kit/button";
+import { Button } from "@/shared/components/ui/button";
 import {
   Combobox,
   ComboboxContent,
@@ -14,7 +14,7 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
-} from "@/shared/ui/kit/combobox";
+} from "@/shared/components/ui/combobox";
 import {
   Drawer,
   DrawerClose,
@@ -22,18 +22,14 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "@/shared/ui/kit/drawer";
-import { Field, FieldError, FieldLabel } from "@/shared/ui/kit/field";
-import { Input } from "@/shared/ui/kit/input";
+} from "@/shared/components/ui/drawer";
+import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field";
+import { Input } from "@/shared/components/ui/input";
 
 const classifierSchema = z.object({
   code: z.string().min(1, "Обязательное поле"),
   name: z.string().min(1, "Обязательное поле"),
-  parent_id: z.preprocess(
-    (val) =>
-      val === "" || val === null || val === undefined ? null : Number(val),
-    z.number().nullable(),
-  ),
+  parent_id: z.coerce.number<number>().nullable(),
 });
 
 type FormValues = z.input<typeof classifierSchema>;
@@ -47,6 +43,8 @@ type Props = {
   onSubmit: (values: ClassifierFormOutput, id?: number) => void;
 };
 
+const initialData = { code: "", name: "", parent_id: null };
+
 export const ClassifierForm = ({
   open,
   item,
@@ -55,32 +53,27 @@ export const ClassifierForm = ({
   onSubmit,
 }: Props) => {
   const isEdit = item !== null;
+  const portalContainerRef = useRef<HTMLDivElement | null>(null);
 
   const { handleSubmit, control, reset } = useForm<FormValues>({
     resolver: zodResolver(classifierSchema),
-    defaultValues: { code: "", name: "", parent_id: null },
+    values: { ...initialData, ...item },
   });
 
-  useEffect(() => {
-    if (open) {
-      reset(
-        item
-          ? { code: item.code, name: item.name, parent_id: item.parent_id }
-          : { code: "", name: "", parent_id: null },
-      );
-    }
-  }, [open, item, reset]);
-
-  const parentOptions = allItems.filter((i) => i.id !== item?.id);
+  const parentOptions = useMemo(
+    () => allItems.filter((i) => i.id !== item?.id),
+    [item?.id, allItems],
+  );
 
   const submit = handleSubmit((values) => {
-    onSubmit(values as ClassifierFormOutput, item?.id);
+    onSubmit(values, item?.id);
+    reset(initialData);
     onClose();
   });
 
   return (
     <Drawer open={open} onOpenChange={(v) => !v && onClose()} direction="right">
-      <DrawerContent className="flex flex-col">
+      <DrawerContent className="flex flex-col" ref={portalContainerRef}>
         <DrawerHeader>
           <DrawerTitle>
             {isEdit ? "Редактировать классификатор" : "Добавить классификатор"}
@@ -135,20 +128,23 @@ export const ClassifierForm = ({
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel>Родительский классификатор</FieldLabel>
                 <Combobox
-                  value={field.value === null ? "" : String(field.value)}
-                  onValueChange={(val) =>
-                    field.onChange(val === "" ? null : val)
+                  items={parentOptions}
+                  onValueChange={(val: EconomicClassifier | null) =>
+                    field.onChange(val?.id ?? null)
+                  }
+                  itemToStringLabel={(val) =>
+                    val ? `${val.code} — ${val.name}` : ""
                   }>
                   <ComboboxInput
                     placeholder="Поиск по коду или названию..."
                     showClear
                     aria-invalid={fieldState.invalid}
                   />
-                  <ComboboxContent>
+                  <ComboboxContent portalContainer={portalContainerRef}>
                     <ComboboxList>
                       <ComboboxItem value="">Без родителя</ComboboxItem>
                       {parentOptions.map((opt) => (
-                        <ComboboxItem key={opt.id} value={String(opt.id)}>
+                        <ComboboxItem key={opt.id} value={opt}>
                           {opt.code} — {opt.name}
                         </ComboboxItem>
                       ))}

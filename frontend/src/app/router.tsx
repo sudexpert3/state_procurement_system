@@ -1,10 +1,14 @@
 import { Suspense } from "react";
 
 import { createBrowserRouter, redirect } from "react-router";
+import { Toaster } from "sonner";
 
 import * as buyers from "@/features/buyers";
+import * as departments from "@/features/departments";
 import * as economicClassifier from "@/features/economic-classifier";
+import * as plans from "@/features/plans";
 import * as procurements from "@/features/procurements";
+import * as suppliers from "@/features/suppliers";
 import { ROUTES } from "@/shared/model/routes";
 
 import { App } from "./app";
@@ -18,6 +22,7 @@ export const router = createBrowserRouter([
       <Providers>
         <Suspense fallback={<div>Loading...</div>}>
           <App />
+          <Toaster />
         </Suspense>
       </Providers>
     ),
@@ -29,6 +34,10 @@ export const router = createBrowserRouter([
           {
             element: <MainLayout />,
             children: [
+              {
+                path: ROUTES.PLANS,
+                lazy: plans.list,
+              },
               {
                 path: ROUTES.PROCUREMENTS,
                 lazy: procurements.list,
@@ -46,8 +55,16 @@ export const router = createBrowserRouter([
                 lazy: economicClassifier.list,
               },
               {
+                path: ROUTES.DEPARTMENTS,
+                lazy: departments.list,
+              },
+              {
                 path: ROUTES.BUYERS,
                 lazy: buyers.list,
+              },
+              {
+                path: ROUTES.SUPPLIERS,
+                lazy: suppliers.list,
               },
               {
                 path: ROUTES.USERS,
@@ -67,7 +84,7 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.HOME,
-        loader: () => redirect(ROUTES.PROCUREMENTS),
+        loader: () => redirect(ROUTES.PLANS),
       },
       {
         path: ROUTES.NOT_FOUND,

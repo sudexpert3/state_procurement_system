@@ -1,7 +1,16 @@
 import { href, useNavigate } from "react-router";
 
+import { DataTable } from "@/shared/components/data-table/data-table";
+import { Button } from "@/shared/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { ROUTES } from "@/shared/model/routes";
-import { DataTable } from "@/shared/ui/data-table/data-table";
 
 import { columns } from "./columns";
 import { TableActions } from "./table-actions";
@@ -154,26 +163,48 @@ import { TableActions } from "./table-actions";
 
 const ProcurementsPage = () => {
   const navigate = useNavigate();
-  const getRow = (row) => {
-    navigate(href(ROUTES.PROCUREMENT, { id: row.id }), { state: row });
+  const getRow = (row: unknown) => {
+    navigate(href(ROUTES.PROCUREMENT, { id: row?.id }), { state: row });
   };
-  // const { data: bueyrs } = rqClient.useQuery("get", "/api/buyers/");
-  // console.log(bueyrs);
+  const year = new Date().getFullYear();
+
+  // const { data } = rqClient.useQuery("get", "/gpz/");
+  // console.log(data);
   // const getAuth = async () => {
-  //   const res = await fetchClient.GET("/gpz", "/");
-  //   console.log(res);
+  //   const res = await fetchClient.GET("/gpz", {});
+  //   console.log("result", res);
   // };
   // useEffect(() => {
-  //   getAuth();+
+  //   getAuth();
   // }, []);
 
+  const handleAddProcurement = () => {
+    navigate(ROUTES.PROCUREMENT_ADD);
+  };
+
   return (
-    <div className="max-w-full">
-      <TableActions />
-      <div className="w-full shrink">
-        <DataTable data={[]} columns={columns} getRow={getRow} />
-      </div>
-    </div>
+    <Card className="max-w-full gap-2 bg-transparent ring-0">
+      <CardHeader>
+        <CardTitle>Реестр закупок</CardTitle>
+        <CardDescription className="text-[12px]">{`Планы закупок на ${year} год`}</CardDescription>
+        <CardAction>
+          <Button onClick={handleAddProcurement}>Добавить запись</Button>
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        <DataTable
+          data={[]}
+          columns={columns}
+          getRow={getRow}
+          actions={(table) => (
+            <div className="py-4">
+              <TableActions table={table} />
+            </div>
+          )}
+          pagination={{ type: "default" }}
+        />
+      </CardContent>
+    </Card>
   );
 };
 

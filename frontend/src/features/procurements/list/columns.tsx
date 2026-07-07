@@ -43,31 +43,9 @@ export const columns: ColumnDef<{}>[] = [
       <div className="capitalize">{row.getValue("goodsName")}</div>
     ),
   },
-  // {
-  //   accessorKey: "okrbCode",
-  //   header: "Код ОКРБ 007-2012",
-  //   cell: ({ row }) => (
-  //     <div className="lowercase">{row.getValue("okrbCode")}</div>
-  //   ),
-  // },
-  // {
-  //   accessorKey: "okrbSubType",
-  //   header:
-  //     "Наименование подвида товаров (работ, услуг) в соответствии с ОКРБ 007-2012",
-  //   cell: ({ row }) => (
-  //     <div className="lowercase">{row.getValue("okrbSubType")}</div>
-  //   ),
-  // },
-  // {
-  //   accessorKey: "subject",
-  //   header: "Предмет государственной закупки",
-  //   cell: ({ row }) => (
-  //     <div className="lowercase">{row.getValue("subject")}</div>
-  //   ),
-  // },
   {
     accessorKey: "volume",
-    header: () => <div className="text-right">Ориентировочные объемы</div>,
+    header: "Ориентировочные объемы",
     cell: ({ row }) => {
       return (
         <div className="text-right font-medium">
@@ -78,7 +56,7 @@ export const columns: ColumnDef<{}>[] = [
   },
   {
     accessorKey: "cost",
-    header: () => <div className="text-right">Ориентировочная стоимость</div>,
+    header: "Ориентировочная стоимость",
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("cost"));
 
@@ -92,27 +70,9 @@ export const columns: ColumnDef<{}>[] = [
   },
   {
     accessorKey: "customer",
-    header: () => <div className="text-right">Исполнитель</div>,
+    header: "Исполнитель",
     cell: ({ row }) => {
       return <div className="capitalize">{row.getValue("customer")}</div>;
     },
   },
-  // {
-  //   accessorKey: "department",
-  //   header: () => (
-  //     <div className="text-right">
-  //       <Input value={"Подразделения"} />
-  //     </div>
-  //   ),
-  //   cell: ({ row }) => {
-  //     return <div className="capitalize">{row.getValue("department")}</div>;
-  //   },
-  // },
-  //   {
-  //     accessorKey: "period",
-  //     header: "Срок (периодичность) проведения процедуры",
-  //     cell: ({ row }) => (
-  //       <div className="lowercase">{row.getValue("period")}</div>
-  //     ),
-  //   },
 ];

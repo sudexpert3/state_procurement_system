@@ -15,10 +15,18 @@ export const yearDistributionSchema = z
     plan: quarterRowSchema,
     transfer: quarterRowSchema,
   })
-  .refine((data) => data.plan >= data.financing, {
-    error: "Подлежит к оплате не может быть больше оплачено",
-    path: ["plan"],
-  });
+  // Поквартально: подлежит к оплате (plan) не может превышать оплаченное (financing)
+  .refine(
+    (data) =>
+      data.plan.q1 <= data.financing.q1 &&
+      data.plan.q2 <= data.financing.q2 &&
+      data.plan.q3 <= data.financing.q3 &&
+      data.plan.q4 <= data.financing.q4,
+    {
+      error: "Подлежит к оплате не может быть больше оплачено",
+      path: ["plan"],
+    },
+  );
 
 export type YearDistribution = z.infer<typeof yearDistributionSchema>;
 export type QuarterRow = z.infer<typeof quarterRowSchema>;

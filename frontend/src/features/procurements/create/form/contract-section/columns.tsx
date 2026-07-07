@@ -1,119 +1,111 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import type { ContractItem } from "./contract.schema";
 
 import { FileTextIcon, PencilIcon } from "lucide-react";
 
-type Buyer = {
-  id: number;
-  fullName: string;
-  shortName: string;
-  isActive: boolean;
-};
+import { DeleteButton } from "@/shared/components/delete-button";
+import { Button } from "@/shared/components/ui/button";
+import { formatDate } from "@/shared/lib/helpers/format-date";
 
-export type ProcurementContract = {
-  id: number;
-  number: string;
-  total_cost: number;
-  supplier_id: number;
-  construction_type: string;
-  contract_date: string | null; //! или Date
-  //   created_at: string | null;
-  fixed_assets_plan_item: string;
-  is_registered_in_treasury: boolean;
-  notice: string;
-  parent_contract_id: number | null;
-  payment_terms: string;
-  planned_delivery_date: string | null; //! или Date
-  procurement_method_detail_id: number;
-  buyerId: number;
-  buyerDetail: Buyer;
-};
-
-type ContractWithoutId = Omit<ProcurementContract, "id">;
-
-export const columns: ColumnDef<ProcurementContract>[] = [
-  {
-    id: "select2",
-    cell: ({ row }) => {
-      return (
-        <div className="flex gap-2">
-          <FileTextIcon
-            size={18}
-            className="text-muted-foreground hover:text-foreground cursor-pointer"
-          />
-
-          <PencilIcon
-            size={18}
-            className="text-muted-foreground hover:text-foreground cursor-pointer"
-          />
-        </div>
-      );
+export const createColumns = (
+  onView: (row: ContractItem) => void,
+  onEdit: (row: ContractItem) => void,
+  onDelete: (id: number) => void,
+): ColumnDef<ContractItem>[] => {
+  return [
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        return (
+          <div>
+            <Button
+              variant="ghost"
+              type="button"
+              size="icon"
+              onClick={() => onView(row.original)}>
+              <FileTextIcon
+                size={16}
+                className="text-muted-foreground hover:text-foreground cursor-pointer"
+              />
+            </Button>
+            <Button
+              variant="ghost"
+              type="button"
+              size="icon"
+              onClick={() => onEdit(row.original)}>
+              <PencilIcon
+                size={16}
+                className="text-muted-foreground hover:text-foreground cursor-pointer"
+              />
+            </Button>
+            <DeleteButton onConfirm={() => onDelete(row.original.id)} />
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
     },
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "id",
-    header: "ID",
-  },
-  {
-    accessorKey: "number",
-    header: "№ договора",
-  },
-  {
-    accessorKey: "total_cost",
-    header: "Сумма договора",
-    cell: ({ row }) => {
-      const value = row.getValue("total_cost") as number;
-      return value.toLocaleString("ru-RU");
+    {
+      accessorKey: "id",
+      header: "ID",
     },
-  },
-  {
-    accessorKey: "supplier_id",
-    header: "Поставщик",
-  },
-  {
-    accessorKey: "construction_type",
-    header: "Вид строительства",
-  },
-  {
-    accessorKey: "contract_date",
-    header: "Дата договора",
-    cell: ({ row }) => row.getValue("contract_date") || "—",
-  },
-  {
-    accessorKey: "fixed_assets_plan_item",
-    header: "Пункт плана ОС",
-  },
-  {
-    accessorKey: "is_registered_in_treasury",
-    header: "Зарегистрирован в казначействе",
-    cell: ({ row }) =>
-      row.getValue("is_registered_in_treasury") ? "Да" : "Нет",
-  },
-  {
-    accessorKey: "notice",
-    header: "Примечание",
-  },
-  {
-    accessorKey: "parent_contract_id",
-    header: "Родительский договор",
-    cell: ({ row }) => row.getValue("parent_contract_id") ?? "—",
-  },
-  {
-    accessorKey: "payment_terms",
-    header: "Условия оплаты",
-  },
-  {
-    accessorKey: "planned_delivery_date",
-    header: "Плановая дата поставки",
-    cell: ({ row }) => row.getValue("planned_delivery_date") || "—",
-  },
-  {
-    accessorKey: "procurement_method_detail_id",
-    header: "Способ закупки",
-  },
-  {
-    accessorKey: "buyerDetail.shortName",
-    header: "Покупатель",
-  },
-];
+    {
+      accessorKey: "contractNumber",
+      header: "№ договора",
+    },
+    {
+      accessorKey: "contractSum",
+      header: "Сумма договора",
+      cell: ({ row }) => row.original.contractSum.toLocaleString("ru-RU"),
+    },
+    {
+      accessorKey: "supplierId",
+      header: "Поставщик",
+    },
+    {
+      accessorKey: "constructionType",
+      header: "Вид строительства",
+    },
+    {
+      accessorKey: "contractDate",
+      header: "Дата договора",
+      cell: ({ row }) => formatDate(row.original.contractDate),
+    },
+    {
+      accessorKey: "fixedAssetsPlanItem",
+      header: "Пункт плана ОС",
+    },
+    {
+      accessorKey: "isRegisteredInTreasury",
+      header: "Зарегистрирован в казначействе",
+      cell: ({ row }) => (row.original.isRegisteredInTreasury ? "Да" : "Нет"),
+    },
+    {
+      accessorKey: "contractNotes",
+      header: "Примечание",
+      cell: ({ row }) => row.original.contractNotes || "—",
+    },
+    {
+      accessorKey: "parentContractId",
+      header: "Родительский договор",
+      cell: ({ row }) => row.original.parentContractId ?? "—",
+    },
+    {
+      accessorKey: "contractTerms",
+      header: "Условия оплаты",
+    },
+    {
+      accessorKey: "plannedDeliveryDate",
+      header: "Плановая дата поставки",
+      cell: ({ row }) => formatDate(row.original.plannedDeliveryDate),
+    },
+    {
+      accessorKey: "procurementMethodDetailId",
+      header: "Способ закупки",
+    },
+    {
+      accessorKey: "buyer.shortName",
+      header: "Покупатель",
+    },
+  ];
+};

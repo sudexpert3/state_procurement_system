@@ -1,20 +1,24 @@
 import type { ClassifierFormOutput } from "./classifier-form";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
-import { PlusIcon, SearchIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 
-import { DataTable } from "@/shared/ui/data-table/data-table";
-import { Button } from "@/shared/ui/kit/button";
-import { Card, CardContent } from "@/shared/ui/kit/card";
+import { DataTable } from "@/shared/components/data-table/data-table";
+import { Button } from "@/shared/components/ui/button";
 import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/shared/ui/kit/input-group";
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 
 import { ClassifierForm } from "./classifier-form";
+import { ClassifierToolbar } from "./classifier-toolbar";
 import { createColumns } from "./columns";
+import { useClassifierSearch } from "./use-classifier-search";
 
 export type EconomicClassifier = {
   id: number;
@@ -50,74 +54,68 @@ let nextId = INITIAL_DATA.length + 1;
 
 const EconomicClassifierPage = () => {
   const [data, setData] = useState<EconomicClassifier[]>(INITIAL_DATA);
-  const [search, setSearch] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<EconomicClassifier | null>(
     null,
   );
 
-  const filteredData = useMemo(() => {
-    if (!search.trim()) return data;
-    const q = search.toLowerCase();
-    return data.filter(
-      (item) =>
-        item.code.toLowerCase().includes(q) ||
-        item.name.toLowerCase().includes(q),
-    );
-  }, [data, search]);
+  const { search, setSearch, filteredData } = useClassifierSearch(data);
 
-  const handleAdd = () => {
+  const handleAdd = useCallback(() => {
     setEditingItem(null);
     setDrawerOpen(true);
-  };
+  }, []);
 
-  const handleEdit = (item: EconomicClassifier) => {
+  const handleEdit = useCallback((item: EconomicClassifier) => {
     setEditingItem(item);
     setDrawerOpen(true);
-  };
+  }, []);
 
-  const handleDelete = (id: number) => {
+  const handleDelete = useCallback((id: number) => {
     setData((prev) => prev.filter((item) => item.id !== id));
-  };
+  }, []);
 
-  const handleSubmit = (values: ClassifierFormOutput, id?: number) => {
-    if (id !== undefined) {
-      setData((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, ...values } : item)),
-      );
-    } else {
-      setData((prev) => [...prev, { id: nextId++, ...values }]);
-    }
-  };
-
-  const columns = useMemo(
-    () => createColumns(handleEdit, handleDelete),
-
+  const handleSubmit = useCallback(
+    (values: ClassifierFormOutput, id?: number) => {
+      if (id !== undefined) {
+        setData((prev) =>
+          prev.map((item) => (item.id === id ? { ...item, ...values } : item)),
+        );
+      } else {
+        setData((prev) => [...prev, { id: nextId++, ...values }]);
+      }
+    },
     [],
   );
 
+  const columns = useMemo(
+    () => createColumns(handleEdit, handleDelete),
+    [handleEdit, handleDelete],
+  );
+
   return (
-    <div className="flex flex-col gap-4">
-      <Card>
-        <CardContent className="flex items-center gap-4">
-          <InputGroup className="max-w-sm">
-            <InputGroupAddon>
-              <SearchIcon size={16} />
-            </InputGroupAddon>
-            <InputGroupInput
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Поиск по коду или названию"
-            />
-          </InputGroup>
+    <Card className="max-w-full gap-2 bg-transparent ring-0">
+      <CardHeader>
+        <CardTitle>ЭКР</CardTitle>
+        <CardDescription>Экономическая классификация расходов</CardDescription>
+        <CardAction>
           <Button onClick={handleAdd}>
             <PlusIcon size={16} />
             Добавить
           </Button>
-        </CardContent>
-      </Card>
-
-      <DataTable data={filteredData} columns={columns} enableActions={false} />
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        <DataTable
+          data={filteredData}
+          columns={columns}
+          actions={() => (
+            <div className="py-4">
+              <ClassifierToolbar search={search} onSearchChange={setSearch} />
+            </div>
+          )}
+        />
+      </CardContent>
 
       <ClassifierForm
         open={drawerOpen}
@@ -126,7 +124,7 @@ const EconomicClassifierPage = () => {
         onClose={() => setDrawerOpen(false)}
         onSubmit={handleSubmit}
       />
-    </div>
+    </Card>
   );
 };
 

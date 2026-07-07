@@ -1,25 +1,25 @@
 import * as React from "react";
 
 import {
-  AudioWaveform,
   BookOpen,
-  Command,
+  CalendarRange,
   GalleryVerticalEnd,
   SquareTerminal,
+  UniversityIcon,
 } from "lucide-react";
 
-import { ROUTES } from "@/shared/model/routes";
-import { Separator } from "@/shared/ui/kit/separator";
+import { Separator } from "@/shared/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-} from "@/shared/ui/kit/sidebar";
+  SidebarMenuButton,
+} from "@/shared/components/ui/sidebar";
+import { ROUTES } from "@/shared/model/routes";
 
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
-import { TeamSwitcher } from "./team-switcher";
 
 const data = {
   user: {
@@ -29,24 +29,19 @@ const data = {
   },
   teams: [
     {
-      name: "Acme Inc",
+      name: "Закупки",
       logo: <GalleryVerticalEnd />,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: <AudioWaveform />,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: <Command />,
-      plan: "Free",
+      // plan: "Enterprise",
     },
   ],
   navMain: [
     {
-      title: "Реестр",
+      title: "Годовые планы",
+      url: ROUTES.PLANS,
+      icon: <CalendarRange />,
+    },
+    {
+      title: "Реестр закупок",
       url: ROUTES.PROCUREMENTS,
       icon: <SquareTerminal />,
     },
@@ -66,7 +61,7 @@ const data = {
         },
         {
           title: "Главки",
-          url: "#",
+          url: ROUTES.DEPARTMENTS,
         },
         {
           title: "Исполнители",
@@ -80,6 +75,10 @@ const data = {
           title: "Для кого закупка",
           url: ROUTES.BUYERS,
         },
+        {
+          title: "Поставщики",
+          url: ROUTES.SUPPLIERS,
+        },
       ],
     },
   ],
@@ -89,7 +88,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <SidebarMenuButton
+          size="lg"
+          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+          <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+            <UniversityIcon />
+          </div>
+          <div className="grid flex-1 text-left text-sm leading-tight">
+            <span className="truncate font-medium">Закупки</span>
+          </div>
+        </SidebarMenuButton>
       </SidebarHeader>
       <Separator />
       <SidebarContent>
