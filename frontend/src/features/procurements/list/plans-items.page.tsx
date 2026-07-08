@@ -2,7 +2,13 @@ import type { PlanItemShort } from "@/shared/api/schema";
 
 import { useMemo } from "react";
 
-import { href, useNavigate, useParams } from "react-router";
+import {
+  href,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router";
 
 import { rqClient } from "@/shared/api/instance";
 import { DataTable } from "@/shared/components/data-table/data-table";
@@ -22,17 +28,23 @@ import { TableActions } from "./table-actions";
 
 const PlansItemsPage = () => {
   const navigate = useNavigate();
-  const params = useParams();
-  console.log(params);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const purchase = Number(searchParams.get("purchase")) || 8;
+  const limit = Number(searchParams.get("limit")) || 20;
+  const offset = Number(searchParams.get("offset")) || 0;
+
   const getRow = (row: PlanItemShort) => {
     navigate(href(ROUTES.PLAN_ITEM, { id: row?.id }), { state: row });
   };
+
   const { data } = rqClient.useQuery("get", "/api/plan_items/", {
-    // params:{
-    //   path:{
-    //     purchase:
-    //   }
-    // }
+    params: {
+      query: {
+        limit,
+        offset,
+        purchase,
+      },
+    },
   });
 
   // const year = new Date().getFullYear();
