@@ -3,7 +3,6 @@ import type { PlanItemFull } from "@/shared/api/schema";
 import { CardContent } from "@/shared/components/ui/card";
 import { formatByn, formatMoney } from "@/shared/lib/helpers/format-money";
 
-import { DepartmentsTable } from "../components/departments-table";
 import { DetailField } from "../components/detail-field";
 import { SectionCard } from "../components/section-card";
 import { typeLabel } from "../plan-meta";
@@ -21,11 +20,9 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => (
           label="Тип (работа/услуга/товар)"
           value={typeLabel[plan.type]}
         />
-        <DetailField label="Исполнитель" value={plan.customerId} />
-        <DetailField
-          label="Общее количество"
-          value={`${plan.val_amount} ${plan.val_unit}`}
-        />
+        //TODO узнать про исполнителя
+        {/* <DetailField label="Исполнитель" value={plan.customerId} /> */}
+        <DetailField label="Общее количество" value={plan.val_amount} />
         <DetailField label="Ед. измерения" value={plan.val_unit} />
         <DetailField
           label="Общая сумма"
@@ -40,9 +37,9 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => (
             По этому плану сведений о финансировании нет.
           </p>
         ) : (
-          plan.economic_details.map((year) => (
+          plan.economic_details.map((year, idx) => (
             <div
-              key={year.id}
+              key={year.year + idx}
               className="grid grid-cols-2 gap-4 rounded-md border p-3 md:grid-cols-3">
               <DetailField label="Год финансирования" value={year.year} />
               <DetailField
@@ -88,10 +85,10 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => (
                 label="Собственные средства, BYN"
                 value={formatByn(year.cost_detail.inner_cost)}
               />
-              <DepartmentsTable
+              {/* <DepartmentsTable
                 title="Сведения о финансировании подразделений"
                 data={year.departments}
-              />
+              /> */}
             </div>
           ))
         )}

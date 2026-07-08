@@ -18,6 +18,7 @@ import {
 import { formatMoney } from "@/shared/lib/helpers/format-money";
 
 import { DetailField } from "./components/detail-field";
+import { InfoTab } from "./tabs/info-tab";
 import { PaymentsTab } from "./tabs/payments-tab";
 
 const PlanItemDetailPage = () => {
@@ -91,7 +92,9 @@ const PlanItemDetailPage = () => {
           <TabsTrigger value="payments">Платежи</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="info">{/* <InfoTab plan={plan} /> */}</TabsContent>
+        <TabsContent value="info">
+          <InfoTab plan={plan} />
+        </TabsContent>
 
         <TabsContent value="planning">
           {/* <PlanningTab plan={plan} /> */}
