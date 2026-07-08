@@ -71,7 +71,7 @@ const PlansItemsPage = () => {
     <Card className="max-w-full gap-2 bg-transparent ring-0">
       <CardHeader>
         <CardTitle>Реестр закупок</CardTitle>
-        <CardDescription className="text-[12px]">{`Планы закупок на текущий год`}</CardDescription>
+        <CardDescription className="text-[12px]">{`Планы закупок на год`}</CardDescription>
         <CardAction>
           <Button onClick={handleAddProcurement}>Добавить запись</Button>
         </CardAction>

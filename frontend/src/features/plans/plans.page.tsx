@@ -30,6 +30,7 @@ const PlansPage = () => {
       search: `?purchase=${row.id}&limit=20&offset=0`,
     });
   };
+  console.log(data);
 
   return (
     <Card className="max-w-full gap-2 bg-transparent ring-0">
@@ -45,7 +46,7 @@ const PlansPage = () => {
           columns={columns}
           getRow={handleRowClick}
           isLoading={isPending}
-          cellClassName="text-center"
+          cellClassName="p-4 text-center"
         />
       </CardContent>
     </Card>
