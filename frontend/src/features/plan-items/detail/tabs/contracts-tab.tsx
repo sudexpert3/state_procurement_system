@@ -3,16 +3,16 @@ import type { ContractDetail, PlanItemDetail } from "../procurement.mock";
 
 import { useMemo, useState } from "react";
 
+import { DepartmentsTable } from "@/features/plan-items/detail/components/departments-table";
 import { DataTable } from "@/shared/components/data-table/data-table";
 import { CardContent } from "@/shared/components/ui/card";
 import { formatDate } from "@/shared/lib/helpers/format-date";
 import { formatByn, formatMoney } from "@/shared/lib/helpers/format-money";
 import { cn } from "@/shared/lib/utils";
 
-import { DepartmentsTable } from "../departments-table";
-import { DetailField } from "../detail-field";
-import { SectionCard } from "../section-card";
-import { StatCard } from "../stat-card";
+import { DetailField } from "../components/detail-field";
+import { SectionCard } from "../components/section-card";
+import { StatCard } from "../components/stat-card";
 
 // Колонки таблицы договоров пункта плана.
 const columns: ColumnDef<ContractDetail, unknown>[] = [

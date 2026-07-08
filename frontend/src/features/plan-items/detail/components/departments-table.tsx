@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { FinancingDepartment } from "./procurement.mock";
+import type { FinancingDepartment } from "../procurement.mock";
 
 import { DataTable } from "@/shared/components/data-table/data-table";
 import { CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -38,8 +38,6 @@ const columns: ColumnDef<FinancingDepartment, unknown>[] = [
   },
 ];
 
-// Блок «таблица подразделений» с заголовком.
-// Общий для табов «Информация» (финансирование по годам) и «Договоры» (позиции договора).
 export const DepartmentsTable = ({
   title,
   data,

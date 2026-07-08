@@ -20,6 +20,6 @@ export const statusMeta: Record<
 };
 
 export const typeLabel: Record<string, string> = {
-  work: "Работа/Услуга",
+  job: "Работа/Услуга",
   product: "Товар",
 };

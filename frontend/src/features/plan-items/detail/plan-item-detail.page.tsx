@@ -1,6 +1,6 @@
 import { useParams } from "react-router";
 
-import { Badge } from "@/shared/components/ui/badge";
+import { rqClient } from "@/shared/api/instance";
 import {
   Card,
   CardAction,
@@ -16,30 +16,20 @@ import {
   TabsTrigger,
 } from "@/shared/components/ui/tabs";
 import { formatMoney } from "@/shared/lib/helpers/format-money";
-import { cn } from "@/shared/lib/utils";
 
-import { ContractsTab } from "./tabs/contracts-tab";
-import { InfoTab } from "./tabs/info-tab";
+import { DetailField } from "./components/detail-field";
 import { PaymentsTab } from "./tabs/payments-tab";
-import { PlanningTab } from "./tabs/planning-tab";
-import { DetailField } from "./detail-field";
-import { statusMeta } from "./plan-meta";
-import { planItemDetailMock } from "./procurement.mock";
 
 const PlanItemDetailPage = () => {
-  // ID берём из URL (а не из location.state) — так страница переживает
-  // перезагрузку (F5) и открытие по прямой ссылке.
   const { id } = useParams();
 
-  // ─── Заготовки запросов ───────────────────────────────────────────────
-  // Пока данные из мока. Включим, когда бэкенд отдаст эндпоинты.
-  // const { data: plan, isLoading } = rqClient.useQuery(
-  //   "get",
-  //   "/api/procurements/{id}/",
-  //   { params: { path: { id: Number(id) } } },
-  // );
-  // ──────────────────────────────────────────────────────────────────────
-  const plan = planItemDetailMock.find((p) => String(p.id) === id);
+  const { data: plan, isLoading } = rqClient.useQuery(
+    "get",
+    "/api/plan_items/{id}/",
+    { params: { path: { id: Number(id) } } },
+  );
+
+  // const plan = planItemDetailMock.find((p) => String(p.id) === id);
 
   if (!plan) {
     return (
@@ -51,37 +41,37 @@ const PlanItemDetailPage = () => {
 
   return (
     <div className="w-full space-y-4">
-      {/* Шапка плана */}
       <Card className="ring-0">
         <CardHeader className="px-2">
           <CardTitle className="text-lg font-semibold tracking-wide uppercase">
-            План закупки № {plan.planPointNumber}
+            План закупки № {plan.num}
           </CardTitle>
           <CardAction>
-            <Badge
+            //TODO узнать про статус плана
+            {/* <Badge 
               className={cn(
                 "rounded-md px-3 py-1 text-sm font-semibold",
                 statusMeta[plan.status].className,
               )}>
               {statusMeta[plan.status].label}
-            </Badge>
+            </Badge> */}
           </CardAction>
         </CardHeader>
         <Separator />
         <CardContent className="grid grid-cols-2 gap-4 px-2 md:grid-cols-4">
-          <DetailField
-            label="Номер пункта плана"
-            value={plan.planPointNumber}
-          />
+          <DetailField label="Номер пункта плана" value={plan.num} />
           <DetailField
             label="Наименование предмета закупки"
-            value={plan.goodsName}
+            value={plan.title}
           />
           <DetailField
             label="Общее количество"
-            value={`${plan.allVolume} ${plan.units}`}
+            value={`${plan.val_amount} ${plan.val_unit}`}
           />
-          <DetailField label="Общая сумма" value={formatMoney(plan.allCost)} />
+          <DetailField
+            label="Общая сумма"
+            value={formatMoney(plan.aggregated_cost?.total_cost)}
+          />
         </CardContent>
       </Card>
 
@@ -92,25 +82,23 @@ const PlanItemDetailPage = () => {
           <TabsTrigger value="planning">Планирование</TabsTrigger>
           <TabsTrigger value="contracts">
             Договоры
-            {plan.contracts.length > 0 && (
+            {/* {plan.contracts.length > 0 && (
               <Badge variant="secondary" className="ml-1.5">
                 {plan.contracts.length}
               </Badge>
-            )}
+            )} */}
           </TabsTrigger>
           <TabsTrigger value="payments">Платежи</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="info">
-          <InfoTab plan={plan} />
-        </TabsContent>
+        <TabsContent value="info">{/* <InfoTab plan={plan} /> */}</TabsContent>
 
         <TabsContent value="planning">
-          <PlanningTab plan={plan} />
+          {/* <PlanningTab plan={plan} /> */}
         </TabsContent>
 
         <TabsContent value="contracts">
-          <ContractsTab plan={plan} />
+          {/* <ContractsTab plan={plan} /> */}
         </TabsContent>
 
         <TabsContent value="payments">

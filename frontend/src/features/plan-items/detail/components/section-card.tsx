@@ -3,8 +3,6 @@ import type { ReactNode } from "react";
 import { Card, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Separator } from "@/shared/components/ui/separator";
 
-// Карточка-секция: заголовок в едином стиле + разделитель.
-// Тело передаётся через children (обычно CardContent со своей раскладкой).
 export const SectionCard = ({
   title,
   children,

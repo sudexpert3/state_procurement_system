@@ -1,6 +1,6 @@
 import { CardContent } from "@/shared/components/ui/card";
 
-import { SectionCard } from "../section-card";
+import { SectionCard } from "../components/section-card";
 
 // Таб «Платежи» — плейсхолдер до подключения эндпоинта.
 export const PaymentsTab = () => (
