@@ -29,25 +29,30 @@ class PlanShare(models.Model):
 
     def save(self, *args, **kwargs):
         if self.shared_amount:
-            detail = self.budget_cost.plan_item.details.filter(status=PlanItemStatus.ACTIVE).first()
-            if detail:
-                total_amount = detail.val_amount
+            plan_item = self.budget_cost.plan_item if self.budget_cost else None
+            if plan_item:
+                detail = plan_item.details.filter(status=PlanItemStatus.ACTIVE).first()
 
-                shares_queryset = PlanShare.objects.filter(
-                    budget_cost=self.budget_cost,
-                    status=PlanItemStatus.ACTIVE
-                )
-                if self.pk:
-                    shares_queryset = shares_queryset.exclude(pk=self.pk)
+                if detail:
+                    total_allowed_amount = detail.val_amount
+                    active_budgets = plan_item.budget_costs.filter(status=PlanItemStatus.ACTIVE)
 
-                already_saved_amount = shares_queryset.aggregate(total=Sum('shared_amount'))['total'] or 0
+                    shares_queryset = PlanShare.objects.filter(
+                        budget_cost__in=active_budgets,
+                        status=PlanItemStatus.ACTIVE
+                    )
+                    if self.pk:
+                        shares_queryset = shares_queryset.exclude(pk=self.pk)
 
-                if total_amount < (already_saved_amount + self.shared_amount):
-                    raise ValidationError(message=f"Превышение количества в {self.budget_cost.year} году! "
-                                                  f" Выделено всего: {total_amount}"
-                                                  f" Уже распределено: {already_saved_amount}. "
-                                                  f" Попытка добавить: {self.shared_amount}.",
-                                          )
+                    already_saved_amount = shares_queryset.aggregate(total=Sum('shared_amount'))['total'] or 0
+
+                    if total_allowed_amount < (already_saved_amount + self.shared_amount):
+                        raise ValidationError(
+                            f"Превышение общего количества по пункту плана! "
+                            f"Выделено на весь период закупки: {total_allowed_amount}. "
+                            f"Уже распределено (за все года): {already_saved_amount}. "
+                            f"Попытка добавить в {self.budget_cost.year} году: {self.shared_amount}."
+                        )
 
         if self.shared_cost:
             b_cost = self.budget_cost
