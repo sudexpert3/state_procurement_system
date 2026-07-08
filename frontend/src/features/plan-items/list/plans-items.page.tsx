@@ -28,7 +28,7 @@ const PlansItemsPage = () => {
   const offset = Number(searchParams.get("offset")) || 0;
 
   const getRow = (row: PlanItemShort) => {
-    navigate(href(ROUTES.PLAN_ITEM, { id: Number(row?.id) }));
+    navigate(href(ROUTES.PLAN_ITEM, { id: String(row.id) }));
   };
 
   const { data } = rqClient.useQuery("get", "/api/plan_items/", {

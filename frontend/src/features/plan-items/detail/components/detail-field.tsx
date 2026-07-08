@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 
-// Read-only отображение одного поля: подпись сверху, значение снизу.
-// Пустое значение показываем как «—».
 export const DetailField = ({
   label,
   value,

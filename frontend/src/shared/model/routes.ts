@@ -18,7 +18,7 @@ export const ROUTES = {
 
 export type PathParams = {
   [ROUTES.PLAN_ITEM]: {
-    id: number | string;
+    id: number;
   };
 };
 

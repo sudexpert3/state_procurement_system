@@ -6,7 +6,6 @@ import {
 } from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
 
-// Карточка-показатель для блока аналитики договоров (сумма позиции / договоров / остаток).
 export const StatCard = ({
   title,
   value,

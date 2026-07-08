@@ -3,8 +3,8 @@ import type { PlanItemDetail } from "../procurement.mock";
 import { CardContent } from "@/shared/components/ui/card";
 import { formatDate } from "@/shared/lib/helpers/format-date";
 
-import { DetailField } from "../detail-field";
-import { SectionCard } from "../section-card";
+import { DetailField } from "../components/detail-field";
+import { SectionCard } from "../components/section-card";
 
 // Таб «Планирование» — параметры процедуры и реквизиты плана.
 export const PlanningTab = ({ plan }: { plan: PlanItemDetail }) => (

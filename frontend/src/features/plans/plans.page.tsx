@@ -20,7 +20,7 @@ import { createColumns } from "./columns";
 const PlansPage = () => {
   const navigate = useNavigate();
 
-  const { data, isPending } = rqClient.useQuery("get", "/api/purchases/", {});
+  const { data, isLoading } = rqClient.useQuery("get", "/api/purchases/", {});
 
   const columns = useMemo(() => createColumns(), []);
 
@@ -44,7 +44,7 @@ const PlansPage = () => {
           data={data ?? []}
           columns={columns}
           getRow={handleRowClick}
-          isLoading={isPending}
+          isLoading={isLoading}
           cellClassName="p-4 text-center"
         />
       </CardContent>
