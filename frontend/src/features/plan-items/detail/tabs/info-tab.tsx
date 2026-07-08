@@ -1,4 +1,4 @@
-import type { ProcurementDetail } from "../procurement.mock";
+import type { PlanItemDetail } from "../procurement.mock";
 
 import { CardContent } from "@/shared/components/ui/card";
 import { formatByn, formatMoney } from "@/shared/lib/helpers/format-money";
@@ -9,7 +9,7 @@ import { typeLabel } from "../plan-meta";
 import { SectionCard } from "../section-card";
 
 // Таб «Информация» — скалярные поля предмета закупки + сведения о финансировании.
-export const InfoTab = ({ plan }: { plan: ProcurementDetail }) => (
+export const InfoTab = ({ plan }: { plan: PlanItemDetail }) => (
   <div className="space-y-4">
     <SectionCard title="Предмет закупки">
       <CardContent className="grid grid-cols-2 gap-4 px-2 md:grid-cols-3">

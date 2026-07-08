@@ -1,4 +1,4 @@
-import type { ProcurementDetail } from "../procurement.mock";
+import type { PlanItemDetail } from "../procurement.mock";
 
 import { CardContent } from "@/shared/components/ui/card";
 import { formatDate } from "@/shared/lib/helpers/format-date";
@@ -7,7 +7,7 @@ import { DetailField } from "../detail-field";
 import { SectionCard } from "../section-card";
 
 // Таб «Планирование» — параметры процедуры и реквизиты плана.
-export const PlanningTab = ({ plan }: { plan: ProcurementDetail }) => (
+export const PlanningTab = ({ plan }: { plan: PlanItemDetail }) => (
   <SectionCard title="Планирование">
     <CardContent className="grid grid-cols-2 gap-4 px-2 md:grid-cols-3">
       <DetailField label="Категория расходов" value={plan.expenseCategory} />

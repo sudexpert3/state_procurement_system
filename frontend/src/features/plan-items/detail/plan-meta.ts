@@ -1,8 +1,8 @@
-import type { ProcurementStatus } from "./procurement.mock";
+import type { PlanItemStatus } from "./procurement.mock";
 
 // Подпись и цвет бейджа для каждого статуса плана.
 export const statusMeta: Record<
-  ProcurementStatus,
+  PlanItemStatus,
   { label: string; className: string }
 > = {
   draft: {

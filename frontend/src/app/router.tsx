@@ -6,8 +6,8 @@ import { Toaster } from "sonner";
 import * as buyers from "@/features/buyers";
 import * as departments from "@/features/departments";
 import * as economicClassifier from "@/features/economic-classifier";
+import * as planItems from "@/features/plan-items";
 import * as plans from "@/features/plans";
-import * as procurements from "@/features/procurements";
 import * as suppliers from "@/features/suppliers";
 import { ROUTES } from "@/shared/model/routes";
 
@@ -40,15 +40,15 @@ export const router = createBrowserRouter([
               },
               {
                 path: ROUTES.PLAN_ITEMS,
-                lazy: procurements.list,
+                lazy: planItems.list,
               },
               {
                 path: ROUTES.PLAN_ITEM,
-                lazy: procurements.detail,
+                lazy: planItems.detail,
               },
               {
                 path: ROUTES.PLAN_ITEM_ADD,
-                lazy: procurements.create,
+                lazy: planItems.create,
               },
               {
                 path: ROUTES.ECONOMIC_CLASSIFIER,

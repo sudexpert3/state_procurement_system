@@ -1,11 +1,11 @@
-import type { ContractInfoValues } from "@/features/procurements/create/schema";
+import type { ContractInfoValues } from "@/features/plan-items/create/schema";
 import type { ContractItem } from "./contract.schema";
 
 import { useCallback, useMemo, useState } from "react";
 
 import { useFormContext, useWatch } from "react-hook-form";
 
-import { createColumns } from "@/features/procurements/create/form/contract-section/columns";
+import { createColumns } from "@/features/plan-items/create/form/contract-section/columns";
 import { DataTable } from "@/shared/components/data-table/data-table";
 import { InputField } from "@/shared/components/form/input-field";
 import { Button } from "@/shared/components/ui/button";

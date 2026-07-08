@@ -24,9 +24,9 @@ import { PaymentsTab } from "./tabs/payments-tab";
 import { PlanningTab } from "./tabs/planning-tab";
 import { DetailField } from "./detail-field";
 import { statusMeta } from "./plan-meta";
-import { procurementDetailMock } from "./procurement.mock";
+import { planItemDetailMock } from "./procurement.mock";
 
-const ProcurementDetailPage = () => {
+const PlanItemDetailPage = () => {
   // ID берём из URL (а не из location.state) — так страница переживает
   // перезагрузку (F5) и открытие по прямой ссылке.
   const { id } = useParams();
@@ -39,7 +39,7 @@ const ProcurementDetailPage = () => {
   //   { params: { path: { id: Number(id) } } },
   // );
   // ──────────────────────────────────────────────────────────────────────
-  const plan = procurementDetailMock.find((p) => String(p.id) === id);
+  const plan = planItemDetailMock.find((p) => String(p.id) === id);
 
   if (!plan) {
     return (
@@ -121,4 +121,4 @@ const ProcurementDetailPage = () => {
   );
 };
 
-export const Component = ProcurementDetailPage;
+export const Component = PlanItemDetailPage;
