@@ -1,6 +1,6 @@
 import z from "zod";
 
-import { contractItemSchema } from "@/features/procurements/create/form/contract-section/contract.schema";
+import { contractItemSchema } from "@/features/plan-items/create/form/contract-section/contract.schema";
 
 const positiveInt = (label: string) =>
   z.coerce
@@ -33,7 +33,7 @@ export const baseInfoSchema = z.object({
   allCost: positiveInt("Обязательное поле"),
   units: z.string().min(1, "Обязательное поле"),
   customerId: z.string().min(1, "Обязательное поле"),
-  procurementItems: z.array(additionalInfoSchema),
+  planItems: z.array(additionalInfoSchema),
 });
 
 // Поля уровня плана + массив договоров.
@@ -59,7 +59,7 @@ const planningInfoSchema = z.object({
   }),
 });
 
-export const procurementSchema = z.object({
+export const planItemSchema = z.object({
   ...baseInfoSchema.shape,
   ...planningInfoSchema.shape,
   ...contractInfoSchema.shape,
@@ -69,8 +69,8 @@ export type BaseInfoValues = z.infer<typeof baseInfoSchema>;
 export type ContractInfoValues = z.infer<typeof contractInfoSchema>;
 export type PlanningInfoValues = z.infer<typeof planningInfoSchema>;
 
-export type ProcurementFormValues = z.infer<typeof procurementSchema>;
-export type ProcurementFormInput = z.input<typeof procurementSchema>;
-export type ProcurementFormOutput = z.output<typeof procurementSchema>;
+export type PlanItemFormValues = z.infer<typeof planItemSchema>;
+export type PlanItemFormInput = z.input<typeof planItemSchema>;
+export type PlanItemFormOutput = z.output<typeof planItemSchema>;
 
 export type AdditionalInfoValues = z.infer<typeof additionalInfoSchema>;

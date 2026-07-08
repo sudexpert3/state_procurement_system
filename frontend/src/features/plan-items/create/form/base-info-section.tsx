@@ -87,7 +87,7 @@ export const BaseInfoSection = () => {
   const { control } = useFormContext<BaseInfoValues>();
   const { append, fields, remove } = useFieldArray({
     control,
-    name: `procurementItems`,
+    name: `planItems`,
   });
 
   const handleAddItem = () => {

@@ -1,4 +1,4 @@
-import type { ProcurementFormInput, ProcurementFormOutput } from "../schema";
+import type { PlanItemFormInput, PlanItemFormOutput } from "../schema";
 
 import { useFormContext } from "react-hook-form";
 
@@ -11,19 +11,19 @@ import {
 
 import { FormTabsNavigation } from "./form-tabs-navigation";
 
-export const FormProcurement = ({
+export const FormPlanItem = ({
   submitted,
   onSubmit,
 }: {
-  submitted: ProcurementFormInput | null;
-  onSubmit: (data: ProcurementFormOutput) => void;
+  submitted: PlanItemFormInput | null;
+  onSubmit: (data: PlanItemFormOutput) => void;
 }) => {
-  const form = useFormContext<ProcurementFormOutput>();
+  const form = useFormContext<PlanItemFormOutput>();
 
   return (
     <>
       <form
-        id="procurement-form"
+        id="plan-item-form"
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-6"
         noValidate>

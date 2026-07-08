@@ -9,28 +9,26 @@ import { Button } from "@/shared/components/ui/button";
 import { ROUTES } from "@/shared/model/routes";
 
 import { contractsMock } from "./form/contract-section/contracts.mock";
-import { FormProcurement } from "./form/form";
+import { FormPlanItem } from "./form/form";
 import {
-  type ProcurementFormInput,
-  type ProcurementFormOutput,
-  procurementSchema,
+  type PlanItemFormInput,
+  type PlanItemFormOutput,
+  planItemSchema,
 } from "./schema";
 
-const ProcurementNewPage = () => {
+const PlanItemNewPage = () => {
   const navigate = useNavigate();
 
   const onCancel = () => {
     navigate(ROUTES.HOME);
   };
-  const [submitted, setSubmitted] = useState<null | ProcurementFormOutput>(
-    null,
-  );
+  const [submitted, setSubmitted] = useState<null | PlanItemFormOutput>(null);
 
-  const defaultValues: ProcurementFormInput = {
+  const defaultValues: PlanItemFormInput = {
     goodsName: "",
     planPointNumber: "",
     allVolume: 0,
-    procurementItems: [],
+    planItems: [],
     okrbName: "",
     typeOfGoodsId: "",
     customerId: "",
@@ -49,13 +47,13 @@ const ProcurementNewPage = () => {
     viewProcedure: "",
   };
 
-  const form = useForm<ProcurementFormInput, unknown, ProcurementFormOutput>({
+  const form = useForm<PlanItemFormInput, unknown, PlanItemFormOutput>({
     defaultValues,
     mode: "onChange",
-    resolver: zodResolver(procurementSchema),
+    resolver: zodResolver(planItemSchema),
   });
 
-  const onSubmit = (data: ProcurementFormOutput) => {
+  const onSubmit = (data: PlanItemFormOutput) => {
     toast.info("Данные формы");
     setSubmitted(data);
   };
@@ -79,7 +77,7 @@ const ProcurementNewPage = () => {
             Отмена
           </Button>
           <Button variant="outline">Сохранить как черновик</Button>
-          <Button form="procurement-form" type="submit">
+          <Button form="plan-item-form" type="submit">
             Сохранить
           </Button>
         </div>
@@ -87,11 +85,11 @@ const ProcurementNewPage = () => {
 
       <div className="mt-4 mb-10">
         <FormProvider {...form}>
-          <FormProcurement submitted={submitted} onSubmit={onSubmit} />
+          <FormPlanItem submitted={submitted} onSubmit={onSubmit} />
         </FormProvider>
       </div>
     </div>
   );
 };
 
-export const Component = ProcurementNewPage;
+export const Component = PlanItemNewPage;

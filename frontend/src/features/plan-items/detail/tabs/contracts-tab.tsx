@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { ContractDetail, ProcurementDetail } from "../procurement.mock";
+import type { ContractDetail, PlanItemDetail } from "../procurement.mock";
 
 import { useMemo, useState } from "react";
 
@@ -52,7 +52,7 @@ const columns: ColumnDef<ContractDetail, unknown>[] = [
 ];
 
 // Таб «Договоры» — аналитика по пункту плана + список договоров с позициями.
-export const ContractsTab = ({ plan }: { plan: ProcurementDetail }) => {
+export const ContractsTab = ({ plan }: { plan: PlanItemDetail }) => {
   // Сумма всех договоров по пункту плана.
   // TODO: заменить на значение с бэкенда, когда эндпоинт отдаст агрегат.
   const contractsTotal = useMemo(

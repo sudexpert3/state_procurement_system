@@ -104,7 +104,7 @@ export const BaseInfoAnotherSection = ({
       <FieldGroup className="grid grid-cols-2 gap-4">
         <InputField
           control={control}
-          name={`procurementItems.${index}.articleNumber`}
+          name={`planItems.${index}.articleNumber`}
           label="Статья"
           placeholder="10"
           type="text"
@@ -112,7 +112,7 @@ export const BaseInfoAnotherSection = ({
         />
         <InputField
           control={control}
-          name={`procurementItems.${index}.pstNumber`}
+          name={`planItems.${index}.pstNumber`}
           label="ПСТ"
           placeholder="10"
           type="number"
@@ -120,7 +120,7 @@ export const BaseInfoAnotherSection = ({
         />
         <InputField
           control={control}
-          name={`procurementItems.${index}.elNumber`}
+          name={`planItems.${index}.elNumber`}
           label="ЭЛ"
           placeholder="99"
           type="number"
@@ -128,7 +128,7 @@ export const BaseInfoAnotherSection = ({
         />
         <InputField
           control={control}
-          name={`procurementItems.${index}.economicClass`}
+          name={`planItems.${index}.economicClass`}
           label="ЭКР"
           placeholder="173"
           type="number"
@@ -137,7 +137,7 @@ export const BaseInfoAnotherSection = ({
 
         <InputField
           control={control}
-          name={`procurementItems.${index}.subElementNumber`}
+          name={`planItems.${index}.subElementNumber`}
           label="Под. элемент"
           placeholder="1101008"
           type="number"
@@ -145,7 +145,7 @@ export const BaseInfoAnotherSection = ({
         />
         <InputField
           control={control}
-          name={`procurementItems.${index}.elementNumber`}
+          name={`planItems.${index}.elementNumber`}
           label="Элемент"
           placeholder="1101000"
           type="number"
@@ -154,7 +154,7 @@ export const BaseInfoAnotherSection = ({
       </FieldGroup>
       <TextAreaField
         control={control}
-        name={`procurementItems.${index}.expenseCategory`}
+        name={`planItems.${index}.expenseCategory`}
         label="Категория расходов"
         placeholder="приобретение, сопровождение и информационное обеспечение программных средств для ЭКСПЕРТНЫХ подразделений"
         required
@@ -162,7 +162,7 @@ export const BaseInfoAnotherSection = ({
       <FieldGroup className="flex-row gap-4">
         {/* <ComboboxField
           control={control}
-          name={`procurementItems.${index}.departmentId`}
+          name={`planItems.${index}.departmentId`}
           items={options}
           label="Подразделение"
           placeholder="Выберите подразделение"
@@ -171,7 +171,7 @@ export const BaseInfoAnotherSection = ({
 
         <Controller
           control={control}
-          name={`procurementItems.${index}.departmentId`}
+          name={`planItems.${index}.departmentId`}
           render={({ field, fieldState }) => {
             return (
               <Field data-invalid={fieldState.invalid}>
@@ -212,14 +212,14 @@ export const BaseInfoAnotherSection = ({
         />
         <InputField
           control={control}
-          name={`procurementItems.${index}.volume`}
+          name={`planItems.${index}.volume`}
           label="Количество"
           placeholder="100"
           required
         />
         <InputField
           control={control}
-          name={`procurementItems.${index}.cost`}
+          name={`planItems.${index}.cost`}
           label="Сумма "
           placeholder="100"
           required

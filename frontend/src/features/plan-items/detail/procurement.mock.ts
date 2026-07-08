@@ -1,18 +1,18 @@
 import type { Supplier } from "@/shared/api/schema";
 import type { ContractItem } from "../create/form/contract-section/contract.schema";
-import type { ProcurementFormValues } from "../create/schema";
+import type { PlanItemFormValues } from "../create/schema";
 
 import { contractsMock } from "../create/form/contract-section/contracts.mock";
 
 // Статусы плана закупки (as const вместо enum — правило проекта).
-export const procurementStatus = {
+export const planItemStatus = {
   DRAFT: "draft",
   PUBLISHED: "published",
   ARCHIVED: "archived",
 } as const;
 
-export type ProcurementStatus =
-  (typeof procurementStatus)[keyof typeof procurementStatus];
+export type PlanItemStatus =
+  (typeof planItemStatus)[keyof typeof planItemStatus];
 
 // Строка таблицы подразделений внутри года финансирования.
 export type FinancingDepartment = {
@@ -57,9 +57,9 @@ export type ContractDetail = ContractItem & {
 // План закупки целиком (как его отдаст GET /api/procurements/{id}/).
 // id и status добавлены поверх формы — на бэке они есть, в схеме формы нет.
 // contracts переопределены на ContractDetail (с поставщиком и позициями).
-export type ProcurementDetail = Omit<ProcurementFormValues, "contracts"> & {
+export type PlanItemDetail = Omit<PlanItemFormValues, "contracts"> & {
   id: number;
-  status: ProcurementStatus;
+  status: PlanItemStatus;
   contracts: ContractDetail[];
   financing: FinancingYear[];
 };
@@ -211,10 +211,10 @@ export const financingMock: FinancingYear[] = [
 ];
 
 // Демо-данные для страницы деталей. Заменятся ответом API.
-export const procurementDetailMock: ProcurementDetail[] = [
+export const planItemDetailMock: PlanItemDetail[] = [
   {
     id: 1,
-    status: procurementStatus.PUBLISHED,
+    status: planItemStatus.PUBLISHED,
     // base info
     planPointNumber: "1.1",
     okrbCode: "28.23.11.000",
@@ -225,7 +225,7 @@ export const procurementDetailMock: ProcurementDetail[] = [
     allCost: 125000,
     units: "шт",
     customerId: "1",
-    procurementItems: [
+    planItems: [
       {
         articleNumber: 210,
         pstNumber: 4,
@@ -255,7 +255,7 @@ export const procurementDetailMock: ProcurementDetail[] = [
   },
   {
     id: 2,
-    status: procurementStatus.DRAFT,
+    status: planItemStatus.DRAFT,
     planPointNumber: "1.2",
     okrbCode: "31.01.11.000",
     goodsName: "Мебель офисная для нового филиала",
@@ -265,7 +265,7 @@ export const procurementDetailMock: ProcurementDetail[] = [
     allCost: 18500,
     units: "шт",
     customerId: "2",
-    procurementItems: [
+    planItems: [
       {
         articleNumber: 211,
         pstNumber: 5,
@@ -293,7 +293,7 @@ export const procurementDetailMock: ProcurementDetail[] = [
   },
   {
     id: 3,
-    status: procurementStatus.ARCHIVED,
+    status: planItemStatus.ARCHIVED,
     planPointNumber: "2.1",
     okrbCode: "61.10.11.000",
     goodsName: "Услуги доступа к сети Интернет",
@@ -303,7 +303,7 @@ export const procurementDetailMock: ProcurementDetail[] = [
     allCost: 36000,
     units: "мес",
     customerId: "3",
-    procurementItems: [],
+    planItems: [],
     expenseCategory: "Текущие расходы",
     viewObject: "Услуги",
     viewProcedure: "Процедура закупки из одного источника",
