@@ -15,6 +15,7 @@ export type PaginatedBudgetCostsImportList =
   ApiSchemas["PaginatedBudgetCostsImportList"];
 export type PaginatedContractList = ApiSchemas["PaginatedContractList"];
 export type ProcurementMethodDetail = ApiSchemas["ProcurementMethodDetail"];
+export type Purchase = ApiSchemas["Purchases"];
 export type Supplier = ApiSchemas["Supplier"];
 export type TreasuryPayment = ApiSchemas["TreasuryPayment"];
 export type UnitOfMeasurement = ApiSchemas["UnitOfMeasurement"];

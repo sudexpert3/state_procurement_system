@@ -18,7 +18,10 @@ export const ROUTES = {
 
 export type PathParams = {
   [ROUTES.PROCUREMENT]: {
-    id: string;
+    id: number;
+    purchase: number;
+    limit: number;
+    offset: number;
   };
 };
 

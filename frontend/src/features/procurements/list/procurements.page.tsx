@@ -2,7 +2,7 @@ import type { PlanItemShort } from "@/shared/api/schema";
 
 import { useMemo } from "react";
 
-import { href, useNavigate } from "react-router";
+import { href, useNavigate, useParams } from "react-router";
 
 import { rqClient } from "@/shared/api/instance";
 import { DataTable } from "@/shared/components/data-table/data-table";
@@ -22,10 +22,18 @@ import { TableActions } from "./table-actions";
 
 const ProcurementsPage = () => {
   const navigate = useNavigate();
+  const params = useParams();
+  console.log(params);
   const getRow = (row: PlanItemShort) => {
     navigate(href(ROUTES.PROCUREMENT, { id: row?.id }), { state: row });
   };
-  const { data } = rqClient.useQuery("get", "/api/plan_items/", {});
+  const { data } = rqClient.useQuery("get", "/api/plan_items/", {
+    // params:{
+    //   path:{
+    //     purchase:
+    //   }
+    // }
+  });
 
   // const year = new Date().getFullYear();
 
