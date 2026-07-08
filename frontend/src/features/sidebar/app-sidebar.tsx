@@ -31,7 +31,6 @@ const data = {
     {
       name: "Закупки",
       logo: <GalleryVerticalEnd />,
-      // plan: "Enterprise",
     },
   ],
   navMain: [

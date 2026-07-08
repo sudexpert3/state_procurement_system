@@ -44,10 +44,11 @@ export function NavMain({
             <SidebarMenuItem>
               {item.items === undefined && (
                 <SidebarMenuButton
+                  asChild
                   tooltip={item.title}
                   isActive={location.pathname === item.url}
                   className="data-active:text-primary data-active:bg-sidebar-border">
-                  <NavLink to={item.url} className="flex gap-2">
+                  <NavLink to={item.url} className="flex items-center gap-2">
                     {item.icon}
                     <span>{item.title}</span>
                   </NavLink>

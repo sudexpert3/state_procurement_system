@@ -30,7 +30,6 @@ const PlansPage = () => {
       search: `?purchase=${row.id}&limit=20&offset=0`,
     });
   };
-  console.log(data);
 
   return (
     <Card className="max-w-full gap-2 bg-transparent ring-0">
