@@ -42,7 +42,7 @@ const data = {
     },
     {
       title: "Реестр закупок",
-      url: ROUTES.PROCUREMENTS,
+      url: ROUTES.PLAN_ITEMS,
       icon: <SquareTerminal />,
     },
     {

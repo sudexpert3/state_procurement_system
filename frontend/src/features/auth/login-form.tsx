@@ -32,7 +32,7 @@ export const LoginForm = () => {
   const onSubmit = handleSubmit((data) => {
     if (data.login === "admin" && data.password === "admin") {
       localStorage.setItem("token", "true");
-      navigate(ROUTES.PROCUREMENTS);
+      navigate(ROUTES.PLAN_ITEMS);
     } else {
       setError("Неправильный логин или пароль");
     }

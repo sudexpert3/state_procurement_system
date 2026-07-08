@@ -20,12 +20,12 @@ import { ROUTES } from "@/shared/model/routes";
 import { createColumns } from "./columns";
 import { TableActions } from "./table-actions";
 
-const ProcurementsPage = () => {
+const PlansItemsPage = () => {
   const navigate = useNavigate();
   const params = useParams();
   console.log(params);
   const getRow = (row: PlanItemShort) => {
-    navigate(href(ROUTES.PROCUREMENT, { id: row?.id }), { state: row });
+    navigate(href(ROUTES.PLAN_ITEM, { id: row?.id }), { state: row });
   };
   const { data } = rqClient.useQuery("get", "/api/plan_items/", {
     // params:{
@@ -52,7 +52,7 @@ const ProcurementsPage = () => {
   // }, []);
 
   const handleAddProcurement = () => {
-    navigate(ROUTES.PROCUREMENT_ADD);
+    navigate(ROUTES.PLAN_ITEM_ADD);
   };
 
   return (
@@ -82,4 +82,4 @@ const ProcurementsPage = () => {
   );
 };
 
-export const Component = ProcurementsPage;
+export const Component = PlansItemsPage;

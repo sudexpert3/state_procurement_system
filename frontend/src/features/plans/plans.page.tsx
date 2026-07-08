@@ -2,7 +2,7 @@ import type { Purchase } from "@/shared/api/schema";
 
 import { useMemo } from "react";
 
-import { generatePath, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 
 import { rqClient } from "@/shared/api/instance";
 import { DataTable } from "@/shared/components/data-table/data-table";
@@ -25,7 +25,10 @@ const PlansPage = () => {
   const columns = useMemo(() => createColumns(), []);
 
   const handleRowClick = (row: Purchase) => {
-    navigate(generatePath(ROUTES.PROCUREMENT, { id: String(row.id) }));
+    navigate({
+      pathname: ROUTES.PLAN_ITEMS,
+      search: `?purchase=${row.id}&limit=20&offset=0`,
+    });
   };
 
   return (

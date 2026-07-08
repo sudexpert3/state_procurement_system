@@ -1,4 +1,4 @@
-export const list = () => import("./list/procurements.page");
+export const list = () => import("./list/plans-items.page");
 
 export const detail = () => import("./detail/procurement-detail.page");
 

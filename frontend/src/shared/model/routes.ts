@@ -4,9 +4,9 @@ export const ROUTES = {
   HOME: "/",
   LOGIN: "/login",
   PLANS: "/plans",
-  PROCUREMENTS: "/procurements",
-  PROCUREMENT_ADD: "/procurement/add",
-  PROCUREMENT: "/procurement/:id",
+  PLAN_ITEMS: "/plan-items",
+  PLAN_ITEM_ADD: "/plan-items/add",
+  PLAN_ITEM: "/plan-items/:id",
   ECONOMIC_CLASSIFIER: `/economic-classifier`,
   DEPARTMENTS: `/departments`,
   CODES: `/codes`,
@@ -17,11 +17,8 @@ export const ROUTES = {
 } as const;
 
 export type PathParams = {
-  [ROUTES.PROCUREMENT]: {
-    id: number;
-    purchase: number;
-    limit: number;
-    offset: number;
+  [ROUTES.PLAN_ITEM]: {
+    id: number | string;
   };
 };
 
