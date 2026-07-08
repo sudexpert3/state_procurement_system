@@ -128,6 +128,7 @@ class Contract(models.Model):
 class ContractItem(models.Model):
     """Спецификация договора (Строки списания лимитов)"""
     contract = models.ForeignKey(Contract, on_delete=models.PROTECT, related_name='items')
+    title = models.CharField("Наименование позиции, как в договоре", max_length=2048, null=True, blank=True)
     year = models.PositiveIntegerField("Год позиции договора", db_index=True, default=get_current_year)
     plan_share = models.ForeignKey(PlanShare, on_delete=models.PROTECT, related_name='contract_items')
     contract_amount = models.DecimalField("Количество по договору", max_digits=12, decimal_places=3)

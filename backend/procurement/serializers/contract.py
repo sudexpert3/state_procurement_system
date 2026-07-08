@@ -12,7 +12,7 @@ class ContractItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ContractItem
-        fields = ['id', 'contract', 'year', 'plan_share', 'contract_amount', 'contract_cost']
+        fields = ['id', 'contract', 'title', 'year', 'plan_share', 'contract_amount', 'contract_cost']
 
 
 class ContractSerializer(serializers.ModelSerializer):

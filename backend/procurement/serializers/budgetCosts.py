@@ -4,13 +4,13 @@ from django.db import transaction
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from core.choices import PlanItemStatus
-from procurement.models import FunctionalCode, ProgramCode, BudgetCosts, ExternalEconomicCode
+from procurement.models import FunctionalCode, ProgramCode, BudgetCosts, ExternalEconomicCode, PlanShare
 
 from .internalEconomicClassifier import InternalEconomicClassifierSerializer
 from .externalEconomicCode import ExternalEconomicCodeSerializer
 from .functionalCode import FunctionalCodeSerializer
 from .programCode import ProgramCodeSerializer
-
+from .planShare import PlanShareForBudgetCustSerializer
 
 # =====================================================================
 # 1. СЕРИАЛИЗАТОР ИМПОРТА (для парсинга goszakupki.by)
@@ -168,65 +168,57 @@ class BudgetCostsImportSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+
 # =====================================================================
 # 2. СЕРИАЛИЗАТОР ОТОБРАЖЕНИЯ (для вывода на фронтенде)
 # =====================================================================
+class CostDetailResponseSchema(serializers.Serializer):
+    total_cost = serializers.DecimalField(max_digits=15, decimal_places=2)
+    budget_cost = serializers.DecimalField(max_digits=15, decimal_places=2)
+    fund_cost = serializers.DecimalField(max_digits=15, decimal_places=2)
+    inner_cost = serializers.DecimalField(max_digits=15, decimal_places=2)
+
 class BudgetCostsForItemSerializer(serializers.ModelSerializer):
+    cost_detail = serializers.SerializerMethodField()
     functional_class_detail = FunctionalCodeSerializer(source='functional_class', read_only=True)
     economic_class_detail = ExternalEconomicCodeSerializer(source='economic_class', read_only=True)
-
-    program_class_detail = ProgramCodeSerializer(source='program_class', read_only=True)
-    # program_class_code_api = serializers.CharField(source='program_class.code_api', read_only=True)
-
     internal_economic_class_detail = InternalEconomicClassifierSerializer(source='internal_economic_class', read_only=True)
-    internal_economic_class_code = serializers.CharField(source='internal_economic_class.code', read_only=True)
+    program_class_detail = ProgramCodeSerializer(source='program_class', read_only=True)
+    cost_departments = serializers.SerializerMethodField()
 
-    internal_economic_section_detail = InternalEconomicClassifierSerializer(source='internal_economic_section', read_only=True)
-    internal_economic_section_code = serializers.CharField(source='internal_economic_section.code', read_only=True)
-
-    internal_economic_subsection_detail = InternalEconomicClassifierSerializer(source='internal_economic_subsection', read_only=True)
-    internal_economic_subsection_code = serializers.CharField(source='internal_economic_subsection.code', read_only=True)
-
-    internal_economic_kind_detail = InternalEconomicClassifierSerializer(source='internal_economic_kind', read_only=True)
-    internal_economic_kind_code = serializers.CharField(source='internal_economic_kind.code', read_only=True)
-
-    internal_economic_article_detail = InternalEconomicClassifierSerializer(source='internal_economic_article', read_only=True)
-    internal_economic_article_code = serializers.CharField(source='internal_economic_article.code', read_only=True)
-
-    aggregated_cost = serializers.SerializerMethodField()
 
     class Meta:
         model = BudgetCosts
-        fields = ['id', 'plan_item', 'status', 'purchases_items_id', 'aggregated_cost', 'cost',
-                  # FUNCTIONAL_CODE:
-                  'functional_class_detail',
-                  # ECONOMIC_CODE:
-                  'economic_class_detail',
+        fields = ['status', 'year', 'cost_detail', 'functional_class_detail', 'economic_class_detail',
+                  'internal_economic_class_detail',
+                  'program_class_detail', 'department_code', 'unk', 'tk_id', 'budget_code', 'budget_code_name',
+                  'cost_departments',
 
-
-                  # PROGRAM_CODE:
-                  'program_class_detail',
-                  'department_code', 'budget_code', 'budget_code_name', 'unk', 'tk_id', 'year',
-
-                  'internal_economic_class', 'internal_economic_class_code', 'internal_economic_class_detail',
-                  'internal_economic_section', 'internal_economic_section_code', 'internal_economic_section_detail',
-                  'internal_economic_subsection', 'internal_economic_subsection_code',
-                  'internal_economic_subsection_detail',
-                  'internal_economic_kind', 'internal_economic_kind_code', 'internal_economic_kind_detail',
-                  'internal_economic_article', 'internal_economic_article_code', 'internal_economic_article_detail',
                   ]
 
-    @extend_schema_field(serializers.DecimalField(max_digits=15, decimal_places=2))
-    def get_aggregated_cost(self, obj):
+    @extend_schema_field(CostDetailResponseSchema)
+    def get_cost_detail(self, obj):
+        fund_cost, inner_cost = Decimal('0.00'), Decimal('0.00')
+
         if obj.plan_item:
             detail = obj.plan_item.details.filter(status=PlanItemStatus.ACTIVE).first()
-            portal_cost = (detail.fund_cost + detail.inner_cost) if detail else Decimal('0.00')
-        else:
-            portal_cost = Decimal('0.00')
+            if detail:
+                fund_cost = detail.fund_cost
+                inner_cost = detail.inner_cost
 
         budget_cost = Decimal(str(obj.cost)) if obj.cost else Decimal('0.00')
+        total_cost = budget_cost + fund_cost + inner_cost
 
-        return portal_cost + budget_cost
+        return {
+            "total_cost": total_cost,
+            "budget_cost": budget_cost,
+            "fund_cost": fund_cost,
+            "inner_cost": inner_cost
+        }
+
+    def get_cost_departments(self, obj):
+        plan_shares = obj.plan_shares.filter(status=PlanItemStatus.ACTIVE)
+        return PlanShareForBudgetCustSerializer(plan_shares, many=True, context=self.context).data
 
 
 
@@ -249,9 +241,6 @@ class BudgetCostsForShortItemSerializer(serializers.ModelSerializer):
         budget_cost = Decimal(str(obj.cost)) if obj.cost else Decimal('0.00')
 
         return portal_cost + budget_cost
-
-
-
 
 # =====================================================================
 # 3. ЧИСТЫЙ СЕРИАЛИЗАТОР

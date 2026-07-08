@@ -5,13 +5,13 @@ from .planItemDetail import PlanItemDetailSerializer, PlanItemDetailImportSerial
 from .unitOfMeasurement import UnitOfMeasurementSerializer
 from .okrbProduct import OkrbProductSerializer
 
-from .budgetCosts import BudgetCostsImportSerializer, BudgetCostsSerializer, BudgetCostsForShortItemSerializer
+from .budgetCosts import BudgetCostsImportSerializer, BudgetCostsSerializer, BudgetCostsForShortItemSerializer, CostDetailResponseSchema
 from .functionalCode import FunctionalCodeSerializer
 from .externalEconomicCode import ExternalEconomicCodeSerializer
 from .internalEconomicClassifier import InternalEconomicClassifierSerializer, InternalEconomicClassifierTreeSerializer
 from .programCode import ProgramCodeSerializer
 
-from .planShare import PlanShareSerializer
+from .planShare import PlanShareSerializer, PlanShareForBudgetCustSerializer
 from .department import DepartmentSerializer, DepartmentTreeSerializer
 
 from .contract import ContractSerializer, ContractItemSerializer
@@ -38,6 +38,7 @@ __all__ = [
     'BudgetCostsSerializer',
     'BudgetCostsImportSerializer',
     'BudgetCostsForShortItemSerializer',
+    'CostDetailResponseSchema',
     'FunctionalCodeSerializer',
     'ExternalEconomicCodeSerializer',
     'ProgramCodeSerializer',
@@ -45,6 +46,7 @@ __all__ = [
     'InternalEconomicClassifierTreeSerializer',
 
     'PlanShareSerializer',
+    'PlanShareForBudgetCustSerializer',
     'DepartmentSerializer',
     'DepartmentTreeSerializer',
 
