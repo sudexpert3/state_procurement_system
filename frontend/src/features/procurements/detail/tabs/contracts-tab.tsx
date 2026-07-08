@@ -109,7 +109,10 @@ export const ContractsTab = ({ plan }: { plan: ProcurementDetail }) => {
               label="Дата договора"
               value={formatDate(selectedContract.contractDate)}
             />
-            <DetailField label="Поставщик" value={selectedContract.supplier.name} />
+            <DetailField
+              label="Поставщик"
+              value={selectedContract.supplier.name}
+            />
             <DetailField
               label="УНП поставщика"
               value={selectedContract.supplier.unp}
