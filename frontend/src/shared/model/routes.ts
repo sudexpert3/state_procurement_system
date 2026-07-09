@@ -9,7 +9,7 @@ export const ROUTES = {
   PLAN_ITEM: "/plan-items/:id",
   ECONOMIC_CLASSIFIER: `/economic-classifier`,
   DEPARTMENTS: `/departments`,
-  CODES: `/codes`,
+  CODES_OKRB: `/codes-okrb`,
   BUYERS: `/buyers`,
   SUPPLIERS: `/suppliers`,
   USERS: `/users`,

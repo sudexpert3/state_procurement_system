@@ -56,7 +56,7 @@ const data = {
         },
         {
           title: "Коды ОКРБ",
-          url: ROUTES.CODES,
+          url: ROUTES.CODES_OKRB,
         },
         {
           title: "Главки",

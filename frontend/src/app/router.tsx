@@ -4,6 +4,7 @@ import { createBrowserRouter, redirect } from "react-router";
 import { Toaster } from "sonner";
 
 import * as buyers from "@/features/buyers";
+import * as codeOkrb from "@/features/code-okrb";
 import * as departments from "@/features/departments";
 import * as economicClassifier from "@/features/economic-classifier";
 import * as planItems from "@/features/plan-items";
@@ -71,8 +72,8 @@ export const router = createBrowserRouter([
                 element: <div>ПОЛЬЗОВАТЕЛИ</div>,
               },
               {
-                path: ROUTES.CODES,
-                element: <div>Коды ОКРБ</div>,
+                path: ROUTES.CODES_OKRB,
+                lazy: codeOkrb.list,
               },
             ],
           },
