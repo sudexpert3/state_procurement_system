@@ -3,6 +3,7 @@ import type { PlanItemFull } from "@/shared/api/schema";
 import { CardContent } from "@/shared/components/ui/card";
 import { formatByn, formatMoney } from "@/shared/lib/helpers/format-money";
 
+import { DepartmentsTable } from "../components/departments-table";
 import { DetailField } from "../components/detail-field";
 import { SectionCard } from "../components/section-card";
 import { typeLabel } from "../plan-meta";
@@ -39,12 +40,12 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => (
         ) : (
           plan.economic_details.map((year, idx) => (
             <div
-              key={year.year + idx}
+              // key={year?.year + idx}
               className="grid grid-cols-2 gap-4 rounded-md border p-3 md:grid-cols-3">
               <DetailField label="Год финансирования" value={year.year} />
               <DetailField
                 label="Сумма финансирования года, BYN"
-                value={formatByn(year.budget_cost)}
+                value={formatByn(year.cost_detail.total_cost)}
               />
               <DetailField
                 label="Функциональная классификация"
@@ -85,10 +86,10 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => (
                 label="Собственные средства, BYN"
                 value={formatByn(year.cost_detail.inner_cost)}
               />
-              {/* <DepartmentsTable
+              <DepartmentsTable
                 title="Сведения о финансировании подразделений"
-                data={year.departments}
-              /> */}
+                data={year.cost_departments}
+              />
             </div>
           ))
         )}
