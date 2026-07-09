@@ -785,6 +785,28 @@ export interface components {
       readonly internal_economic_article_code: string;
       readonly internal_economic_article_detail: components["schemas"]["InternalEconomicClassifier"];
     };
+    BudgetCostsForItem: {
+      /** Статус */
+      status?: components["schemas"]["StatusEnum"];
+      /** Год финансирования из бюджета */
+      year?: number;
+      readonly cost_detail: components["schemas"]["CostDetailResponseSchema"];
+      readonly functional_class_detail: components["schemas"]["FunctionalCode"];
+      readonly economic_class_detail: components["schemas"]["ExternalEconomicCode"];
+      readonly internal_economic_class_detail: components["schemas"]["InternalEconomicClassifier"];
+      readonly program_class_detail: components["schemas"]["ProgramCode"];
+      /** Код ведомственной классификации */
+      department_code?: string | null;
+      /** УНК заказчика позиции */
+      unk?: string | null;
+      /** Код территориального казначейства */
+      tk_id?: number | null;
+      /** Код бюджета позиции плана */
+      budget_code?: number;
+      /** Описание кода бюджета */
+      budget_code_name?: string;
+      readonly cost_departments: string;
+    };
     BudgetCostsForShortItem: {
       readonly id: number;
       /** Год финансирования из бюджета */
@@ -917,6 +939,8 @@ export interface components {
     ContractItem: {
       readonly id: number;
       contract: number;
+      /** Наименование позиции, как в договоре */
+      title?: string | null;
       /** Год позиции договора */
       year?: number;
       plan_share: number;
@@ -930,6 +954,16 @@ export interface components {
        * Format: decimal
        */
       contract_cost: string;
+    };
+    CostDetailResponseSchema: {
+      /** Format: decimal */
+      total_cost: string;
+      /** Format: decimal */
+      budget_cost: string;
+      /** Format: decimal */
+      fund_cost: string;
+      /** Format: decimal */
+      inner_cost: string;
     };
     /** @description Рекурсивный сериализатор для автоматической сборки дерева подразделений ГКСЭ */
     DepartmentTree: {
@@ -1430,9 +1464,8 @@ export interface components {
       readonly val_amount: string;
       readonly procedure_months: number[];
       readonly is_by_organizator: number[];
-      readonly active_budget_costs: string;
-      /** Format: decimal */
-      readonly aggregated_cost: string;
+      readonly aggregated_cost: components["schemas"]["CostDetailResponseSchema"];
+      readonly economic_details: components["schemas"]["BudgetCostsForItem"][];
     };
     /**
      * @description Канонический сериализатор позиций ГПЗ для собственного React-фронтенда.

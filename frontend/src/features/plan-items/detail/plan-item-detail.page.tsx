@@ -1,6 +1,7 @@
 import { useParams } from "react-router";
 
 import { rqClient } from "@/shared/api/instance";
+import { Badge } from "@/shared/components/ui/badge";
 import {
   Card,
   CardAction,
@@ -18,8 +19,11 @@ import {
 import { formatMoney } from "@/shared/lib/helpers/format-money";
 
 import { DetailField } from "./components/detail-field";
+import { ContractsTab } from "./tabs/contracts-tab";
 import { InfoTab } from "./tabs/info-tab";
 import { PaymentsTab } from "./tabs/payments-tab";
+import { PlanningTab } from "./tabs/planning-tab";
+import { planItemDetailMock } from "./procurement.mock";
 
 const PlanItemDetailPage = () => {
   const { id } = useParams();
@@ -30,9 +34,9 @@ const PlanItemDetailPage = () => {
     { params: { path: { id: Number(id) } } },
   );
 
-  // const plan = planItemDetailMock.find((p) => String(p.id) === id);
+  const plan2 = planItemDetailMock.find((p) => String(p.id) === id);
 
-  if (!plan) {
+  if (!plan || !plan2) {
     return (
       <div className="text-muted-foreground p-6 text-sm">
         План с номером {id} не найден.
@@ -76,18 +80,17 @@ const PlanItemDetailPage = () => {
         </CardContent>
       </Card>
 
-      {/* Табы с секциями плана */}
       <Tabs defaultValue="info" className="w-full">
         <TabsList>
           <TabsTrigger value="info">Информация</TabsTrigger>
           <TabsTrigger value="planning">Планирование</TabsTrigger>
           <TabsTrigger value="contracts">
             Договоры
-            {/* {plan.contracts.length > 0 && (
+            {plan2.contracts.length > 0 && (
               <Badge variant="secondary" className="ml-1.5">
-                {plan.contracts.length}
+                {plan2.contracts.length}
               </Badge>
-            )} */}
+            )}
           </TabsTrigger>
           <TabsTrigger value="payments">Платежи</TabsTrigger>
         </TabsList>
@@ -97,11 +100,11 @@ const PlanItemDetailPage = () => {
         </TabsContent>
 
         <TabsContent value="planning">
-          {/* <PlanningTab plan={plan} /> */}
+          <PlanningTab plan={plan2} />
         </TabsContent>
 
         <TabsContent value="contracts">
-          {/* <ContractsTab plan={plan} /> */}
+          <ContractsTab plan={plan2} />
         </TabsContent>
 
         <TabsContent value="payments">

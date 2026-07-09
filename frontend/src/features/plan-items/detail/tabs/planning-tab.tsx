@@ -6,7 +6,6 @@ import { formatDate } from "@/shared/lib/helpers/format-date";
 import { DetailField } from "../components/detail-field";
 import { SectionCard } from "../components/section-card";
 
-// Таб «Планирование» — параметры процедуры и реквизиты плана.
 export const PlanningTab = ({ plan }: { plan: PlanItemDetail }) => (
   <SectionCard title="Планирование">
     <CardContent className="grid grid-cols-2 gap-4 px-2 md:grid-cols-3">
