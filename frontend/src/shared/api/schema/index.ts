@@ -6,6 +6,8 @@ export type ApiSchemas = components["schemas"];
 export type PlanItemShort = ApiSchemas["PlanItemShort"];
 export type PlanItemFull = ApiSchemas["PlanItemFull"];
 export type PlanItem = ApiSchemas["PlanItem"];
+export type CostDepartment =
+  ApiSchemas["PlanItemFull"]["economic_details"][0]["cost_departments"];
 
 export type BudgetCostsImport = ApiSchemas["BudgetCostsImport"];
 

@@ -1,5 +1,5 @@
+import type { CostDepartment } from "@/shared/api/schema";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { FinancingDepartment } from "../procurement.mock";
 
 import { DataTable } from "@/shared/components/data-table/data-table";
 import {
@@ -9,8 +9,7 @@ import {
 import { CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { formatByn } from "@/shared/lib/helpers/format-money";
 
-// Колонки таблицы подразделений (разбивка финансирования / позиции договора).
-const columns: ColumnDef<FinancingDepartment, unknown>[] = [
+const columns: ColumnDef<CostDepartment>[] = [
   {
     accessorKey: "department_detail.short_name",
     header: () => (
@@ -26,7 +25,7 @@ const columns: ColumnDef<FinancingDepartment, unknown>[] = [
     accessorKey: "shared_amount",
     header: "Количество",
     cell: ({ getValue }) => {
-      const value = getValue<string>();
+      const value = getValue<string>() ?? "0.000";
       if (value.split(".")[1] !== "000") {
         return <DataTableCell>{value}</DataTableCell>;
       }
@@ -62,7 +61,7 @@ export const DepartmentsTable = ({
   data,
 }: {
   title: string;
-  data: FinancingDepartment[];
+  data: CostDepartment[];
 }) => (
   <div className="col-span-full mt-5 space-y-3">
     <CardHeader>

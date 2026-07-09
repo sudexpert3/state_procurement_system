@@ -55,7 +55,7 @@ const BuyersPage = () => {
   return (
     <Card className="max-w-full gap-2 bg-transparent ring-0">
       <CardHeader>
-        <CardTitle>Для кого закупка</CardTitle>
+        <CardTitle>Закупщики</CardTitle>
         <CardDescription>Список заказчиков</CardDescription>
         <CardAction>
           <Button onClick={handleAdd}>

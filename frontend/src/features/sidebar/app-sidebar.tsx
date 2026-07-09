@@ -71,7 +71,7 @@ const data = {
           url: "#",
         },
         {
-          title: "Для кого закупка",
+          title: "Закупщики",
           url: ROUTES.BUYERS,
         },
         {
