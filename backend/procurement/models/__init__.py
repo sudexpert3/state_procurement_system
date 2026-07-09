@@ -16,7 +16,7 @@ from .contract import Contract, ContractItem
 from .supplier import Supplier
 from .buyer import Buyer
 from .procurementMethodDetail import ProcurementMethodDetail
-from .treasuryPayment import TreasuryPayment
+from .treasuryPayment import TreasuryPayment, KindOfPayment
 from .contractQuarterlyFinance import ContractQuarterlyFinance
 
 
@@ -44,5 +44,6 @@ __all__ = [
     'Buyer',
     'ProcurementMethodDetail',
     'TreasuryPayment',
+    'KindOfPayment',
     'ContractQuarterlyFinance',
 ]

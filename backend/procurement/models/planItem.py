@@ -5,6 +5,7 @@ from core.choices import ProcurementItemTypes, CurrencyTypes, PlanItemStatus
 from .okrbProduct import OkrbProduct
 from .unitOfMeasurement import UnitOfMeasurement
 from .purchases import Purchases
+from .buyer import Buyer
 
 
 class ClosedPlanSequence(models.Model):
@@ -111,6 +112,8 @@ class PlanItemDetail(models.Model):
     procedure_months = models.JSONField("Список месяцев (от 1 до 12), в которые проводится процедура", default=list)
     is_by_organizator = models.BooleanField(verbose_name='Отметка о проведении закупки организатором на goszakupki.by',
                                             default=False)
+    buyer = models.OneToOneField(Buyer, on_delete=models.PROTECT, related_name='plan_items', verbose_name="Закупщик",
+                              null=True, blank=True)
 
     class Meta:
         verbose_name = "Пункт плана закупки (детальная информация)"
@@ -120,18 +123,18 @@ class PlanItemDetail(models.Model):
     def __str__(self):
         return f"{self.num} {self.title[:60]}"
 
-    def save(self, *args, **kwargs):
-        # Проверяем, существует ли запись в базе (идет ли процесс UPDATE)
-        if self.pk:
-            # Делаем сверхлегкий запрос к БД, чтобы узнать, какие значения были до сохранения
-            orig = PlanItemDetail.objects.filter(pk=self.pk).values('status').first()
-
-            if orig:
-                # Если пользователь в админке или на фронтенде пытается поставить ACTIVE
-                if self.status == PlanItemStatus.ACTIVE:
-                    self.status = PlanItemStatus.DRAFT
-
-                elif orig['status'] == PlanItemStatus.ACTIVE and self.status == orig['status']:
-                    self.status = PlanItemStatus.DRAFT
-
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     # Проверяем, существует ли запись в базе (идет ли процесс UPDATE)
+    #     if self.pk:
+    #         # Делаем сверхлегкий запрос к БД, чтобы узнать, какие значения были до сохранения
+    #         orig = PlanItemDetail.objects.filter(pk=self.pk).values('status').first()
+    #
+    #         if orig:
+    #             # Если пользователь в админке или на фронтенде пытается поставить ACTIVE
+    #             if self.status == PlanItemStatus.ACTIVE:
+    #                 self.status = PlanItemStatus.DRAFT
+    #
+    #             elif orig['status'] == PlanItemStatus.ACTIVE and self.status == orig['status']:
+    #                 self.status = PlanItemStatus.DRAFT
+    #
+    #     super().save(*args, **kwargs)

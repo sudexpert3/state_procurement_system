@@ -8,12 +8,13 @@ LABEL authors="Kiromoto"
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-RUN apt update && apt install -y --no-install-recommends && pip install --upgrade pip
+RUN apt update && apt install -y --no-install-recommends gcc libpq-dev && pip install --upgrade pip
 
 WORKDIR /app
 COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 8000
-#RUN python manage.py collectstatic --noinput
-#RUN python manage.py makemigrations --noinput
+
+RUN DJANGO_SECRET_KEY=temporary_key_for_build python manage.py collectstatic --noinput
+
 

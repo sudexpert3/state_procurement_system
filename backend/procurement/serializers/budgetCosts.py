@@ -189,7 +189,7 @@ class BudgetCostsForItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BudgetCosts
-        fields = ['status', 'year', 'cost_detail', 'functional_class_detail', 'economic_class_detail',
+        fields = ['id', 'status', 'year', 'cost_detail', 'functional_class_detail', 'economic_class_detail',
                   'internal_economic_class_detail',
                   'program_class_detail', 'department_code', 'unk', 'tk_id', 'budget_code', 'budget_code_name',
                   'cost_departments',
@@ -219,7 +219,6 @@ class BudgetCostsForItemSerializer(serializers.ModelSerializer):
     def get_cost_departments(self, obj):
         plan_shares = obj.plan_shares.filter(status=PlanItemStatus.ACTIVE)
         return PlanShareForBudgetCustSerializer(plan_shares, many=True, context=self.context).data
-
 
 
 class BudgetCostsForShortItemSerializer(serializers.ModelSerializer):

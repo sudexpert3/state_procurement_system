@@ -26,7 +26,7 @@ from procurement.views import (PurchasesViewSet,
                                ContractViewSet, SupplierViewSet, BuyerViewSet, ProcurementMethodDetailViewSet,
                                TreasuryPaymentViewSet,
                                DepartmentViewSet,
-                               GosZakupkiPushDraftAPIView, GosZakupkiPullActualAPIView,
+                               GosZakupkiPushDraftAPIView, GosZakupkiPullActualAPIView, PlanItemDetailViewSet
                                )
 from procurement.views import (get_purchases_view, get_purchases_items, get_data_gpz)
 
@@ -35,6 +35,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 router = DefaultRouter()
 router.register(r'purchases', PurchasesViewSet, basename='purchases')
 router.register(r'plan_items', PlanItemViewSet, basename='plan_items')
+router.register(r'plan_items_details', PlanItemDetailViewSet, basename='plan_items_details')
 router.register(r'units_of_measurement', UnitOfMeasurementViewSet, basename='unit_of_measurement')
 router.register(r'okrb', OkrbProductViewSet, basename='okrb')
 router.register(r'budget_costs', BudgetCostsViewSet, basename='budget_costs')
