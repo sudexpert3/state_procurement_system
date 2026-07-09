@@ -3,6 +3,7 @@ from .get_data_from_goszakupki import get_purchases_view, get_purchases_items, g
 from .purchases import PurchasesViewSet
 
 from .planItem import PlanItemViewSet
+from .planItemDetail import PlanItemDetailViewSet
 from .unitOfMeasurement import UnitOfMeasurementViewSet
 from .okrbProduct import OkrbProductViewSet
 
@@ -32,6 +33,7 @@ __all__ = [
     'PurchasesViewSet',
 
     'PlanItemViewSet',
+    'PlanItemDetailViewSet',
     'UnitOfMeasurementViewSet',
     'OkrbProductViewSet',
 

@@ -5,6 +5,7 @@ from core.choices import PlanItemStatus
 from procurement.models import PlanItem, PlanShare, ContractItem
 from .budgetCosts import BudgetCostsForItemSerializer, CostDetailResponseSchema, BudgetCostsForShortItemSerializer
 from .planShare import PlanShareSerializer
+from .buyer import BuyerSerializer
 
 
 class PlanItemSerializer(serializers.ModelSerializer):
@@ -19,6 +20,7 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
     Автоматически собирает плоский корень, активный текст и финансовые лимиты.
     """
     title = serializers.SerializerMethodField()
+    okrb = serializers.SerializerMethodField()
     val_unit = serializers.SerializerMethodField()
     val_amount = serializers.SerializerMethodField()
     aggregated_cost = serializers.SerializerMethodField()
@@ -28,14 +30,11 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlanItem
         fields = [
-            'id', 'num', 'title', 'val_unit', 'val_amount', 'aggregated_cost', 'economic_details', 'contracts',
+            'id', 'num', 'title', 'okrb', 'val_unit', 'val_amount', 'aggregated_cost', 'economic_details', 'contracts',
             'is_public', 'is_active', 'created_at', 'updated_at',
         ]
 
     def _get_active_detail(self, obj):
-        # if not hasattr(obj, '_cached_active_detail'):
-        #     obj._cached_active_detail = obj.details.filter(status=PlanItemStatus.ACTIVE).first()
-
         active_pids = getattr(obj, 'active_plan_item_detail_prefetched', None)
         obj._cached_active_detail = obj.details.filter(status=PlanItemStatus.ACTIVE).first() if active_pids is None else active_pids[0]
         return obj._cached_active_detail
@@ -44,6 +43,11 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
     def get_title(self, obj):
         detail = self._get_active_detail(obj)
         return detail.title if detail else None
+
+    @extend_schema_field(serializers.CharField())
+    def get_okrb(self, obj):
+        detail = self._get_active_detail(obj)
+        return detail.okrb if detail else None
 
     @extend_schema_field(serializers.CharField())
     def get_val_unit(self, obj):
@@ -104,8 +108,9 @@ class PlanItemFullSerializer(serializers.ModelSerializer):
     val_amount = serializers.SerializerMethodField()
     procedure_months = serializers.SerializerMethodField()
     is_by_organizator = serializers.SerializerMethodField()
-    economic_details = serializers.SerializerMethodField()
     aggregated_cost = serializers.SerializerMethodField()
+    economic_details = serializers.SerializerMethodField()
+    buyer_detail = serializers.SerializerMethodField()
 
 
     class Meta:
@@ -113,7 +118,7 @@ class PlanItemFullSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'plan_purchase', 'num', 'is_public', 'is_active', 'created_at', 'updated_at',
             'title', 'okrb', 'okrb_title', 'type', 'val_unit', 'val_amount', 'procedure_months', 'is_by_organizator',
-            'aggregated_cost', 'economic_details',
+            'buyer_detail', 'aggregated_cost', 'economic_details',
         ]
 
     def _get_active_detail(self, obj):
@@ -160,6 +165,12 @@ class PlanItemFullSerializer(serializers.ModelSerializer):
     def get_is_by_organizator(self, obj):
         detail = self._get_active_detail(obj)
         return detail.is_by_organizator if detail else False
+
+    @extend_schema_field(serializers.ListField(child=BuyerSerializer()))
+    def get_buyer_detail(self, obj):
+        detail = self._get_active_detail(obj)
+        ob = detail.buyer if detail else None
+        return BuyerSerializer(ob).data if ob else None
 
     @extend_schema_field(CostDetailResponseSchema)
     def get_aggregated_cost(self, obj):

@@ -73,8 +73,10 @@ services:
       - ./backend/media:/app/media
     depends_on:
       - db
-    command: python manage.py runserver 0.0.0.0:8000
-#    command: gunicorn -b 0.0.0.0:8000 -w 9 core.wsgi:application
+    command: >
+      sh -c "python manage.py makemigrations --noinput && python manage.py migrate --noinput &&
+      python manage.py runserver 0.0.0.0:8000"
+##    command: gunicorn -b 0.0.0.0:8000 -w 9 core.wsgi:application
 
 #  frontend:
 #    build: ./frontend

@@ -2,15 +2,17 @@ from rest_framework import serializers
 from django.db import transaction
 from core.choices import PlanItemStatus
 from procurement.models import PlanItemDetail, OkrbProduct, UnitOfMeasurement
+from .buyer import BuyerSerializer
 
 
 class PlanItemDetailSerializer(serializers.ModelSerializer):
+    buyer_detail = BuyerSerializer(source='buyer', read_only=True)
     class Meta:
         model = PlanItemDetail
         fields = ['id', 'plan_item', 'created_at', 'changed_at', 'status', 'purchases_item_id', 'purchases_id',
                   'unp_budget', 'num', 'title', 'okrb', 'okrb_title', 'okrb_product', 'type', 'val_amount',
                   'val_type', 'val_unit', 'fund_cost', 'inner_cost', 'val_currency', 'procedure_months',
-                  'is_by_organizator',
+                  'is_by_organizator', 'buyer', 'buyer_detail'
                   ]
         extra_kwargs = {
             'created_at': {'required': False},

@@ -15,9 +15,6 @@ class PlanItemDetailViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]  # Временный режим отладки системы
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
 
-    # search_fields = ['num', 'versions__title', 'versions__okrb']
-    # filterset_fields = ['is_active', 'is_public', 'plan_purchase', 'plan_purchase__year']
-
     def get_queryset(self):
         """Оптимизируем SQL-запросы в зависимости от действия"""
         if self.action in ['list', 'retrieve']:

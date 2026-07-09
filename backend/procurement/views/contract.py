@@ -12,4 +12,4 @@ class ContractViewSet(viewsets.ModelViewSet):
     serializer_class = ContractSerializer
     permission_classes = [AllowAny]  # Временный отладочный режим системы
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['supplier']
+    # filterset_fields = ['supplier']

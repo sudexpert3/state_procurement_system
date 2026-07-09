@@ -2,18 +2,63 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from .contract import Contract
 from procurement.services import get_current_date
+from procurement.models import (InternalEconomicClassifier, ExternalEconomicCode, FunctionalCode, ProgramCode)
 from core.choices import QuarterTypes
+
+
+class KindOfPayment(models.Model):
+    name = models.CharField("Название типа платежа", max_length=1024, unique=True)
+
+    class Meta:
+        verbose_name = "Тип платежа"
+        verbose_name_plural = "Типы платежей"
+        ordering = ['id']
+
+    def __str__(self):
+        return f"{self.name}"
 
 
 class TreasuryPayment(models.Model):
     """Фактические оплаты по договору (Платежные поручения казначейства)"""
-    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='payments', verbose_name="Договор")
-    quarter = models.CharField("Квартал", max_length=2, choices=QuarterTypes.choices, default=QuarterTypes.Q1, db_index=True)
-    payment_number = models.CharField("Номер платежного поручения", max_length=32, blank=True, null=True, help_text="Внутренний номер платежки из системы Клиент-ТК Минфина")
+    contract = models.ForeignKey(Contract, on_delete=models.PROTECT, related_name='treasury_payments',
+                                 verbose_name="Договор", null=True, blank=True)
+    quarter = models.CharField("Квартал", max_length=2, choices=QuarterTypes.choices, default=QuarterTypes.Q1,
+                               db_index=True)
+    payment_number = models.CharField("Номер платежного поручения", max_length=32, blank=True, null=True,
+                                      help_text="Внутренний номер платежки из системы Клиент-ТК Минфина")
     payment_date = models.DateField("Дата разнесения платежа", db_index=True, default=get_current_date)
     amount = models.DecimalField("Сумма оплаты", max_digits=15, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     notice = models.CharField("Примечание", max_length=1024, blank=True, null=True, help_text="Примечание")
+    kind = models.ForeignKey(KindOfPayment, on_delete=models.PROTECT, related_name='treasury_payments',
+                             verbose_name="Вид платежа", default=1, null=True, blank=True)
+
+    internal_economic_class = models.ForeignKey(InternalEconomicClassifier,
+                                                on_delete=models.PROTECT,
+                                                related_name='treasury_payments',
+                                                verbose_name="Экономический код расходов (ЭКР)",
+                                                blank=True, null=True
+                                                )
+    economic_class = models.ForeignKey(ExternalEconomicCode,
+                                       on_delete=models.PROTECT,
+                                       related_name="treasury_payments",
+                                       verbose_name="Внешний код ЭКР",
+                                       null=True, blank=True
+                                       )
+
+    functional_class = models.ForeignKey(FunctionalCode,
+                                         on_delete=models.PROTECT,
+                                         related_name="treasury_payments",
+                                         verbose_name="Функциональная классификация",
+                                         null=True, blank=True
+                                         )
+
+    program_class = models.ForeignKey(ProgramCode,
+                                      on_delete=models.PROTECT,
+                                      related_name="treasury_payments",
+                                      verbose_name="Программная классификация",
+                                      null=True, blank=True
+                                      )
 
     class Meta:
         verbose_name = "Платежное поручение"

@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from .models import (BudgetCosts, Buyer, Contract, ContractItem, Supplier, ContractQuarterlyFinance, \
                      Department, InternalEconomicClassifier, ExternalEconomicCode, FunctionalCode, OkrbProduct, \
                      PlanItem, PlanItemDetail, PlanShare, ProcurementMethodDetail, ProgramCode, \
-                     TreasuryPayment, UnitOfMeasurement, Purchases)
+                     TreasuryPayment, KindOfPayment, UnitOfMeasurement, Purchases)
 
 
 # @admin.register(CustomUser)
@@ -167,3 +167,8 @@ class TreasuryPaymentAdmin(admin.ModelAdmin):
     list_display = ['payment_date', 'quarter', "amount", "contract", "notice", "payment_number", "created_at", ]
     search_fields = ["contract", "payment_number", "notice", 'payment_date', "amount"]
     list_filter = ('quarter',)
+
+@admin.register(KindOfPayment)
+class KindOfPaymentAdmin(admin.ModelAdmin):
+    list_display = ['name']
+    search_fields = ['name']
