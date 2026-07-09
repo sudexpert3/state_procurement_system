@@ -2,7 +2,13 @@ import type { PlanItemShort } from "@/shared/api/schema";
 
 import { useMemo } from "react";
 
-import { href, useNavigate } from "react-router";
+import {
+  href,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router";
 
 import { rqClient } from "@/shared/api/instance";
 import { DataTable } from "@/shared/components/data-table/data-table";
@@ -20,12 +26,26 @@ import { ROUTES } from "@/shared/model/routes";
 import { createColumns } from "./columns";
 import { TableActions } from "./table-actions";
 
-const ProcurementsPage = () => {
+const PlansItemsPage = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const purchase = Number(searchParams.get("purchase")) || 8;
+  const limit = Number(searchParams.get("limit")) || 20;
+  const offset = Number(searchParams.get("offset")) || 0;
+
   const getRow = (row: PlanItemShort) => {
-    navigate(href(ROUTES.PROCUREMENT, { id: row?.id }), { state: row });
+    navigate(href(ROUTES.PLAN_ITEM, { id: row?.id }), { state: row });
   };
-  const { data } = rqClient.useQuery("get", "/api/plan_items/", {});
+
+  const { data } = rqClient.useQuery("get", "/api/plan_items/", {
+    params: {
+      query: {
+        limit,
+        offset,
+        purchase,
+      },
+    },
+  });
 
   // const year = new Date().getFullYear();
 
@@ -44,14 +64,14 @@ const ProcurementsPage = () => {
   // }, []);
 
   const handleAddProcurement = () => {
-    navigate(ROUTES.PROCUREMENT_ADD);
+    navigate(ROUTES.PLAN_ITEM_ADD);
   };
 
   return (
     <Card className="max-w-full gap-2 bg-transparent ring-0">
       <CardHeader>
         <CardTitle>Реестр закупок</CardTitle>
-        <CardDescription className="text-[12px]">{`Планы закупок на текущий год`}</CardDescription>
+        <CardDescription className="text-[12px]">{`Планы закупок на год`}</CardDescription>
         <CardAction>
           <Button onClick={handleAddProcurement}>Добавить запись</Button>
         </CardAction>
@@ -74,4 +94,4 @@ const ProcurementsPage = () => {
   );
 };
 
-export const Component = ProcurementsPage;
+export const Component = PlansItemsPage;

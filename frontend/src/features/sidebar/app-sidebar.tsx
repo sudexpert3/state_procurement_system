@@ -31,7 +31,6 @@ const data = {
     {
       name: "Закупки",
       logo: <GalleryVerticalEnd />,
-      // plan: "Enterprise",
     },
   ],
   navMain: [
@@ -42,7 +41,7 @@ const data = {
     },
     {
       title: "Реестр закупок",
-      url: ROUTES.PROCUREMENTS,
+      url: ROUTES.PLAN_ITEMS,
       icon: <SquareTerminal />,
     },
     {

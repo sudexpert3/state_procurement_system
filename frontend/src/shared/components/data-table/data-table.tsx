@@ -1,8 +1,8 @@
 import type {
   ColumnDef,
   ColumnFiltersState,
-  Table as ReactTable,
   SortingState,
+  Table as ReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
 
@@ -50,6 +50,8 @@ export const DataTable = <TData,>({
   actions,
   ...props
 }: DataTableProps<TData>) => {
+  "use no memo";
+
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});

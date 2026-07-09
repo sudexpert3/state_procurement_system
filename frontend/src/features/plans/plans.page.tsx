@@ -1,5 +1,10 @@
+import type { Purchase } from "@/shared/api/schema";
+
+import { useMemo } from "react";
+
 import { useNavigate } from "react-router";
 
+import { rqClient } from "@/shared/api/instance";
 import { DataTable } from "@/shared/components/data-table/data-table";
 import {
   Card,
@@ -10,15 +15,20 @@ import {
 } from "@/shared/components/ui/card";
 import { ROUTES } from "@/shared/model/routes";
 
-import { columns } from "./columns";
-import { plansMock } from "./plans.mock";
+import { createColumns } from "./columns";
 
 const PlansPage = () => {
   const navigate = useNavigate();
 
-  // Клик по строке ведёт в реестр закупок выбранного плана
-  const handleRowClick = () => {
-    navigate(ROUTES.PROCUREMENTS);
+  const { data, isPending } = rqClient.useQuery("get", "/api/purchases/", {});
+
+  const columns = useMemo(() => createColumns(), []);
+
+  const handleRowClick = (row: Purchase) => {
+    navigate({
+      pathname: ROUTES.PLAN_ITEMS,
+      search: `?purchase=${row.id}&limit=20&offset=0`,
+    });
   };
 
   return (
@@ -30,7 +40,13 @@ const PlansPage = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTable data={plansMock} columns={columns} getRow={handleRowClick} />
+        <DataTable
+          data={data ?? []}
+          columns={columns}
+          getRow={handleRowClick}
+          isLoading={isPending}
+          cellClassName="p-4 text-center"
+        />
       </CardContent>
     </Card>
   );

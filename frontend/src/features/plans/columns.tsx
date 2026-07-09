@@ -1,71 +1,99 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { AnnualPlan, PlanStatus } from "./plans.mock";
+import type { Purchase } from "@/shared/api/schema";
 
-import { Badge } from "@/shared/components/ui/badge";
+import { cn } from "@siberiacancode/reactuse";
 
-// Форматирование даты и времени для колонок ГИАС / последнего изменения
-const dateTimeFormatter = new Intl.DateTimeFormat("ru-RU", {
-  dateStyle: "short",
-  timeStyle: "short",
-});
+import {
+  DataTableCell,
+  DataTableColumnHeader,
+} from "@/shared/components/data-table/data-table-cell";
+import { formatDate } from "@/shared/lib/helpers/format-date";
 
-const formatDateTime = (value: string) =>
-  dateTimeFormatter.format(new Date(value));
-
-// Соответствие статуса плана варианту Badge
-const statusVariant: Record<
-  PlanStatus,
-  "default" | "secondary" | "destructive"
-> = {
-  Опубликован: "default",
-  "В архиве": "secondary",
-  "Не актуален": "destructive",
-};
-
-export const columns: ColumnDef<AnnualPlan>[] = [
+export const createColumns = (): ColumnDef<Purchase>[] => [
   {
-    accessorKey: "giasRepostedAt",
-    header: "Дата и время переразмещения в ГИАС",
+    accessorKey: "year",
+    header: () => <DataTableColumnHeader>Год плана</DataTableColumnHeader>,
     cell: ({ row }) => (
-      <span className="whitespace-nowrap">
-        {formatDateTime(row.getValue("giasRepostedAt"))}
-      </span>
+      <DataTableCell>{row.getValue("year") ?? "—"}</DataTableCell>
     ),
   },
   {
-    accessorKey: "version",
-    header: "Версия плана",
-  },
-  {
-    accessorKey: "gzbId",
-    header: "Идентификационный номер годового плана ГЗБ",
+    accessorKey: "purchase_num",
+    header: () => (
+      <DataTableColumnHeader>Рег. номер плана</DataTableColumnHeader>
+    ),
+    size: 120,
     cell: ({ row }) => (
-      <span className="font-medium">{row.getValue("gzbId")}</span>
+      <DataTableCell className="font-medium">
+        {row.getValue("purchase_num") ?? "—"}
+      </DataTableCell>
     ),
   },
   {
-    accessorKey: "name",
-    header: "Наименование",
-  },
-  {
-    accessorKey: "updatedAt",
-    header: "Дата и время последнего изменения",
+    accessorKey: "is_draft",
+    header: () => <DataTableColumnHeader>Черновик</DataTableColumnHeader>,
     cell: ({ row }) => (
-      <span className="whitespace-nowrap">
-        {formatDateTime(row.getValue("updatedAt"))}
-      </span>
+      <DataTableCell
+        className={cn(`${row.getValue("is_draft") && "bg-red-200 uppercase"}`)}>
+        {row.getValue("is_draft") ? "Да" : "Нет"}
+      </DataTableCell>
     ),
   },
   {
-    accessorKey: "status",
-    header: "Статус",
-    cell: ({ row }) => {
-      const status = row.getValue<PlanStatus>("status");
-      return <Badge variant={statusVariant[status]}>{status}</Badge>;
-    },
+    accessorKey: "at_updated",
+    header: () => (
+      <DataTableColumnHeader>Дата последнего изменения</DataTableColumnHeader>
+    ),
+    cell: ({ row }) => (
+      <DataTableCell className="whitespace-nowrap">
+        {formatDate(row.getValue("at_updated"))}
+      </DataTableCell>
+    ),
   },
   {
-    accessorKey: "unp",
-    header: "УНП",
+    accessorKey: "signer_descrip",
+    header: () => (
+      <DataTableColumnHeader>Лицо утвердившее план</DataTableColumnHeader>
+    ),
+    size: 200,
+    cell: ({ row }) => (
+      <DataTableCell className="wrap-break-word whitespace-normal">
+        {row.getValue("signer_descrip")}
+      </DataTableCell>
+    ),
+  },
+  {
+    accessorKey: "date_sign",
+    header: () => (
+      <DataTableColumnHeader>Дата утверждения</DataTableColumnHeader>
+    ),
+    cell: ({ row }) => (
+      <DataTableCell className="whitespace-nowrap">
+        {formatDate(row.getValue("date_sign"))}
+      </DataTableCell>
+    ),
+  },
+  {
+    accessorKey: "sender_descrip",
+    header: () => (
+      <DataTableColumnHeader>Лицо разместившее план</DataTableColumnHeader>
+    ),
+    size: 200,
+    cell: ({ row }) => (
+      <DataTableCell className="wrap-break-word whitespace-normal">
+        {row.getValue("sender_descrip")}
+      </DataTableCell>
+    ),
+  },
+  {
+    accessorKey: "date_added",
+    header: () => (
+      <DataTableColumnHeader>Дата добавления</DataTableColumnHeader>
+    ),
+    cell: ({ row }) => (
+      <DataTableCell className="whitespace-nowrap">
+        {formatDate(row.getValue("date_added"))}
+      </DataTableCell>
+    ),
   },
 ];

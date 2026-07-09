@@ -1,5 +1,5 @@
-import type { PlanItemShort } from "@/shared/api/schema";
 import type { ColumnDef } from "@tanstack/react-table";
+import type { PlanItemShort } from "@/shared/api/schema";
 
 import {
   DataTableCell,

@@ -39,15 +39,15 @@ export const router = createBrowserRouter([
                 lazy: plans.list,
               },
               {
-                path: ROUTES.PROCUREMENTS,
+                path: ROUTES.PLAN_ITEMS,
                 lazy: procurements.list,
               },
               {
-                path: ROUTES.PROCUREMENT,
+                path: ROUTES.PLAN_ITEM,
                 lazy: procurements.detail,
               },
               {
-                path: ROUTES.PROCUREMENT_ADD,
+                path: ROUTES.PLAN_ITEM_ADD,
                 lazy: procurements.create,
               },
               {

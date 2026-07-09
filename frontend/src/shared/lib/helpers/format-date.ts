@@ -1,2 +1,2 @@
-export const formatDate = (date: Date | null) =>
-  date ? date.toLocaleDateString("ru-RU") : "—";
+export const formatDate = (value: Date | string | null | undefined) =>
+  value ? new Date(value).toLocaleDateString("ru-RU") : "—";
