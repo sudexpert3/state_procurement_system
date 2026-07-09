@@ -21,8 +21,10 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => (
           label="Тип (работа/услуга/товар)"
           value={typeLabel[plan.type]}
         />
-        //TODO узнать про исполнителя
-        {/* <DetailField label="Исполнитель" value={plan.customerId} /> */}
+        <DetailField
+          label="Исполнитель"
+          value={plan.buyer_detail?.[0]?.shot_name ?? "Нет исполнителя"}
+        />
         <DetailField label="Общее количество" value={plan.val_amount} />
         <DetailField label="Ед. измерения" value={plan.val_unit} />
         <DetailField
@@ -38,9 +40,9 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => (
             По этому плану сведений о финансировании нет.
           </p>
         ) : (
-          plan.economic_details.map((year, idx) => (
+          plan.economic_details.map((year) => (
             <div
-              // key={year?.year + idx}
+              key={year.id}
               className="grid grid-cols-2 gap-4 rounded-md border p-3 md:grid-cols-3">
               <DetailField label="Год финансирования" value={year.year} />
               <DetailField

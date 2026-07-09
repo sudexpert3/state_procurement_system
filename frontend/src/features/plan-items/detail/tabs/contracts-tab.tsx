@@ -14,7 +14,6 @@ import { DetailField } from "../components/detail-field";
 import { SectionCard } from "../components/section-card";
 import { StatCard } from "../components/stat-card";
 
-// Колонки таблицы договоров пункта плана.
 const columns: ColumnDef<ContractDetail, unknown>[] = [
   {
     accessorKey: "contractNumber",
