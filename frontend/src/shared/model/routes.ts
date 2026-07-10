@@ -10,6 +10,7 @@ export const ROUTES = {
   ECONOMIC_CLASSIFIER: `/economic-classifier`,
   DEPARTMENTS: `/departments`,
   CODES_OKRB: `/codes-okrb`,
+  INTERNAL_ECONOMIC_CODE: `/internal-economic-code`,
   BUYERS: `/buyers`,
   SUPPLIERS: `/suppliers`,
   NOT_FOUND: "*",
