@@ -63,6 +63,10 @@ const data = {
           url: ROUTES.DEPARTMENTS,
         },
         {
+          title: "Внутренние коды ЭКР",
+          url: ROUTES.INTERNAL_ECONOMIC_CODE,
+        },
+        {
           title: "Корректировка лимитов",
           url: "#",
         },

@@ -37,11 +37,12 @@ const PlansItemsPage = () => {
         limit,
         offset,
         purchase,
+        // no_page: true,
       },
     },
   });
 
-  const year = data?.results[0]?.economic_details[0]?.year ?? "#";
+  // const year = data?.results[0]?.economic_details[0]?.year ?? "#";
 
   const columns = useMemo(() => {
     return createColumns();
@@ -65,7 +66,7 @@ const PlansItemsPage = () => {
     <Card className="max-w-full gap-2 bg-transparent ring-0">
       <CardHeader>
         <CardTitle>Реестр закупок</CardTitle>
-        <CardDescription className="text-[12px]">{`Планы закупок на ${year} год`}</CardDescription>
+        <CardDescription className="text-[12px]">{`Планы закупок на  год`}</CardDescription>
         <CardAction>
           <Button onClick={handleAddProcurement}>Добавить запись</Button>
         </CardAction>

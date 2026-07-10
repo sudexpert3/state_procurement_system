@@ -18,6 +18,8 @@ export type ContractItem = ApiSchemas["ContractItem"];
 
 export type Department = ApiSchemas["DepartmentTree"];
 
+export type InternalEconomicCode = ApiSchemas["InternalEconomicClassifierTree"];
+
 export type OkrbProduct = ApiSchemas["OkrbProduct"];
 
 export type PaginatedBudgetCostsImportList =

@@ -1,4 +1,4 @@
-import type { Buyer } from "@/shared/api/schema";
+import type { InternalEconomicCode } from "@/shared/api/schema";
 
 import { useCallback, useMemo, useState } from "react";
 
@@ -15,13 +15,13 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 
-import { BuyerForm } from "./buyer-form";
-import { BuyersToolbar } from "./buyers-toolbar";
 import { createColumns } from "./columns";
-import { useBuyerDelete } from "./hooks/use-buyer-delete";
-import { useBuyers } from "./hooks/use-buyers";
+import { useInternalEconomicCode } from "./hooks/use-internal-economic-code";
+import { useInternalEconomicCodeDelete } from "./hooks/use-internal-economic-code-delete";
+import { InternalEconomicCodeForm } from "./internal-economic-code-form";
+import { InternalEconomicCodeToolbar } from "./internal-economic-code-toolbar";
 
-const BuyersPage = () => {
+const InternalEconomicCodePage = () => {
   const {
     search,
     setSearch,
@@ -30,19 +30,22 @@ const BuyersPage = () => {
     data,
     isLoading,
     invalidate,
-  } = useBuyers();
+  } = useInternalEconomicCode();
 
-  const { handleDelete, deletingId } = useBuyerDelete(invalidate);
+  const { handleDelete, deletingId } =
+    useInternalEconomicCodeDelete(invalidate);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<Buyer | null>(null);
+  const [editingItem, setEditingItem] = useState<InternalEconomicCode | null>(
+    null,
+  );
 
   const handleAdd = () => {
     setEditingItem(null);
     setDrawerOpen(true);
   };
 
-  const handleEdit = useCallback((item: Buyer) => {
+  const handleEdit = useCallback((item: InternalEconomicCode) => {
     setEditingItem(item);
     setDrawerOpen(true);
   }, []);
@@ -55,8 +58,11 @@ const BuyersPage = () => {
   return (
     <Card className="max-w-full gap-2 bg-transparent ring-0">
       <CardHeader>
-        <CardTitle>Закупщики</CardTitle>
-        <CardDescription>Список заказчиков</CardDescription>
+        <CardTitle>Внутренние коды ЭКР</CardTitle>
+        <CardDescription>
+          Справочник внутренних кодов экономической классификации расходов
+          (ГКСЭ)
+        </CardDescription>
         <CardAction>
           <Button onClick={handleAdd}>
             <PlusIcon size={16} />
@@ -69,9 +75,10 @@ const BuyersPage = () => {
           data={data}
           columns={columns}
           isLoading={isLoading}
+          cellClassName=""
           actions={() => (
             <div className="py-4">
-              <BuyersToolbar
+              <InternalEconomicCodeToolbar
                 search={search}
                 onSearchChange={setSearch}
                 statusFilter={statusFilter}
@@ -82,9 +89,10 @@ const BuyersPage = () => {
         />
       </CardContent>
 
-      <BuyerForm
+      <InternalEconomicCodeForm
         open={drawerOpen}
         item={editingItem}
+        allItems={data}
         onClose={() => setDrawerOpen(false)}
         onSuccess={invalidate}
       />
@@ -92,4 +100,4 @@ const BuyersPage = () => {
   );
 };
 
-export const Component = BuyersPage;
+export const Component = InternalEconomicCodePage;

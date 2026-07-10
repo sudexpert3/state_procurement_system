@@ -7,6 +7,7 @@ import * as buyers from "@/features/buyers";
 import * as codeOkrb from "@/features/code-okrb";
 import * as departments from "@/features/departments";
 import * as economicClassifier from "@/features/economic-classifier";
+import * as internalEconomicCode from "@/features/internal-economic-code";
 import * as planItems from "@/features/plan-items";
 import * as plans from "@/features/plans";
 import * as suppliers from "@/features/suppliers";
@@ -70,6 +71,10 @@ export const router = createBrowserRouter([
               {
                 path: ROUTES.CODES_OKRB,
                 lazy: codeOkrb.list,
+              },
+              {
+                path: ROUTES.INTERNAL_ECONOMIC_CODE,
+                lazy: internalEconomicCode.list,
               },
             ],
           },
