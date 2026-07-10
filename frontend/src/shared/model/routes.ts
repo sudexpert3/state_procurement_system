@@ -12,7 +12,6 @@ export const ROUTES = {
   CODES_OKRB: `/codes-okrb`,
   BUYERS: `/buyers`,
   SUPPLIERS: `/suppliers`,
-  USERS: `/users`,
   NOT_FOUND: "*",
 } as const;
 
