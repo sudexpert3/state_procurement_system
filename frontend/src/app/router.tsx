@@ -68,10 +68,6 @@ export const router = createBrowserRouter([
                 lazy: suppliers.list,
               },
               {
-                path: ROUTES.USERS,
-                element: <div>ПОЛЬЗОВАТЕЛИ</div>,
-              },
-              {
                 path: ROUTES.CODES_OKRB,
                 lazy: codeOkrb.list,
               },

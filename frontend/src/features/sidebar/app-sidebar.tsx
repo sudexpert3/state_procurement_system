@@ -63,10 +63,6 @@ const data = {
           url: ROUTES.DEPARTMENTS,
         },
         {
-          title: "Исполнители",
-          url: ROUTES.USERS,
-        },
-        {
           title: "Корректировка лимитов",
           url: "#",
         },
