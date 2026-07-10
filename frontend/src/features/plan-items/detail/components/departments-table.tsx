@@ -1,5 +1,5 @@
-import type { CostDepartment } from "@/shared/api/schema";
 import type { ColumnDef } from "@tanstack/react-table";
+import type { CostDepartment } from "@/shared/api/schema";
 
 import { DataTable } from "@/shared/components/data-table/data-table";
 import {

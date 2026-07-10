@@ -1,5 +1,5 @@
-import type { OkrbProduct } from "@/shared/api/schema";
 import type { ColumnDef } from "@tanstack/react-table";
+import type { OkrbProduct } from "@/shared/api/schema";
 
 import { ArrowUpDownIcon, PencilIcon } from "lucide-react";
 
