@@ -18,7 +18,16 @@ export type ContractItem = ApiSchemas["ContractItem"];
 
 export type Department = ApiSchemas["DepartmentTree"];
 
-export type InternalEconomicCode = ApiSchemas["InternalEconomicClassifierTree"];
+// TODO: временный тип — убрать после доработки бэка.
+// Сейчас drf-spectacular отдаёт рекурсивное поле sub_codes как string,
+// хотя реально API возвращает массив таких же узлов. Когда схема будет
+// исправлена, вернуть простой алиас: ApiSchemas["InternalEconomicClassifierTree"].
+export type InternalEconomicCode = Omit<
+  ApiSchemas["InternalEconomicClassifierTree"],
+  "sub_codes"
+> & {
+  readonly sub_codes: InternalEconomicCode[];
+};
 
 export type OkrbProduct = ApiSchemas["OkrbProduct"];
 

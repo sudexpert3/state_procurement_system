@@ -1,9 +1,26 @@
+import type { InternalEconomicCode } from "@/shared/api/schema";
+
 import { useCallback, useMemo, useState } from "react";
 
 import { useDebounceValue } from "@siberiacancode/reactuse";
 
 import { rqClient } from "@/shared/api/instance";
 import { queryClient } from "@/shared/api/query-client";
+
+/** Строка таблицы: узел дерева + уровень вложенности для отступа */
+export type InternalEconomicCodeRow = InternalEconomicCode & {
+  level: number;
+};
+
+/** Разворачивает дерево кодов в плоский список (группа, затем её sub_codes) */
+const flattenTree = (
+  nodes: InternalEconomicCode[],
+  level = 0,
+): InternalEconomicCodeRow[] =>
+  nodes.flatMap((node) => [
+    { ...node, level },
+    ...flattenTree(node.sub_codes, level + 1),
+  ]);
 
 export const useInternalEconomicCode = () => {
   const [search, setSearch] = useState("");
@@ -24,7 +41,10 @@ export const useInternalEconomicCode = () => {
   );
 
   const data = useMemo(() => {
-    let result = query.data ?? [];
+    // TODO: временный каст — убрать после доработки бэка (sub_codes в
+    // сгенерированной схеме сейчас string вместо массива узлов)
+    const tree = (query.data ?? []) as unknown as InternalEconomicCode[];
+    let result = flattenTree(tree);
 
     if (statusFilter !== "all") {
       const isActive = statusFilter === "true";

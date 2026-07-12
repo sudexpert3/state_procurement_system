@@ -1,5 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { InternalEconomicCode } from "@/shared/api/schema";
+import type { InternalEconomicCodeRow } from "./hooks/use-internal-economic-code";
 
 import { PencilIcon } from "lucide-react";
 
@@ -15,7 +16,7 @@ export const createColumns = (
   onEdit: (item: InternalEconomicCode) => void,
   onDelete: (id: number) => void,
   deletingId?: number | null,
-): ColumnDef<InternalEconomicCode>[] => [
+): ColumnDef<InternalEconomicCodeRow>[] => [
   {
     id: "actions",
     size: 50,
@@ -38,9 +39,17 @@ export const createColumns = (
   },
   {
     accessorKey: "code",
-    header: () => <DataTableColumnHeader>Код</DataTableColumnHeader>,
+    header: () => (
+      <DataTableColumnHeader className="text-left">Код</DataTableColumnHeader>
+    ),
     size: 30,
-    cell: ({ getValue }) => <DataTableCell>{getValue<string>()}</DataTableCell>,
+    cell: ({ row, getValue }) => (
+      <DataTableCell
+        className="text-left font-mono"
+        style={{ paddingLeft: row.original.level * 16 }}>
+        {getValue<string>()}
+      </DataTableCell>
+    ),
   },
   {
     accessorKey: "name",
