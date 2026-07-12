@@ -1,3 +1,5 @@
+import type { StatusFilterValue } from "@/shared/model/status";
+
 import { useCallback, useMemo, useState } from "react";
 
 import { useDebounceValue } from "@siberiacancode/reactuse";
@@ -7,7 +9,7 @@ import { queryClient } from "@/shared/api/query-client";
 
 export const useCodeOkrb = () => {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
   const debouncedSearch = useDebounceValue(search, 500);
 
   const query = rqClient.useQuery("get", "/api/okrb/", {

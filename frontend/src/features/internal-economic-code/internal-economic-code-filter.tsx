@@ -6,16 +6,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-
-const STATUS_OPTIONS = [
-  { value: "all", label: "Все" },
-  { value: "true", label: "Действующие" },
-  { value: "false", label: "Не действующие" },
-];
+import { STATUS_OPTIONS, type StatusFilterValue } from "@/shared/model/status";
 
 type Props = {
-  value: string;
-  onValueChange: (value: string) => void;
+  value: StatusFilterValue;
+  onValueChange: (value: StatusFilterValue) => void;
 };
 
 export const InternalEconomicCodeFilter = ({ value, onValueChange }: Props) => (

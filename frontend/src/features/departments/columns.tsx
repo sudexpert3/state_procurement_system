@@ -1,22 +1,27 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Department } from "@/shared/api/schema";
 
-import { ArrowUpDownIcon, PencilIcon } from "lucide-react";
+import { ChevronRightIcon, PencilIcon } from "lucide-react";
 
+import {
+  DataTableCell,
+  DataTableColumnHeader,
+} from "@/shared/components/data-table/data-table-cell";
 import { DeleteButton } from "@/shared/components/delete-button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import { cn } from "@/shared/lib/utils";
 
 export const createColumns = (
   onEdit: (item: Department) => void,
   onDelete: (id: number) => void,
-  parentNameById: Map<number, string>,
   deletingId?: number | null,
 ): ColumnDef<Department>[] => [
   {
     id: "actions",
+    size: 50,
     cell: ({ row }) => (
-      <div className="flex gap-1">
+      <DataTableCell>
         <Button
           variant="ghost"
           size="icon"
@@ -27,51 +32,68 @@ export const createColumns = (
           onConfirm={() => onDelete(row.original.id)}
           isPending={deletingId === row.original.id}
         />
-      </div>
+      </DataTableCell>
     ),
     enableSorting: false,
     enableHiding: false,
-  },
-  {
-    accessorKey: "full_name",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-ml-3"
-        onClick={column.getToggleSortingHandler()}>
-        Полное наименование <ArrowUpDownIcon size={14} className="ml-1" />
-      </Button>
-    ),
+    enableGlobalFilter: false,
   },
   {
     accessorKey: "short_name",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-ml-3"
-        onClick={column.getToggleSortingHandler()}>
-        Краткое наименование <ArrowUpDownIcon size={14} className="ml-1" />
-      </Button>
+    header: () => (
+      <DataTableColumnHeader className="text-left">
+        Краткое наименование
+      </DataTableColumnHeader>
+    ),
+    size: 30,
+    cell: ({ row, getValue }) => (
+      <DataTableCell
+        className="flex items-center gap-1 text-left"
+        style={{ paddingLeft: row.depth * 24 }}>
+        {row.getCanExpand() ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-6 shrink-0"
+            onClick={row.getToggleExpandedHandler()}>
+            <ChevronRightIcon
+              size={16}
+              className={cn(
+                "text-muted-foreground transition-transform",
+                row.getIsExpanded() && "rotate-90",
+              )}
+            />
+          </Button>
+        ) : (
+          <span className="size-6 shrink-0" />
+        )}
+        {getValue<string>()}
+      </DataTableCell>
     ),
   },
   {
-    accessorKey: "parent",
-    header: "Вышестоящее",
-    cell: ({ row }) => {
-      const parentId = row.original.parent;
-      if (parentId == null) return "—";
-      return parentNameById.get(parentId) ?? `#${parentId}`;
-    },
+    accessorKey: "full_name",
+    header: () => (
+      <DataTableColumnHeader className="text-left">
+        Полное наименование
+      </DataTableColumnHeader>
+    ),
+    cell: ({ getValue }) => (
+      <DataTableCell className="text-left wrap-break-word whitespace-normal">
+        {getValue<string>()}
+      </DataTableCell>
+    ),
   },
   {
     accessorKey: "is_active",
-    header: "Статус",
+    header: () => <DataTableColumnHeader>Статус</DataTableColumnHeader>,
+    enableGlobalFilter: false,
     cell: ({ row }) => (
-      <Badge variant={row.original.is_active ? "default" : "secondary"}>
-        {row.original.is_active ? "Действующее" : "Не действующее"}
-      </Badge>
+      <DataTableCell>
+        <Badge variant={row.original.is_active ? "default" : "secondary"}>
+          {row.original.is_active ? "Действующее" : "Не действующее"}
+        </Badge>
+      </DataTableCell>
     ),
   },
 ];

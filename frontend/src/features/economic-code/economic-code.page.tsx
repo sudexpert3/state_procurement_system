@@ -1,4 +1,4 @@
-import type { Department } from "@/shared/api/schema";
+import type { EconomicCode } from "@/shared/api/schema";
 
 import { useCallback, useMemo, useState } from "react";
 
@@ -15,35 +15,34 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 
-import { DepartmentForm } from "./form/department-form";
-import { useDepartmentDelete } from "./hooks/use-department-delete";
-import { useDepartments } from "./hooks/use-departments";
+import { useEconomicCode } from "./hooks/use-economic-code";
+import { useEconomicCodeDelete } from "./hooks/use-economic-code-delete";
 import { createColumns } from "./columns";
-import { DepartmentsToolbar } from "./departments-toolbar";
+import { EconomicCodeForm } from "./economic-code-form";
+import { EconomicCodeToolbar } from "./economic-code-toolbar";
 
-const DepartmentsPage = () => {
+const EconomicCodePage = () => {
   const {
     search,
     setSearch,
     statusFilter,
     setStatusFilter,
     data,
-    flatData,
     isLoading,
     invalidate,
-  } = useDepartments();
+  } = useEconomicCode();
 
-  const { handleDelete, deletingId } = useDepartmentDelete(invalidate);
+  const { handleDelete, deletingId } = useEconomicCodeDelete(invalidate);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<Department | null>(null);
+  const [editingItem, setEditingItem] = useState<EconomicCode | null>(null);
 
   const handleAdd = () => {
     setEditingItem(null);
     setDrawerOpen(true);
   };
 
-  const handleEdit = useCallback((item: Department) => {
+  const handleEdit = useCallback((item: EconomicCode) => {
     setEditingItem(item);
     setDrawerOpen(true);
   }, []);
@@ -56,10 +55,8 @@ const DepartmentsPage = () => {
   return (
     <Card className="max-w-full gap-2 bg-transparent ring-0">
       <CardHeader>
-        <CardTitle>Подразделения</CardTitle>
-        <CardDescription>
-          Иерархический справочник подразделений
-        </CardDescription>
+        <CardTitle>ЭКР</CardTitle>
+        <CardDescription>Экономическая классификация расходов</CardDescription>
         <CardAction>
           <Button onClick={handleAdd}>
             <PlusIcon size={16} />
@@ -72,12 +69,10 @@ const DepartmentsPage = () => {
           data={data}
           columns={columns}
           isLoading={isLoading}
-          getSubRows={(row) => row.sub_departments}
-          globalFilter={search}
-          forceExpanded={search.trim().length > 0}
+          cellClassName=""
           actions={() => (
             <div className="py-4">
-              <DepartmentsToolbar
+              <EconomicCodeToolbar
                 search={search}
                 onSearchChange={setSearch}
                 statusFilter={statusFilter}
@@ -88,10 +83,9 @@ const DepartmentsPage = () => {
         />
       </CardContent>
 
-      <DepartmentForm
+      <EconomicCodeForm
         open={drawerOpen}
         item={editingItem}
-        allItems={flatData}
         onClose={() => setDrawerOpen(false)}
         onSuccess={invalidate}
       />
@@ -99,4 +93,4 @@ const DepartmentsPage = () => {
   );
 };
 
-export const Component = DepartmentsPage;
+export const Component = EconomicCodePage;
