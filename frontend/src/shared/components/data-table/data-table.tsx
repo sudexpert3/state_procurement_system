@@ -2,6 +2,8 @@ import type {
   ColumnDef,
   ColumnFiltersState,
   ExpandedState,
+  OnChangeFn,
+  PaginationState,
   SortingState,
   Table as ReactTable,
   VisibilityState,
@@ -42,6 +44,10 @@ type DataTableProps<TData> = {
   forceExpanded?: boolean;
   /** Внешний глобальный поиск (клиентская фильтрация средствами tanstack-table) */
   globalFilter?: string;
+  /** Поднять ввод поиска наружу: без него поиск живёт во внутреннем стейте таблицы */
+  onGlobalFilterChange?: (value: string) => void;
+  /** Серверный поиск/фильтрация: строки уже отфильтрованы бэкендом, повторно не фильтровать */
+  manualFiltering?: boolean;
   cellClassName?: string;
   actions?: (table: ReactTable<TData>) => React.ReactNode;
   pagination?:
@@ -49,6 +55,17 @@ type DataTableProps<TData> = {
     | {
         type?: "default" | "custom";
         render?: (table: ReactTable<TData>) => React.ReactNode;
+        /**
+         * Серверная пагинация: данные уже нарезаны бэкендом.
+         * Если передан — таблица не режет строки сама, а количество страниц
+         * считает из `rowCount` (общее число записей на сервере).
+         */
+        manual?: {
+          pageIndex: number;
+          pageSize: number;
+          rowCount: number;
+          onChange: OnChangeFn<PaginationState>;
+        };
       };
 };
 
@@ -69,14 +86,23 @@ export const DataTable = <TData,>({
 
   const globalFilter = props.globalFilter ?? innerGlobalFilter;
 
+  const manualPagination = pagination === false ? undefined : pagination.manual;
+
   const table = useReactTable({
     data: props.data,
     columns: props.columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    ...(pagination && {
-      getPaginationRowModel: getPaginationRowModel(),
+    // Клиентская нарезка строк — только когда пагинация не серверная
+    ...(pagination &&
+      !manualPagination && {
+        getPaginationRowModel: getPaginationRowModel(),
+      }),
+    ...(manualPagination && {
+      manualPagination: true,
+      rowCount: manualPagination.rowCount,
+      onPaginationChange: manualPagination.onChange,
     }),
     ...(props.getSubRows && {
       getSubRows: props.getSubRows,
@@ -91,13 +117,27 @@ export const DataTable = <TData,>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setInnerGlobalFilter,
+    onGlobalFilterChange: (updater) => {
+      const next =
+        typeof updater === "function"
+          ? (updater(globalFilter) as string)
+          : (updater as string);
+
+      (props.onGlobalFilterChange ?? setInnerGlobalFilter)(next);
+    },
+    ...(props.manualFiltering && { manualFiltering: true }),
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
       globalFilter,
+      ...(manualPagination && {
+        pagination: {
+          pageIndex: manualPagination.pageIndex,
+          pageSize: manualPagination.pageSize,
+        },
+      }),
       // true — раскрыть всё дерево целиком, игнорируя пользовательский стейт
       ...(props.getSubRows && {
         expanded: props.forceExpanded ? true : expanded,
