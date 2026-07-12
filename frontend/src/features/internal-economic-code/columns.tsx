@@ -1,8 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { InternalEconomicCode } from "@/shared/api/schema";
-import type { InternalEconomicCodeRow } from "./hooks/use-internal-economic-code";
 
-import { PencilIcon } from "lucide-react";
+import { ChevronRightIcon, PencilIcon } from "lucide-react";
 
 import {
   DataTableCell,
@@ -11,12 +10,13 @@ import {
 import { DeleteButton } from "@/shared/components/delete-button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import { cn } from "@/shared/lib/utils";
 
 export const createColumns = (
   onEdit: (item: InternalEconomicCode) => void,
   onDelete: (id: number) => void,
   deletingId?: number | null,
-): ColumnDef<InternalEconomicCodeRow>[] => [
+): ColumnDef<InternalEconomicCode>[] => [
   {
     id: "actions",
     size: 50,
@@ -45,8 +45,26 @@ export const createColumns = (
     size: 30,
     cell: ({ row, getValue }) => (
       <DataTableCell
-        className="text-left font-mono"
-        style={{ paddingLeft: row.original.level * 16 }}>
+        className="flex items-center gap-1 text-left font-mono"
+        style={{ paddingLeft: row.depth * 24 }}>
+        {row.getCanExpand() ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-6 shrink-0"
+            onClick={row.getToggleExpandedHandler()}>
+            <ChevronRightIcon
+              size={16}
+              className={cn(
+                "text-muted-foreground transition-transform",
+                row.getIsExpanded() && "rotate-90",
+              )}
+            />
+          </Button>
+        ) : (
+          // Заглушка вместо кнопки — выравнивание кодов без потомков
+          <span className="size-6 shrink-0" />
+        )}
         {getValue<string>()}
       </DataTableCell>
     ),

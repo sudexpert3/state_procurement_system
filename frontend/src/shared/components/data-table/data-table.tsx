@@ -1,6 +1,7 @@
 import type {
   ColumnDef,
   ColumnFiltersState,
+  ExpandedState,
   SortingState,
   Table as ReactTable,
   VisibilityState,
@@ -11,6 +12,7 @@ import { useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
@@ -34,6 +36,12 @@ type DataTableProps<TData> = {
   columns: ColumnDef<TData, unknown>[];
   isLoading?: boolean;
   getRow?: (row: TData) => void;
+  /** Вложенные строки (expanding): вернуть дочерние узлы строки */
+  getSubRows?: (row: TData) => TData[] | undefined;
+  /** Принудительно раскрыть все группы (например, на время поиска) */
+  forceExpanded?: boolean;
+  /** Внешний глобальный поиск (клиентская фильтрация средствами tanstack-table) */
+  globalFilter?: string;
   cellClassName?: string;
   actions?: (table: ReactTable<TData>) => React.ReactNode;
   pagination?:
@@ -56,7 +64,10 @@ export const DataTable = <TData,>({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
-  const [globalFilter, setGlobalFilter] = useState<string>("");
+  const [innerGlobalFilter, setInnerGlobalFilter] = useState<string>("");
+  const [expanded, setExpanded] = useState<ExpandedState>({});
+
+  const globalFilter = props.globalFilter ?? innerGlobalFilter;
 
   const table = useReactTable({
     data: props.data,
@@ -67,17 +78,30 @@ export const DataTable = <TData,>({
     ...(pagination && {
       getPaginationRowModel: getPaginationRowModel(),
     }),
+    ...(props.getSubRows && {
+      getSubRows: props.getSubRows,
+      getExpandedRowModel: getExpandedRowModel(),
+      onExpandedChange: setExpanded,
+      // Раскрытые дочерние строки остаются на странице родителя
+      paginateExpandedRows: false,
+      // Фильтрация снизу вверх: родитель остаётся, если подошёл любой потомок
+      filterFromLeafRows: true,
+    }),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
+    onGlobalFilterChange: setInnerGlobalFilter,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
       globalFilter,
+      // true — раскрыть всё дерево целиком, игнорируя пользовательский стейт
+      ...(props.getSubRows && {
+        expanded: props.forceExpanded ? true : expanded,
+      }),
     },
   });
 

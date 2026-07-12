@@ -1,4 +1,5 @@
 import type { InternalEconomicCode } from "@/shared/api/schema";
+import type { StatusFilterValue } from "@/shared/model/status";
 
 import { useCallback, useMemo, useState } from "react";
 
@@ -7,24 +8,28 @@ import { useDebounceValue } from "@siberiacancode/reactuse";
 import { rqClient } from "@/shared/api/instance";
 import { queryClient } from "@/shared/api/query-client";
 
-/** Строка таблицы: узел дерева + уровень вложенности для отступа */
-export type InternalEconomicCodeRow = InternalEconomicCode & {
-  level: number;
-};
+/** Разворачивает дерево кодов в плоский список (для выбора родителя в форме) */
+const flattenTree = (nodes: InternalEconomicCode[]): InternalEconomicCode[] =>
+  nodes.flatMap((node) => [node, ...flattenTree(node.sub_codes)]);
 
-/** Разворачивает дерево кодов в плоский список (группа, затем её sub_codes) */
-const flattenTree = (
+/**
+ * Рекурсивно фильтрует дерево по статусу: узел остаётся, если сам подходит
+ * или содержит подходящих потомков (чтобы группа с нужными кодами не пропала)
+ */
+const filterTreeByStatus = (
   nodes: InternalEconomicCode[],
-  level = 0,
-): InternalEconomicCodeRow[] =>
-  nodes.flatMap((node) => [
-    { ...node, level },
-    ...flattenTree(node.sub_codes, level + 1),
-  ]);
+  isActive: boolean,
+): InternalEconomicCode[] =>
+  nodes.flatMap((node) => {
+    const sub_codes = filterTreeByStatus(node.sub_codes, isActive);
+    return node.is_active === isActive || sub_codes.length > 0
+      ? [{ ...node, sub_codes }]
+      : [];
+  });
 
 export const useInternalEconomicCode = () => {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
   const debouncedSearch = useDebounceValue(search, 500);
 
   const query = rqClient.useQuery(
@@ -40,19 +45,22 @@ export const useInternalEconomicCode = () => {
     },
   );
 
-  const data = useMemo(() => {
-    // TODO: временный каст — убрать после доработки бэка (sub_codes в
-    // сгенерированной схеме сейчас string вместо массива узлов)
-    const tree = (query.data ?? []) as unknown as InternalEconomicCode[];
-    let result = flattenTree(tree);
+  // TODO: временный каст — убрать после доработки бэка (sub_codes в
+  // сгенерированной схеме сейчас string вместо массива узлов)
+  const tree = useMemo(
+    () => (query.data ?? []) as unknown as InternalEconomicCode[],
+    [query.data],
+  );
 
-    if (statusFilter !== "all") {
-      const isActive = statusFilter === "true";
-      result = result.filter((item) => item.is_active === isActive);
-    }
+  const data = useMemo(
+    () =>
+      statusFilter === "all"
+        ? tree
+        : filterTreeByStatus(tree, statusFilter === "true"),
+    [tree, statusFilter],
+  );
 
-    return result;
-  }, [query.data, statusFilter]);
+  const flatData = useMemo(() => flattenTree(tree), [tree]);
 
   const invalidate = useCallback(
     () =>
@@ -68,6 +76,7 @@ export const useInternalEconomicCode = () => {
     statusFilter,
     setStatusFilter,
     data,
+    flatData,
     isLoading: query.isLoading,
     invalidate,
   };

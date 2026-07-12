@@ -15,11 +15,11 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 
+import { useBuyerDelete } from "./hooks/use-buyer-delete";
+import { useBuyers } from "./hooks/use-buyers";
 import { BuyerForm } from "./buyer-form";
 import { BuyersToolbar } from "./buyers-toolbar";
 import { createColumns } from "./columns";
-import { useBuyerDelete } from "./hooks/use-buyer-delete";
-import { useBuyers } from "./hooks/use-buyers";
 
 const BuyersPage = () => {
   const {

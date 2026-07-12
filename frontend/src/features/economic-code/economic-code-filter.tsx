@@ -13,7 +13,7 @@ type Props = {
   onValueChange: (value: StatusFilterValue) => void;
 };
 
-export const BuyersFilter = ({ value, onValueChange }: Props) => (
+export const EconomicCodeFilter = ({ value, onValueChange }: Props) => (
   <Select value={value} onValueChange={onValueChange}>
     <SelectTrigger className="w-48 bg-white">
       <SelectValue placeholder="Статус..." />

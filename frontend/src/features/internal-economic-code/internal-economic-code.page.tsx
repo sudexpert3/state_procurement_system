@@ -28,6 +28,7 @@ const InternalEconomicCodePage = () => {
     statusFilter,
     setStatusFilter,
     data,
+    flatData,
     isLoading,
     invalidate,
   } = useInternalEconomicCode();
@@ -75,6 +76,8 @@ const InternalEconomicCodePage = () => {
           data={data}
           columns={columns}
           isLoading={isLoading}
+          getSubRows={(row) => row.sub_codes}
+          forceExpanded={search.trim().length > 0}
           cellClassName=""
           actions={() => (
             <div className="py-4">
@@ -92,7 +95,7 @@ const InternalEconomicCodePage = () => {
       <InternalEconomicCodeForm
         open={drawerOpen}
         item={editingItem}
-        allItems={data}
+        allItems={flatData}
         onClose={() => setDrawerOpen(false)}
         onSuccess={invalidate}
       />

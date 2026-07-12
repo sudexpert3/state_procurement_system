@@ -52,7 +52,7 @@ const data = {
       items: [
         {
           title: "ЭКР",
-          url: ROUTES.ECONOMIC_CLASSIFIER,
+          url: ROUTES.ECONOMIC_CODE,
         },
         {
           title: "Коды ОКРБ",

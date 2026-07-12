@@ -1,3 +1,5 @@
+import type { StatusFilterValue } from "@/shared/model/status";
+
 import { SearchIcon } from "lucide-react";
 
 import {
@@ -11,8 +13,8 @@ import { CodeOkrbFilter } from "./code-okrb-filter";
 type Props = {
   search: string;
   onSearchChange: (value: string) => void;
-  statusFilter: string;
-  onStatusFilterChange: (value: string) => void;
+  statusFilter: StatusFilterValue;
+  onStatusFilterChange: (value: StatusFilterValue) => void;
 };
 
 export const CodeOkrbToolbar = ({

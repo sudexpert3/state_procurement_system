@@ -8,7 +8,7 @@ import {
   InputGroupInput,
 } from "@/shared/components/ui/input-group";
 
-import { InternalEconomicCodeFilter } from "./internal-economic-code-filter";
+import { EconomicCodeFilter } from "./economic-code-filter";
 
 type Props = {
   search: string;
@@ -17,7 +17,7 @@ type Props = {
   onStatusFilterChange: (value: StatusFilterValue) => void;
 };
 
-export const InternalEconomicCodeToolbar = ({
+export const EconomicCodeToolbar = ({
   search,
   onSearchChange,
   statusFilter,
@@ -34,7 +34,7 @@ export const InternalEconomicCodeToolbar = ({
         placeholder="Поиск по коду или наименованию"
       />
     </InputGroup>
-    <InternalEconomicCodeFilter
+    <EconomicCodeFilter
       value={statusFilter}
       onValueChange={onStatusFilterChange}
     />

@@ -16,7 +16,18 @@ export type Buyer = ApiSchemas["Buyer"];
 export type Contract = ApiSchemas["Contract"];
 export type ContractItem = ApiSchemas["ContractItem"];
 
-export type Department = ApiSchemas["DepartmentTree"];
+// TODO: временный тип — убрать после доработки бэка.
+// Сейчас drf-spectacular отдаёт рекурсивное поле sub_departments как string,
+// хотя реально API возвращает массив таких же узлов. Когда схема будет
+// исправлена, вернуть простой алиас: ApiSchemas["DepartmentTree"].
+export type Department = Omit<
+  ApiSchemas["DepartmentTree"],
+  "sub_departments"
+> & {
+  readonly sub_departments: Department[];
+};
+
+export type EconomicCode = ApiSchemas["ExternalEconomicCode"];
 
 // TODO: временный тип — убрать после доработки бэка.
 // Сейчас drf-spectacular отдаёт рекурсивное поле sub_codes как string,

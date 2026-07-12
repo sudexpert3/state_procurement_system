@@ -1,7 +1,7 @@
 # for-ai.md — статус проекта для Claude Code
 
 > Служебный файл. Обновляй его при завершении крупных фич/сессий, чтобы не перечитывать весь проект заново.
-> Дата последней актуализации: 2026-07-10, ветка `feature/plan-item-detail`.
+> Дата последней актуализации: 2026-07-12, ветка `feature/inner-codes`.
 
 ## Стек
 
@@ -37,7 +37,7 @@ src/
 | Реестр закупок                    | `/plan-items`          | `features/plan-items/list`     | ✅ Готово. Таблица, колонки с видимостью (column-visibility-dropdown), реальный API                                                                                                                                                                                                                        |
 | Реестр закупок → карточка         | `/plan-items/:id`      | `features/plan-items/detail`   | 🟡 Частично. Таб «Информация» — реальный API (`plan-items/{id}/`). Табы «Планирование» и «Договоры» ещё на моках (`procurement.mock.ts`, `plan2`). Таб «Платежи» — заглушка-текст, эндпоинт не подключён. Статус плана (Badge) закомментирован — ждём уточнения от бэка (`//TODO узнать про статус плана`) |
 | Реестр закупок → создание         | `/plan-items/add`      | `features/plan-items/create`   | 🟡 Форма готова визуально (табы: основная информация, планирование, договоры с quarter-table на 30 договоров через drawer), но `onSubmit` НЕ отправляет на бэкенд — просто `toast.info` + локальный state. Раздел договоров использует моки (`contracts.mock.ts`)                                          |
-| ЭКР (экономическая классификация) | `/economic-classifier` | `features/economic-classifier` | ✅ Готово. Drawer CRUD, поиск, сортировка по колонке, реальный API                                                                                                                                                                                                                                         |
+| ЭКР (экономическая классификация) | `/economic-code`       | `features/economic-code`       | ✅ Готово. Переписана 2026-07-12 по паттерну `code-okrb`: реальный API (`/api/economic_code/`, тип `EconomicCode` = `ExternalEconomicCode`), drawer CRUD, поиск (server-side `search`) + фильтр по `is_active` (server-side), сортировка. Раньше была на моках с полем `parent_id` — иерархии в API нет, справочник плоский |
 | Коды ОКРБ                         | `/codes-okrb`          | `features/code-okrb`           | ✅ Готово. Тот же паттерн (drawer CRUD + delete-dialog), реальный API                                                                                                                                                                                                                                      |
 | Главки                            | `/departments`         | `features/departments`         | ✅ Готово. Тот же паттерн, реальный API                                                                                                                                                                                                                                                                    |
 | Закупщики                         | `/buyers`              | `features/buyers`              | ✅ Готово. Тот же паттерн, реальный API                                                                                                                                                                                                                                                                    |
