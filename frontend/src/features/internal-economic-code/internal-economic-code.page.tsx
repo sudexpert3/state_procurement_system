@@ -15,9 +15,9 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 
-import { createColumns } from "./columns";
 import { useInternalEconomicCode } from "./hooks/use-internal-economic-code";
 import { useInternalEconomicCodeDelete } from "./hooks/use-internal-economic-code-delete";
+import { createColumns } from "./columns";
 import { InternalEconomicCodeForm } from "./internal-economic-code-form";
 import { InternalEconomicCodeToolbar } from "./internal-economic-code-toolbar";
 
