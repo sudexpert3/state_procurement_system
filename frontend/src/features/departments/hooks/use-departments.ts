@@ -26,7 +26,6 @@ const filterTreeByStatus = (
   });
 
 export const useDepartments = () => {
-  // Поиск клиентский — фильтрует сам tanstack-table (globalFilter)
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
 
