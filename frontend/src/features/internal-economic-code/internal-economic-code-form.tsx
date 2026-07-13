@@ -64,7 +64,6 @@ export const InternalEconomicCodeForm = ({
 }: Props) => {
   const isEdit = item !== null;
   const portalContainerRef = useRef<HTMLDivElement | null>(null);
-
   const { submit, isPending } = useInternalCodeForm({
     item,
     onClose,
@@ -144,39 +143,43 @@ export const InternalEconomicCodeForm = ({
           <Controller
             name="parent"
             control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>Родительская группа</FieldLabel>
-                <Combobox
-                  items={parentOptions}
-                  value={
-                    parentOptions.find((opt) => opt.id === field.value) ?? null
-                  }
-                  onValueChange={(val: InternalEconomicCode | null) =>
-                    field.onChange(val?.id ?? null)
-                  }
-                  itemToStringLabel={(val) => (val ? val.code : "")}>
-                  <ComboboxInput
-                    placeholder="Поиск по коду..."
-                    showClear
-                    aria-invalid={fieldState.invalid}
-                  />
-                  <ComboboxContent portalContainer={portalContainerRef}>
-                    <ComboboxEmpty>Ничего не найдено</ComboboxEmpty>
-                    <ComboboxList>
-                      {(code: InternalEconomicCode) => (
-                        <ComboboxItem key={code.id} value={code}>
-                          {code.code} — {code.name}
-                        </ComboboxItem>
-                      )}
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
+            render={({ field, fieldState }) => {
+              console.log(field);
+              return (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Родительская группа</FieldLabel>
+                  <Combobox
+                    items={parentOptions}
+                    value={
+                      parentOptions.find((opt) => opt.id === field.value) ??
+                      null
+                    }
+                    onValueChange={(val: InternalEconomicCode | null) =>
+                      field.onChange(val?.id ?? null)
+                    }
+                    itemToStringLabel={(val) => (val ? val.code : "")}>
+                    <ComboboxInput
+                      placeholder="Поиск по коду..."
+                      showClear
+                      aria-invalid={fieldState.invalid}
+                    />
+                    <ComboboxContent portalContainer={portalContainerRef}>
+                      <ComboboxEmpty>Ничего не найдено</ComboboxEmpty>
+                      <ComboboxList>
+                        {(code: InternalEconomicCode) => (
+                          <ComboboxItem key={code.id} value={code}>
+                            {code.code} — {code.name}
+                          </ComboboxItem>
+                        )}
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              );
+            }}
           />
 
           <Controller

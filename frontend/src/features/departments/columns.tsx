@@ -1,5 +1,5 @@
-import type { ColumnDef } from "@tanstack/react-table";
 import type { Department } from "@/shared/api/schema";
+import type { ColumnDef } from "@tanstack/react-table";
 
 import { ChevronRightIcon, PencilIcon } from "lucide-react";
 
@@ -45,7 +45,6 @@ export const createColumns = (
         Краткое наименование
       </DataTableColumnHeader>
     ),
-    size: 30,
     cell: ({ row, getValue }) => (
       <DataTableCell
         className="flex items-center gap-1 text-left"

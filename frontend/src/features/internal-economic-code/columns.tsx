@@ -1,5 +1,5 @@
-import type { ColumnDef } from "@tanstack/react-table";
 import type { InternalEconomicCode } from "@/shared/api/schema";
+import type { ColumnDef } from "@tanstack/react-table";
 
 import { ChevronRightIcon, PencilIcon } from "lucide-react";
 
@@ -42,7 +42,6 @@ export const createColumns = (
     header: () => (
       <DataTableColumnHeader className="text-left">Код</DataTableColumnHeader>
     ),
-    size: 30,
     cell: ({ row, getValue }) => (
       <DataTableCell
         className="flex items-center gap-1 text-left font-mono"
@@ -77,7 +76,7 @@ export const createColumns = (
       </DataTableColumnHeader>
     ),
     cell: ({ getValue }) => (
-      <DataTableCell className="text-left wrap-break-word whitespace-normal">
+      <DataTableCell className="max-w-125 text-left wrap-break-word whitespace-normal">
         {getValue<string>()}
       </DataTableCell>
     ),

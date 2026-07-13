@@ -78,7 +78,6 @@ const InternalEconomicCodePage = () => {
           isLoading={isLoading}
           getSubRows={(row) => row.sub_codes}
           forceExpanded={search.trim().length > 0}
-          cellClassName=""
           actions={() => (
             <div className="py-4">
               <InternalEconomicCodeToolbar
