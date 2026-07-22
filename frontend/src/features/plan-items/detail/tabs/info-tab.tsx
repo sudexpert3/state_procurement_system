@@ -19,7 +19,7 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => (
         <DetailField label="Наименование предмета закупки" value={plan.title} />
         <DetailField
           label="Тип (работа/услуга/товар)"
-          value={typeLabel[plan.type]}
+          value={typeLabel[plan.type]} //TODO: plan.type = string, нужно переопределить бэк на правильный тип
         />
         <DetailField
           label="Исполнитель"
