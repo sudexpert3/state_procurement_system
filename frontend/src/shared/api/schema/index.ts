@@ -42,6 +42,9 @@ export type InternalEconomicCode = Omit<
 
 export type OkrbProduct = ApiSchemas["OkrbProduct"];
 
+export type StatusEnum = ApiSchemas["StatusEnum"];
+export type TypeEnum = ApiSchemas["TypeEnum"];
+
 export type PaginatedBudgetCostsImportList =
   ApiSchemas["PaginatedBudgetCostsImportList"];
 export type PaginatedContractList = ApiSchemas["PaginatedContractList"];

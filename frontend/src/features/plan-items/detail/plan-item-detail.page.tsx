@@ -49,10 +49,10 @@ const PlanItemDetailPage = () => {
           </CardTitle>
           <CardAction>
             //TODO узнать про статус плана
-            {/* <Badge 
+            {/* <Badge
               className={cn(
                 "rounded-md px-3 py-1 text-sm font-semibold",
-                statusMeta[plan.status].className,
+                statusMeta[plan].className,
               )}>
               {statusMeta[plan.status].label}
             </Badge> */}

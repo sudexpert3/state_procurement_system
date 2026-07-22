@@ -1,18 +1,11 @@
 import type { Supplier } from "@/shared/api/schema";
 import type { ContractItem } from "../create/form/contract-section/contract.schema";
 import type { PlanItemFormValues } from "../create/schema";
+import type { PlanStatus } from "./plan-meta";
 
 import { contractsMock } from "../create/form/contract-section/contracts.mock";
 
-// Статусы плана закупки (as const вместо enum — правило проекта).
-export const planItemStatus = {
-  DRAFT: "draft",
-  PUBLISHED: "published",
-  ARCHIVED: "archived",
-} as const;
-
-export type PlanItemStatus =
-  (typeof planItemStatus)[keyof typeof planItemStatus];
+import { statusMeta } from "./plan-meta";
 
 // Строка таблицы подразделений внутри года финансирования.
 export type FinancingDepartment = {
@@ -59,7 +52,7 @@ export type ContractDetail = ContractItem & {
 // contracts переопределены на ContractDetail (с поставщиком и позициями).
 export type PlanItemDetail = Omit<PlanItemFormValues, "contracts"> & {
   id: number;
-  status: PlanItemStatus;
+  status: PlanStatus;
   contracts: ContractDetail[];
   financing: FinancingYear[];
 };
@@ -214,7 +207,7 @@ export const financingMock: FinancingYear[] = [
 export const planItemDetailMock: PlanItemDetail[] = [
   {
     id: 1,
-    status: planItemStatus.PUBLISHED,
+    status: statusMeta.ACTIVE.value,
     // base info
     planPointNumber: "1.1",
     okrbCode: "28.23.11.000",
@@ -255,7 +248,7 @@ export const planItemDetailMock: PlanItemDetail[] = [
   },
   {
     id: 2,
-    status: planItemStatus.DRAFT,
+    status: statusMeta.DRAFT.value,
     planPointNumber: "1.2",
     okrbCode: "31.01.11.000",
     goodsName: "Мебель офисная для нового филиала",
@@ -293,7 +286,7 @@ export const planItemDetailMock: PlanItemDetail[] = [
   },
   {
     id: 3,
-    status: planItemStatus.ARCHIVED,
+    status: statusMeta.ARCHIVE.value,
     planPointNumber: "2.1",
     okrbCode: "61.10.11.000",
     goodsName: "Услуги доступа к сети Интернет",
