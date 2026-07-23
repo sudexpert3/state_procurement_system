@@ -1654,7 +1654,7 @@ export interface components {
       readonly title: string;
       readonly okrb: string;
       readonly okrb_title: string;
-      readonly type: components["schemas"]["TypeEnum"];
+      readonly type: string;
       readonly val_unit: string;
       /** Format: decimal */
       readonly val_amount: string;

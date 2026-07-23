@@ -9,6 +9,7 @@ import {
 } from "@/shared/components/data-table/data-table-cell";
 import {
   Card,
+  CardAction,
   CardContent,
   CardHeader,
   CardTitle,
@@ -31,34 +32,35 @@ const columns: ColumnDef<CostDepartment>[] = [
     accessorKey: "shared_amount",
     header: "Количество",
     cell: ({ getValue }) => {
-      const value = getValue<string>() ?? "0.000";
-      if (value.split(".")[1] !== "000") {
-        return <DataTableCell>{value}</DataTableCell>;
-      }
-      return <DataTableCell>{Number(value).toFixed(0)}</DataTableCell>;
+      const value = Number(getValue<number | string>() ?? 0);
+      return (
+        <DataTableCell>
+          {value.toLocaleString("ru-RU", { maximumFractionDigits: 3 })}
+        </DataTableCell>
+      );
     },
   },
   {
-    accessorKey: "",
+    accessorKey: "total_shared_cost",
     header: "Общая сумма",
     cell: ({ getValue }) => formatByn(getValue<number>()),
   },
   {
     accessorKey: "shared_cost",
     header: "Сумма со счетов казначейства",
-    cell: ({ getValue }) => formatByn(getValue<number>()),
+    cell: ({ getValue }) => formatByn(getValue<string>()),
   },
   {
     accessorKey: "shared_inner_cost",
     header: "Собственные средства",
     cell: ({ getValue }) => (
-      <DataTableCell>{formatByn(getValue<number>())}</DataTableCell>
+      <DataTableCell>{formatByn(getValue<string>())}</DataTableCell>
     ),
   },
   {
     accessorKey: "shared_fund_cost",
     header: "Оплата со счетов заказчика",
-    cell: ({ getValue }) => formatByn(getValue<number>()),
+    cell: ({ getValue }) => formatByn(getValue<string>()),
   },
 ];
 
@@ -71,12 +73,12 @@ export const DepartmentsTable = ({
   data: CostDepartment[];
   actions?: ReactNode;
 }) => (
-  <Card className="col-span-full mt-2 p-0 pb-1 ring-0">
-    <CardHeader className="flex justify-between px-2">
+  <Card className="col-span-full mt-2 gap-2 p-0 pb-1 ring-0">
+    <CardHeader className="px-0">
       <CardTitle className="text-base font-semibold tracking-wide uppercase">
         {title}
       </CardTitle>
-      {actions}
+      <CardAction>{actions}</CardAction>
     </CardHeader>
     <CardContent className="p-0">
       <DataTable
