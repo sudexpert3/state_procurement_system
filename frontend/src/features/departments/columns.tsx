@@ -1,5 +1,5 @@
-import type { Department } from "@/shared/api/schema";
 import type { ColumnDef } from "@tanstack/react-table";
+import type { Department } from "@/shared/api/schema";
 
 import { ChevronRightIcon, PencilIcon } from "lucide-react";
 

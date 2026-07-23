@@ -4,8 +4,8 @@ import type {
   ExpandedState,
   OnChangeFn,
   PaginationState,
-  Table as ReactTable,
   SortingState,
+  Table as ReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
 

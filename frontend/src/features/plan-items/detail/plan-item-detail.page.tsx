@@ -1,6 +1,8 @@
+import { cn } from "@siberiacancode/reactuse";
 import { useParams } from "react-router";
 
 import { rqClient } from "@/shared/api/instance";
+import { Badge } from "@/shared/components/ui/badge";
 import {
   Card,
   CardAction,
@@ -20,6 +22,7 @@ import { formatMoney } from "@/shared/lib/helpers/format-money";
 import { DetailField } from "./components/detail-field";
 import { InfoTab } from "./tabs/info-tab";
 import { PaymentsTab } from "./tabs/payments-tab";
+import { statusMeta } from "./plan-meta";
 
 const PlanItemDetailPage = () => {
   const { id } = useParams();
@@ -29,7 +32,6 @@ const PlanItemDetailPage = () => {
     "/api/plan_items/{id}/",
     { params: { path: { id: Number(id) } } },
   );
-  console.log(id);
   // const plan2 = planItemDetailMock.find((p) => String(p.id) === id);
 
   if (!plan) {
@@ -48,14 +50,13 @@ const PlanItemDetailPage = () => {
             План закупки № {plan.num}
           </CardTitle>
           <CardAction>
-            //TODO узнать про статус плана
-            {/* <Badge
+            <Badge
               className={cn(
-                "rounded-md px-3 py-1 text-sm font-semibold",
-                statusMeta[plan].className,
+                "rounded-md p-3 text-base",
+                statusMeta[plan?.status ?? "DRAFT"].className,
               )}>
-              {statusMeta[plan.status].label}
-            </Badge> */}
+              {statusMeta[plan?.status ?? "DRAFT"].label}
+            </Badge>
           </CardAction>
         </CardHeader>
         <Separator />

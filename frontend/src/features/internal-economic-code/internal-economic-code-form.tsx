@@ -144,7 +144,6 @@ export const InternalEconomicCodeForm = ({
             name="parent"
             control={control}
             render={({ field, fieldState }) => {
-              console.log(field);
               return (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>Родительская группа</FieldLabel>
