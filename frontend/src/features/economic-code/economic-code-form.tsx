@@ -188,7 +188,10 @@ export const EconomicCodeForm = ({ open, item, onClose, onSuccess }: Props) => {
             {isEdit ? "Сохранить" : "Добавить"}
           </Button>
           <DrawerClose asChild>
-            <Button variant="outline" onClick={onClose} disabled={isPending}>
+            <Button
+              variant="destructive"
+              onClick={onClose}
+              disabled={isPending}>
               Отмена
             </Button>
           </DrawerClose>

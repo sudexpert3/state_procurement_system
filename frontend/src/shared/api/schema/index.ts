@@ -3,11 +3,35 @@ import type { components, paths } from "./generated";
 export type ApiPaths = paths;
 export type ApiSchemas = components["schemas"];
 
+type GeneratedPlanItemFull = ApiSchemas["PlanItemFull"];
+type GeneratedEconomicDetail =
+  GeneratedPlanItemFull["economic_details"][number];
+
 export type PlanItemShort = ApiSchemas["PlanItemShort"];
-export type PlanItemFull = ApiSchemas["PlanItemFull"];
+// TODO: убрать временный тип после исправления OpenAPI-схемы.
+// Сейчас drf-spectacular описывает cost_departments как string, хотя API
+// возвращает массив распределений финансирования по подразделениям.
+export type CostDepartment = {
+  readonly id: number;
+  status?: ApiSchemas["StatusEnum"];
+  readonly department_detail: Omit<
+    ApiSchemas["DepartmentTree"],
+    "sub_departments"
+  >;
+  shared_amount: string;
+  readonly total_shared_cost: number;
+  shared_cost: string;
+  shared_fund_cost: string;
+  shared_inner_cost: string;
+};
+export type PlanItemFull = Omit<GeneratedPlanItemFull, "economic_details"> & {
+  readonly economic_details: Array<
+    Omit<GeneratedEconomicDetail, "cost_departments"> & {
+      readonly cost_departments: CostDepartment[];
+    }
+  >;
+};
 export type PlanItem = ApiSchemas["PlanItem"];
-export type CostDepartment =
-  ApiSchemas["PlanItemFull"]["economic_details"][0]["cost_departments"];
 
 export type BudgetCostsImport = ApiSchemas["BudgetCostsImport"];
 
