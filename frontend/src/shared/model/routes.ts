@@ -7,12 +7,12 @@ export const ROUTES = {
   PLAN_ITEMS: "/plan-items",
   PLAN_ITEM_ADD: "/plan-items/add",
   PLAN_ITEM: "/plan-items/:id",
-  ECONOMIC_CLASSIFIER: `/economic-classifier`,
+  ECONOMIC_CODE: `/economic-code`,
   DEPARTMENTS: `/departments`,
-  CODES: `/codes`,
+  CODES_OKRB: `/codes-okrb`,
+  INTERNAL_ECONOMIC_CODE: `/internal-economic-code`,
   BUYERS: `/buyers`,
   SUPPLIERS: `/suppliers`,
-  USERS: `/users`,
   NOT_FOUND: "*",
 } as const;
 

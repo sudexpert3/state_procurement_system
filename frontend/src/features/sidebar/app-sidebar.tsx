@@ -52,19 +52,19 @@ const data = {
       items: [
         {
           title: "ЭКР",
-          url: ROUTES.ECONOMIC_CLASSIFIER,
+          url: ROUTES.ECONOMIC_CODE,
         },
         {
           title: "Коды ОКРБ",
-          url: ROUTES.CODES,
+          url: ROUTES.CODES_OKRB,
         },
         {
           title: "Главки",
           url: ROUTES.DEPARTMENTS,
         },
         {
-          title: "Исполнители",
-          url: ROUTES.USERS,
+          title: "Внутренние коды ЭКР",
+          url: ROUTES.INTERNAL_ECONOMIC_CODE,
         },
         {
           title: "Корректировка лимитов",

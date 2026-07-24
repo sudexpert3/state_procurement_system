@@ -4,8 +4,10 @@ import { createBrowserRouter, redirect } from "react-router";
 import { Toaster } from "sonner";
 
 import * as buyers from "@/features/buyers";
+import * as codeOkrb from "@/features/code-okrb";
 import * as departments from "@/features/departments";
-import * as economicClassifier from "@/features/economic-classifier";
+import * as economicCode from "@/features/economic-code";
+import * as internalEconomicCode from "@/features/internal-economic-code";
 import * as planItems from "@/features/plan-items";
 import * as plans from "@/features/plans";
 import * as suppliers from "@/features/suppliers";
@@ -51,8 +53,8 @@ export const router = createBrowserRouter([
                 lazy: planItems.create,
               },
               {
-                path: ROUTES.ECONOMIC_CLASSIFIER,
-                lazy: economicClassifier.list,
+                path: ROUTES.ECONOMIC_CODE,
+                lazy: economicCode.list,
               },
               {
                 path: ROUTES.DEPARTMENTS,
@@ -67,12 +69,12 @@ export const router = createBrowserRouter([
                 lazy: suppliers.list,
               },
               {
-                path: ROUTES.USERS,
-                element: <div>ПОЛЬЗОВАТЕЛИ</div>,
+                path: ROUTES.CODES_OKRB,
+                lazy: codeOkrb.list,
               },
               {
-                path: ROUTES.CODES,
-                element: <div>Коды ОКРБ</div>,
+                path: ROUTES.INTERNAL_ECONOMIC_CODE,
+                lazy: internalEconomicCode.list,
               },
             ],
           },

@@ -28,6 +28,7 @@ const DepartmentsPage = () => {
     statusFilter,
     setStatusFilter,
     data,
+    flatData,
     isLoading,
     invalidate,
   } = useDepartments();
@@ -47,14 +48,9 @@ const DepartmentsPage = () => {
     setDrawerOpen(true);
   }, []);
 
-  const parentNameById = useMemo(
-    () => new Map(data.map((item) => [item.id, item.short_name])),
-    [data],
-  );
-
   const columns = useMemo(
-    () => createColumns(handleEdit, handleDelete, parentNameById, deletingId),
-    [handleEdit, handleDelete, parentNameById, deletingId],
+    () => createColumns(handleEdit, handleDelete, deletingId),
+    [handleEdit, handleDelete, deletingId],
   );
 
   return (
@@ -76,6 +72,9 @@ const DepartmentsPage = () => {
           data={data}
           columns={columns}
           isLoading={isLoading}
+          getSubRows={(row) => row.sub_departments}
+          globalFilter={search}
+          forceExpanded={search.trim().length > 0}
           actions={() => (
             <div className="py-4">
               <DepartmentsToolbar
@@ -92,7 +91,7 @@ const DepartmentsPage = () => {
       <DepartmentForm
         open={drawerOpen}
         item={editingItem}
-        allItems={data}
+        allItems={flatData}
         onClose={() => setDrawerOpen(false)}
         onSuccess={invalidate}
       />
