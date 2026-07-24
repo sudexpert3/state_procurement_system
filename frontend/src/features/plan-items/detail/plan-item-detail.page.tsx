@@ -37,6 +37,7 @@ const PlanItemDetailPage = () => {
       params: { path: { id: Number(id) } },
     },
   );
+
   const plan = data as unknown as PlanItemFull | undefined;
   // const plan2 = planItemDetailMock.find((p) => String(p.id) === id);
 

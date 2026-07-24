@@ -1,6 +1,6 @@
+import type { CostDepartment } from "@/shared/api/schema";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { ReactNode } from "react";
-import type { CostDepartment } from "@/shared/api/schema";
 
 import { DataTable } from "@/shared/components/data-table/data-table";
 import {
@@ -74,7 +74,7 @@ export const DepartmentsTable = ({
   actions?: ReactNode;
 }) => (
   <Card className="col-span-full mt-2 gap-2 p-0 pb-1 ring-0">
-    <CardHeader className="px-0">
+    <CardHeader className="flex items-center justify-between px-0">
       <CardTitle className="text-base font-semibold tracking-wide uppercase">
         {title}
       </CardTitle>
