@@ -3,14 +3,14 @@ import type { Buyer } from "@/shared/api/schema";
 
 import { ArrowUpDownIcon, PencilIcon } from "lucide-react";
 
-import { DeleteButton } from "@/shared/components/delete-button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import { DeleteButton } from "@/shared/components/ui/delete-button";
 
 export const createColumns = (
   onEdit: (item: Buyer) => void,
   onDelete: (id: number) => void,
-  deletingId?: number | null,
+  getDeletingId: (id: number) => boolean,
 ): ColumnDef<Buyer>[] => [
   {
     id: "actions",
@@ -24,7 +24,7 @@ export const createColumns = (
         </Button>
         <DeleteButton
           onConfirm={() => onDelete(row.original.id)}
-          isPending={deletingId === row.original.id}
+          isPending={getDeletingId(row.original.id)}
         />
       </div>
     ),

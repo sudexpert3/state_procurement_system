@@ -35,8 +35,9 @@ fetchClient.use({
             message = flat.join(", ");
           }
         }
-      } catch {}
-      throw new Error(message);
+      } catch {
+        throw new Error(message);
+      }
     }
   },
 });

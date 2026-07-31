@@ -3,8 +3,8 @@ import type { ContractItem } from "./contract.schema";
 
 import { FileTextIcon, PencilIcon } from "lucide-react";
 
-import { DeleteButton } from "@/shared/components/delete-button";
 import { Button } from "@/shared/components/ui/button";
+import { DeleteButton } from "@/shared/components/ui/delete-button";
 import { formatDate } from "@/shared/lib/helpers/format-date";
 
 export const createColumns = (

@@ -1,8 +1,8 @@
 import { Plus } from "lucide-react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 
-import { DeleteButton } from "@/shared/components/delete-button";
 import { Button } from "@/shared/components/ui/button";
+import { DeleteButton } from "@/shared/components/ui/delete-button";
 import { Input } from "@/shared/components/ui/input";
 import {
   Table,

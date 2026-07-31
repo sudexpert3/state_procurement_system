@@ -3,8 +3,8 @@ import type { Supplier } from "@/shared/api/schema";
 
 import { ArrowUpDownIcon, PencilIcon } from "lucide-react";
 
-import { DeleteButton } from "@/shared/components/delete-button";
 import { Button } from "@/shared/components/ui/button";
+import { DeleteButton } from "@/shared/components/ui/delete-button";
 
 export const createColumns = (
   onEdit: (item: Supplier) => void,

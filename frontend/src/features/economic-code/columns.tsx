@@ -4,9 +4,9 @@ import type { EconomicCode } from "@/shared/api/schema";
 import { ArrowUpDownIcon, PencilIcon } from "lucide-react";
 
 import { DataTableCell } from "@/shared/components/data-table/data-table-cell";
-import { DeleteButton } from "@/shared/components/delete-button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import { DeleteButton } from "@/shared/components/ui/delete-button";
 
 export const createColumns = (
   onEdit: (item: EconomicCode) => void,

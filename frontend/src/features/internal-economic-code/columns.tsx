@@ -7,9 +7,9 @@ import {
   DataTableCell,
   DataTableColumnHeader,
 } from "@/shared/components/data-table/data-table-cell";
-import { DeleteButton } from "@/shared/components/delete-button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import { DeleteButton } from "@/shared/components/ui/delete-button";
 import { cn } from "@/shared/lib/utils";
 
 export const createColumns = (

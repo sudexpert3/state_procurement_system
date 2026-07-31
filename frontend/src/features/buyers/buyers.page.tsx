@@ -15,41 +15,41 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 
-import { useBuyerDelete } from "./hooks/use-buyer-delete";
-import { useBuyers } from "./hooks/use-buyers";
-import { BuyerForm } from "./buyer-form";
+import { useBuyerDelete } from "./model/use-buyer-delete";
+import { useBuyers } from "./model/use-buyers";
+import { useBuyersFilters } from "./model/use-buyers-filters";
+import { BuyerDrawer } from "./buyer-drawer";
 import { BuyersToolbar } from "./buyers-toolbar";
 import { createColumns } from "./columns";
 
 const BuyersPage = () => {
-  const {
-    search,
-    setSearch,
-    statusFilter,
-    setStatusFilter,
-    data,
-    isLoading,
-    invalidate,
-  } = useBuyers();
+  const { filters, search, setSearch, statusFilter, setStatusFilter } =
+    useBuyersFilters();
+  const { data, isLoading } = useBuyers(filters);
 
-  const { handleDelete, deletingId } = useBuyerDelete(invalidate);
+  const deleteBuyer = useBuyerDelete();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Buyer | null>(null);
 
-  const handleAdd = () => {
+  const createBuyer = () => {
     setEditingItem(null);
     setDrawerOpen(true);
   };
 
-  const handleEdit = useCallback((item: Buyer) => {
+  const editBuyer = useCallback((item: Buyer) => {
     setEditingItem(item);
     setDrawerOpen(true);
   }, []);
 
   const columns = useMemo(
-    () => createColumns(handleEdit, handleDelete, deletingId),
-    [handleEdit, handleDelete, deletingId],
+    () =>
+      createColumns(
+        editBuyer,
+        deleteBuyer.deleteBuyer,
+        deleteBuyer.getDeletingId,
+      ),
+    [editBuyer, deleteBuyer.deleteBuyer, deleteBuyer.getDeletingId],
   );
 
   return (
@@ -58,7 +58,7 @@ const BuyersPage = () => {
         <CardTitle>Закупщики</CardTitle>
         <CardDescription>Список заказчиков</CardDescription>
         <CardAction>
-          <Button onClick={handleAdd}>
+          <Button onClick={createBuyer}>
             <PlusIcon size={16} />
             Добавить
           </Button>
@@ -82,11 +82,10 @@ const BuyersPage = () => {
         />
       </CardContent>
 
-      <BuyerForm
+      <BuyerDrawer
         open={drawerOpen}
         item={editingItem}
         onClose={() => setDrawerOpen(false)}
-        onSuccess={invalidate}
       />
     </Card>
   );
