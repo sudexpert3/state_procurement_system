@@ -209,10 +209,7 @@ export const DepartmentForm = ({
             {isEdit ? "Сохранить" : "Добавить"}
           </Button>
           <DrawerClose asChild>
-            <Button
-              variant="destructive"
-              onClick={onClose}
-              disabled={isPending}>
+            <Button variant="destructive" disabled={isPending}>
               Отмена
             </Button>
           </DrawerClose>

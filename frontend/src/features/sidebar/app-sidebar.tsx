@@ -59,7 +59,7 @@ const data = {
           url: ROUTES.CODES_OKRB,
         },
         {
-          title: "Главки",
+          title: "Подразделения",
           url: ROUTES.DEPARTMENTS,
         },
         {
