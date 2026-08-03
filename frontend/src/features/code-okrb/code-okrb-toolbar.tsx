@@ -32,6 +32,7 @@ export const CodeOkrbToolbar = ({
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
         placeholder="Поиск по коду или наименованию"
+        aria-label="Поиск по коду или наименованию"
       />
     </InputGroup>
     <CodeOkrbFilter value={statusFilter} onValueChange={onStatusFilterChange} />

@@ -15,24 +15,18 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 
-import { useCodeOkrb } from "./hooks/use-code-okrb";
-import { useCodeOkrbDelete } from "./hooks/use-code-okrb-delete";
-import { CodeOkrbForm } from "./code-okrb-form";
+import { useCodeOkrb } from "./model/use-code-okrb";
+import { useCodeOkrbDelete } from "./model/use-code-okrb-delete";
+import { useCodeOkrbFilters } from "./model/use-code-okrb-filters";
+import { CodeOkrbDrawer } from "./code-okrb-drawer";
 import { CodeOkrbToolbar } from "./code-okrb-toolbar";
 import { createColumns } from "./columns";
 
 const CodeOkrbPage = () => {
-  const {
-    search,
-    setSearch,
-    statusFilter,
-    setStatusFilter,
-    data,
-    isLoading,
-    invalidate,
-  } = useCodeOkrb();
-
-  const { handleDelete, deletingId } = useCodeOkrbDelete(invalidate);
+  const { filters, search, setSearch, statusFilter, setStatusFilter } =
+    useCodeOkrbFilters();
+  const { data, isLoading, isError, refetch } = useCodeOkrb(filters);
+  const deleteCodeOkrb = useCodeOkrbDelete();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<OkrbProduct | null>(null);
@@ -48,8 +42,13 @@ const CodeOkrbPage = () => {
   }, []);
 
   const columns = useMemo(
-    () => createColumns(handleEdit, handleDelete, deletingId),
-    [handleEdit, handleDelete, deletingId],
+    () =>
+      createColumns(
+        handleEdit,
+        deleteCodeOkrb.deleteCodeOkrb,
+        deleteCodeOkrb.getDeletingId,
+      ),
+    [handleEdit, deleteCodeOkrb.deleteCodeOkrb, deleteCodeOkrb.getDeletingId],
   );
 
   return (
@@ -65,29 +64,39 @@ const CodeOkrbPage = () => {
         </CardAction>
       </CardHeader>
       <CardContent>
-        <DataTable
-          data={data}
-          columns={columns}
-          isLoading={isLoading}
-          cellClassName=""
-          actions={() => (
-            <div className="py-4">
-              <CodeOkrbToolbar
-                search={search}
-                onSearchChange={setSearch}
-                statusFilter={statusFilter}
-                onStatusFilterChange={setStatusFilter}
-              />
-            </div>
-          )}
-        />
+        {isError ? (
+          <div
+            role="alert"
+            className="flex min-h-48 flex-col items-center justify-center gap-4">
+            <p>Не удалось загрузить коды ОКРБ</p>
+            <Button variant="outline" onClick={() => void refetch()}>
+              Повторить
+            </Button>
+          </div>
+        ) : (
+          <DataTable
+            data={data}
+            columns={columns}
+            isLoading={isLoading}
+            cellClassName=""
+            actions={() => (
+              <div className="py-4">
+                <CodeOkrbToolbar
+                  search={search}
+                  onSearchChange={setSearch}
+                  statusFilter={statusFilter}
+                  onStatusFilterChange={setStatusFilter}
+                />
+              </div>
+            )}
+          />
+        )}
       </CardContent>
 
-      <CodeOkrbForm
+      <CodeOkrbDrawer
         open={drawerOpen}
         item={editingItem}
         onClose={() => setDrawerOpen(false)}
-        onSuccess={invalidate}
       />
     </Card>
   );

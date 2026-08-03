@@ -11,7 +11,7 @@ import { DeleteButton } from "@/shared/components/ui/delete-button";
 export const createColumns = (
   onEdit: (item: OkrbProduct) => void,
   onDelete: (id: number) => void,
-  deletingId?: number | null,
+  getDeletingId: (id: number) => boolean,
 ): ColumnDef<OkrbProduct>[] => [
   {
     id: "actions",
@@ -21,12 +21,13 @@ export const createColumns = (
         <Button
           variant="ghost"
           size="icon"
+          aria-label={`Редактировать код ${row.original.code}`}
           onClick={() => onEdit(row.original)}>
           <PencilIcon size={16} className="text-muted-foreground" />
         </Button>
         <DeleteButton
           onConfirm={() => onDelete(row.original.id)}
-          isPending={deletingId === row.original.id}
+          isPending={getDeletingId(row.original.id)}
         />
       </DataTableCell>
     ),

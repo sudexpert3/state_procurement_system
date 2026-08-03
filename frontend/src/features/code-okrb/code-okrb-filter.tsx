@@ -15,7 +15,7 @@ type Props = {
 
 export const CodeOkrbFilter = ({ value, onValueChange }: Props) => (
   <Select value={value} onValueChange={onValueChange}>
-    <SelectTrigger className="w-48 bg-white">
+    <SelectTrigger className="w-48 bg-white" aria-label="Фильтр по статусу">
       <SelectValue placeholder="Статус..." />
     </SelectTrigger>
     <SelectContent position="popper">
