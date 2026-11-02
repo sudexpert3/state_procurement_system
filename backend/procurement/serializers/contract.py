@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from rest_framework import serializers
 from ..models import Contract, ContractItem
 from procurement.serializers.procurementMethodDetail import ProcurementMethodDetailSerializer
@@ -23,15 +21,17 @@ class ContractSerializer(serializers.ModelSerializer):
                                                                        read_only=True)
 
     # Спецификация и платежки подтягиваются автоматически через related_name
+    # (у TreasuryPayment.contract related_name='treasury_payments', а не 'payments' —
+    # поэтому source указан явно)
     items = ContractItemSerializer(many=True, read_only=True)
-    payments = TreasuryPaymentSerializer(many=True, read_only=True)
+    payments = TreasuryPaymentSerializer(source='treasury_payments', many=True, read_only=True)
 
     # ⚠️ КРИТИЧНО ДЛЯ АВТОТИПИЗАЦИИ: Явно указываем drf-spectacular типы динамических свойств @property
     days_remaining = serializers.IntegerField(read_only=True)
     is_urgent_warning = serializers.BooleanField(read_only=True)
 
-    # Поквартальная динамическая аналитика кассового плана (наш алгоритм пересчета остатков)
-    quarterly_analytics = serializers.SerializerMethodField()
+    # Реальные (не прогнозные) план/факт по кварталам — см. Contract.get_quarterly_finance()
+    quarterly_finance = serializers.SerializerMethodField()
 
     class Meta:
         model = Contract
@@ -41,11 +41,8 @@ class ContractSerializer(serializers.ModelSerializer):
             'is_registered_in_treasury', 'payment_terms', 'planned_delivery_date',
             'notice', 'fixed_assets_plan_item', 'procurement_method_detail',
             'procurement_method_detail_info', 'construction_type', 'created_at',
-            'items', 'payments', 'days_remaining', 'is_urgent_warning', 'quarterly_analytics'
+            'items', 'payments', 'days_remaining', 'is_urgent_warning', 'quarterly_finance'
         ]
 
-    def get_quarterly_analytics(self, obj) -> dict:
-        """Интегрирует расчет поквартального прогноза (как в примере с картриджами) в JSON"""
-        # Берем текущий год из даты договора для построения сетки
-        year = obj.contract_date.year if obj.contract_date else datetime.now().year
-        return obj.get_quarterly_analytics(target_year=year)
+    def get_quarterly_finance(self, obj) -> list:
+        return obj.get_quarterly_finance()

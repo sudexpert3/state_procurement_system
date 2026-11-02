@@ -24,9 +24,10 @@ from procurement.views import (PurchasesViewSet,
                                BudgetCostsViewSet, FunctionalCodeViewSet, ExternalEconomicCodeViewSet,
                                InternalEconomicClassifierViewSet, ProgramCodeViewSet,
                                ContractViewSet, SupplierViewSet, BuyerViewSet, ProcurementMethodDetailViewSet,
-                               TreasuryPaymentViewSet,
+                               TreasuryPaymentViewSet, ContractQuarterlyFinanceViewSet,
                                DepartmentViewSet,
-                               GosZakupkiPushDraftAPIView, GosZakupkiPullActualAPIView, PlanItemDetailViewSet
+                               GosZakupkiPushDraftAPIView, GosZakupkiPullActualAPIView, PlanItemDetailViewSet,
+                               ChangeRequestViewSet, BudgetExecutionReportAPIView,
                                )
 from procurement.views import (get_purchases_view, get_purchases_items, get_data_gpz)
 
@@ -48,7 +49,9 @@ router.register(r'suppliers', SupplierViewSet, basename='suppliers')
 router.register(r'buyers', BuyerViewSet, basename='buyers')
 router.register(r'procurement_methods', ProcurementMethodDetailViewSet, basename='procurement_methods')
 router.register(r'payments', TreasuryPaymentViewSet, basename='payments')
+router.register(r'contract_quarterly_finance', ContractQuarterlyFinanceViewSet, basename='contract_quarterly_finance')
 router.register(r'departments', DepartmentViewSet, basename='departments')
+router.register(r'change_requests', ChangeRequestViewSet, basename='change_requests')
 
 
 # router.register(r'api_purchases', PurchasesViewSet, basename='api_purchases')
@@ -68,6 +71,8 @@ urlpatterns = [
     path('api/gosakupki/get_purchases_all', get_purchases_view, name='get_purchases_all'),
     path('api/gosakupki/get_purchases_items/<int:purchase_id>/', get_purchases_items, name='get_purchases_items'),
     path('api/gosakupki/get_gpz/<int:purchase_id>/', get_data_gpz, name='get_data_gpz'),
+
+    path('api/reports/budget_execution/', BudgetExecutionReportAPIView.as_view(), name='budget-execution-report'),
 
     path('api/goszakupki/push-draft/', GosZakupkiPushDraftAPIView.as_view(), name='gz-push-draft'),
     path('api/goszakupki/pull-actual/', GosZakupkiPullActualAPIView.as_view(), name='gz-pull-actual'),

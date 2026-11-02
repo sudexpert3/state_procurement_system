@@ -20,8 +20,11 @@ from .supplier import SupplierViewSet
 from .buyer import BuyerViewSet
 from .procurementMethodDetail import ProcurementMethodDetailViewSet
 from .treasuryPayment import TreasuryPaymentViewSet
+from .contractQuarterlyFinance import ContractQuarterlyFinanceViewSet
 
 from .plan_sync import GosZakupkiPushDraftAPIView, GosZakupkiPullActualAPIView
+from .changeRequest import ChangeRequestViewSet
+from .budgetExecutionReport import BudgetExecutionReportAPIView
 
 
 __all__ = [
@@ -50,7 +53,11 @@ __all__ = [
     'BuyerViewSet',
     'ProcurementMethodDetailViewSet',
     'TreasuryPaymentViewSet',
+    'ContractQuarterlyFinanceViewSet',
 
     'GosZakupkiPushDraftAPIView',
     'GosZakupkiPullActualAPIView',
+
+    'ChangeRequestViewSet',
+    'BudgetExecutionReportAPIView',
 ]

@@ -18,6 +18,9 @@ from .buyer import Buyer
 from .procurementMethodDetail import ProcurementMethodDetail
 from .treasuryPayment import TreasuryPayment, KindOfPayment
 from .contractQuarterlyFinance import ContractQuarterlyFinance
+from .changeRequest import ChangeRequest
+from .budgetQuarterlyLimit import BudgetQuarterlyLimit
+from .articleQuarterlyAllocation import ArticleQuarterlyAllocation
 
 
 # Явное определение экспортируемых моделей для линтеров и архитектурной чистоты
@@ -46,4 +49,7 @@ __all__ = [
     'TreasuryPayment',
     'KindOfPayment',
     'ContractQuarterlyFinance',
+    'ChangeRequest',
+    'BudgetQuarterlyLimit',
+    'ArticleQuarterlyAllocation',
 ]

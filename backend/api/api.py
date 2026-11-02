@@ -79,9 +79,11 @@ class GoszakupkiAPI:
 
         try:
             response = self.session.get(url, headers=headers, params=params, timeout=self.TIMEOUT, verify=False)
-        except requests.exceptions:
+        except requests.exceptions.RequestException:
+            # Было `except requests.exceptions:` — это модуль, а не класс исключения,
+            # такой except никогда не перехватывал ошибку сети и просто падал с TypeError.
+            # Одна повторная попытка на случай единичного сетевого сбоя.
             response = self.session.get(url, headers=headers, params=params, timeout=self.TIMEOUT, verify=False)
-            print("Детали ошибки от сервера:", response.text)
 
         # Если токен устарел (401), сбрасываем кэш и пробуем повторно
         if response.status_code == 401:

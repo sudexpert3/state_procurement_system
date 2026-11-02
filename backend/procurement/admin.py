@@ -4,7 +4,8 @@ from django.contrib.auth.admin import UserAdmin
 from .models import (BudgetCosts, Buyer, Contract, ContractItem, Supplier, ContractQuarterlyFinance, \
                      Department, InternalEconomicClassifier, ExternalEconomicCode, FunctionalCode, OkrbProduct, \
                      PlanItem, PlanItemDetail, PlanShare, ProcurementMethodDetail, ProgramCode, \
-                     TreasuryPayment, KindOfPayment, UnitOfMeasurement, Purchases)
+                     TreasuryPayment, KindOfPayment, UnitOfMeasurement, Purchases, ChangeRequest,
+                     BudgetQuarterlyLimit, ArticleQuarterlyAllocation)
 
 
 # @admin.register(CustomUser)
@@ -58,6 +59,25 @@ class PlanShareAdmin(admin.ModelAdmin):
     list_filter = ("department",)
 
 
+@admin.register(ChangeRequest)
+class ChangeRequestAdmin(admin.ModelAdmin):
+    list_display = ["plan_item", "kind", "status", "submitted_at", "reviewed_at", "created_at"]
+    search_fields = ["plan_item__num"]
+    list_filter = ("kind", "status")
+
+
+@admin.register(BudgetQuarterlyLimit)
+class BudgetQuarterlyLimitAdmin(admin.ModelAdmin):
+    list_display = ["budget_cost", "plan_share", "quarter", "amount", "status"]
+    list_filter = ("quarter", "status")
+
+
+@admin.register(ArticleQuarterlyAllocation)
+class ArticleQuarterlyAllocationAdmin(admin.ModelAdmin):
+    list_display = ["functional_class", "economic_class", "year", "quarter", "amount", "status"]
+    list_filter = ("year", "quarter", "status")
+
+
 @admin.register(BudgetCosts)
 class BudgetCostsAdmin(admin.ModelAdmin):
     list_display = ["plan_item__num", 'year', 'status', "purchases_items_id", "cost", "functional_class",
@@ -75,21 +95,21 @@ class ContractAdmin(admin.ModelAdmin):
                     "payment_terms", "planned_delivery_date", "notice", "fixed_assets_plan_item",
                     "procurement_method_detail",
                     "construction_type", "created_at", "days_remaining", "is_urgent_warning"]
-    search_fields = ["number", "supplier", "notice", "construction_type"]
+    search_fields = ["number", "supplier__name", "notice", "construction_type"]
     list_filter = ("buyer", "is_registered_in_treasury",)
 
 
 @admin.register(ContractItem)
 class ContractItemAdmin(admin.ModelAdmin):
     list_display = ["contract", "year", "plan_share", "contract_amount", "contract_cost", ]
-    search_fields = ["contract", ]
+    search_fields = ["contract__number", ]
     list_filter = ("year",)
 
 
 @admin.register(ContractQuarterlyFinance)
 class ContractQuarterlyFinanceAdmin(admin.ModelAdmin):
     list_display = ["contract", "quarter", "year", "planned_cost", "actual_cost", ]
-    search_fields = ["contract", ]
+    search_fields = ["contract__number", ]
     list_filter = ("year",)
 
 
@@ -164,9 +184,9 @@ class ProcurementMethodDetailAdmin(admin.ModelAdmin):
 
 @admin.register(TreasuryPayment)
 class TreasuryPaymentAdmin(admin.ModelAdmin):
-    list_display = ['payment_date', 'quarter', "amount", "contract", "notice", "payment_number", "created_at", ]
-    search_fields = ["contract", "payment_number", "notice", 'payment_date', "amount"]
-    list_filter = ('quarter',)
+    list_display = ['payment_date', 'quarter', "amount", "kind", "contract", "notice", "payment_number", "created_at", ]
+    search_fields = ["contract__number", "payment_number", "notice", 'payment_date', "amount"]
+    list_filter = ('quarter', "kind",)
 
 @admin.register(KindOfPayment)
 class KindOfPaymentAdmin(admin.ModelAdmin):

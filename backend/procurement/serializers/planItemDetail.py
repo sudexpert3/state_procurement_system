@@ -126,18 +126,66 @@ class PlanItemDetailImportSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    # Поля, которые реально описывают "ту же спецификацию" с портала — расхождение в
+    # любом из них означает новую версию, а не дубль синхронизации. procedure_months
+    # сравнивается отдельно (см. ниже) — порядок элементов в списке не значим.
+    _MUTABLE_FIELDS = (
+        'purchases_item_id', 'purchases_id', 'unp_budget', 'num', 'title', 'okrb', 'okrb_title',
+        'okrb_product', 'type', 'val_amount', 'val_type', 'val_unit', 'fund_cost', 'inner_cost',
+        'val_currency', 'is_by_organizator',
+    )
+
     def create(self, validated_data):
-        """Идемпотентная запись: проверка дубликатов и сохранение записи подробной информации plan_item_detail"""
+        """Версионирование по образцу BudgetCosts (см. serializers/budgetCosts.py, решение
+        2026-10-28): сопоставление по стабильному ключу (plan_item), статус ACTIVE. Если
+        значения совпали — повтор синхронизации, запись не трогаем. Если разошлись — старый
+        снимок в ARCHIVE (неизменным — это и есть история), новый — ACTIVE. buyer и
+        beneficiary_departments — локально проставленные поля (см. import_reestr26.py,
+        портал о них не знает) — переносим на новый снимок, чтобы не терять их при каждой
+        ресинхронизации.
 
+        Было: при расхождении значений создавалась новая запись, но старая ACTIVE не
+        архивировалась — на 2026-10-27 найдено 22 позиции плана с двумя ACTIVE
+        PlanItemDetail одновременно (см. CurrentStatus.md).
+        """
         plan_item = validated_data.get('plan_item')
-        purchases_item_id = validated_data.get('purchases_item_id')
-        print(f'PlanItemDetailImportSerializer. plan_item=', plan_item)
-        print(f'PlanItemDetailImportSerializer. purchases_item_id=', purchases_item_id)
-        api_months = validated_data.get('procedure_months', [])
+        api_months = validated_data.get('procedure_months') or []
 
+        target_record = PlanItemDetail.objects.filter(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE,
+        ).first()
+
+        if target_record:
+            changed = sorted(target_record.procedure_months or []) != sorted(api_months)
+            if not changed:
+                changed = any(
+                    field in validated_data and getattr(target_record, field) != validated_data[field]
+                    for field in self._MUTABLE_FIELDS
+                )
+
+            # Сценарий А: полный повтор синхронизации — ничего не изменилось.
+            if not changed:
+                return target_record
+
+            # Сценарий А2: значения разошлись — версионируем.
+            with transaction.atomic():
+                target_record.status = PlanItemStatus.ARCHIVE
+                target_record.save(update_fields=['status', 'changed_at'])
+
+                new_data = dict(validated_data)
+                new_data['status'] = PlanItemStatus.ACTIVE
+                new_data.setdefault('buyer', target_record.buyer)
+                new_record = super().create(new_data)
+                new_record.beneficiary_departments.set(target_record.beneficiary_departments.all())
+
+            return new_record
+
+        # Сценарий Б/В — ротация UPLOAD-пакета или чистка промежуточных черновиков. Это
+        # отдельный (пока не задействованный синхронизацией с порталом) workflow Этапа 2 —
+        # ищем среди НЕактивных записей полное совпадение, как и раньше.
         existing_pid_qs = PlanItemDetail.objects.filter(
             plan_item=plan_item,
-            purchases_item_id=purchases_item_id,
+            purchases_item_id=validated_data.get('purchases_item_id'),
             purchases_id=validated_data.get('purchases_id'),
             unp_budget=validated_data.get('unp_budget'),
             num=validated_data.get('num'),
@@ -148,56 +196,32 @@ class PlanItemDetailImportSerializer(serializers.ModelSerializer):
             fund_cost=validated_data.get('fund_cost'),
             inner_cost=validated_data.get('inner_cost'),
             val_currency=validated_data.get('val_currency'),
-            is_by_organizator=validated_data.get('is_by_organizator')
-        )
-        print(f'PlanItemDetailImportSerializer. validated_data=', validated_data)
-        print(f'PlanItemDetailImportSerializer. existing_pid_qs=', existing_pid_qs)
+            is_by_organizator=validated_data.get('is_by_organizator'),
+        ).exclude(status=PlanItemStatus.ACTIVE)
 
-        # Здесь нужно формировать массив данных, а не брать первую запись!!!!
-        # Код ниже требует переработки
         target_record = None
         for record in existing_pid_qs:
-            # Сравниваем списки месяцев без привязки к порядку элементов
-            print(f'PlanItemDetailImportSerializer. {sorted(record.procedure_months)} == {sorted(api_months)}', sorted(record.procedure_months) == sorted(api_months))
-            if sorted(record.procedure_months) == sorted(api_months):
+            if sorted(record.procedure_months or []) == sorted(api_months):
                 target_record = record
                 break
-        # Здесь нужно формировать массив данных, а не брать первую запись!!!!
 
-
-        # Если у нас массив данных, то нужно анализировать какие записи в него вошли, какие статусы у этих записей
-        # и в зависимости от состава, что дальше с ними делать!!!!
-        # Код ниже требует переработки
-
-        print(f'PlanItemDetailImportSerializer. target_record=', target_record)
-        # Сценарий А: Полный дубликат уже активен в системе
-        if target_record and target_record.status == PlanItemStatus.ACTIVE:
-            return target_record
-
-        # Сценарий Б: Идентичный черновик/пакет ротируется в ACTIVE
-        elif target_record and target_record.status == PlanItemStatus.UPLOAD:
+        if target_record and target_record.status == PlanItemStatus.UPLOAD:
             with transaction.atomic():
                 PlanItemDetail.objects.filter(
                     plan_item=plan_item,
                     status=PlanItemStatus.ACTIVE
                 ).update(status=PlanItemStatus.ARCHIVE)
 
-                # Активируем найденный пакет и сохраняем изменения в СУБД
                 target_record.status = PlanItemStatus.ACTIVE
                 target_record.save(update_fields=['status', 'changed_at'])
 
             return target_record
 
-        # Сценарий В: Если запись найдена в промежуточных черновиках — уводим в архив
+        # Сценарий В: запись найдена в промежуточных черновиках — уводим в архив
         elif target_record:
             if target_record.status in [PlanItemStatus.DRAFT, PlanItemStatus.DRAFT_ON_REVIEW,
                                         PlanItemStatus.DRAFT_APPROVED, PlanItemStatus.DRAFT_REJECTED]:
                 target_record.delete()
-                target_record = None
-
-
-        # Если у нас массив данных, то нужно анализировать какие записи в него вошли, какие статусы у этих записей
-        # и в зависимости от состава, что дальше с ними делать!!!!
 
         if 'status' not in validated_data:
             validated_data['status'] = PlanItemStatus.ACTIVE

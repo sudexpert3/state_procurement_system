@@ -6,6 +6,7 @@ from .okrbProduct import OkrbProduct
 from .unitOfMeasurement import UnitOfMeasurement
 from .purchases import Purchases
 from .buyer import Buyer
+from .department import Department
 
 
 class ClosedPlanSequence(models.Model):
@@ -58,7 +59,12 @@ class PlanItem(models.Model):
         """Атомарная генерация внутреннего номера с защитой от состояния гонки"""
         # Если позиция непубликуемая и номер еще не присвоен (например, при создании черновика)
         if not self.is_public and not self.num:
-            current_year = datetime.now().year
+            # Год берём из self.plan_purchase (год ПЛАНА, к которому относится позиция), а не
+            # из текущей календарной даты — иначе непубликуемая позиция плана 2025 года (напр.
+            # переходящая "якорная" позиция, создаваемая в 2026 году при переносе реестра rd26)
+            # получала бы номер "2026-INTERNAL-..." вместо верного "2025-INTERNAL-...".
+            # Найдено пользователем 2026-10-28.
+            current_year = self.plan_purchase.year if self.plan_purchase_id else datetime.now().year
 
             # Изолируем генерацию номера в атомарный блок с блокировкой строки счетчика в PostgreSQL
             with transaction.atomic():
@@ -84,6 +90,12 @@ class PlanItemDetail(models.Model):
     # changed_by = models.ForeignKey('authentication.CustomUser', on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField("Статус", max_length=20, choices=PlanItemStatus.choices, default=PlanItemStatus.DRAFT,
                               db_index=True)
+    # Заявка на изменение (Этап 2), в рамках которой создан этот черновик-снимок. Null у
+    # ACTIVE/ARCHIVE записей, синхронизированных с портала — заявки касаются только DRAFT-веток.
+    change_request = models.ForeignKey(
+        'ChangeRequest', on_delete=models.PROTECT, related_name='draft_details',
+        verbose_name="Заявка на изменение", null=True, blank=True,
+    )
 
     purchases_item_id = models.BigIntegerField("id позиции ГПЗ на goszakupki.by", null=True, blank=True)
     purchases_id = models.BigIntegerField("Идентификатор ГПЗ на goszakupki.by", null=True, blank=True, db_index=True)
@@ -112,8 +124,17 @@ class PlanItemDetail(models.Model):
     procedure_months = models.JSONField("Список месяцев (от 1 до 12), в которые проводится процедура", default=list)
     is_by_organizator = models.BooleanField(verbose_name='Отметка о проведении закупки организатором на goszakupki.by',
                                             default=False)
-    buyer = models.OneToOneField(Buyer, on_delete=models.PROTECT, related_name='plan_items', verbose_name="Закупщик",
+    # Было OneToOneField — технически не позволяло одному закупщику вести больше одной позиции плана,
+    # что противоречит реальности (в rd26.xlsx один "Исполнитель" отвечает за десятки позиций). Исправлено на FK.
+    buyer = models.ForeignKey(Buyer, on_delete=models.PROTECT, related_name='plan_items', verbose_name="Закупщик",
                               null=True, blank=True)
+    # Подразделения, в чьих интересах ведётся закупка, но которым НЕ выделяется лимит по этой позиции
+    # (лимит выделяется одному "держателю" через PlanShare). Пример: закупка метрологической поверки
+    # оборудования для ГУКЭ/ГУСЭ/ГУСМЭ, а лимит числится за отделом метрологии.
+    # Источник: колонка "Управление" в rd26.xlsx, когда в ней перечислено несколько подразделений через запятую.
+    beneficiary_departments = models.ManyToManyField(Department, related_name='beneficiary_plan_items',
+                                                      verbose_name="Подразделения-бенефициары (без выделения лимита)",
+                                                      blank=True)
 
     class Meta:
         verbose_name = "Пункт плана закупки (детальная информация)"

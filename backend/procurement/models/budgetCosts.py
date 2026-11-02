@@ -1,15 +1,12 @@
 from django.db import models
 from django.conf import settings
-
 from core.choices import PlanItemStatus
 from .functionalCode import FunctionalCode
 from .programCode import ProgramCode
 from .internalEconomicClassifier import InternalEconomicClassifier
 from .externalEconomicCode import ExternalEconomicCode
 from .planItem import PlanItem
-from procurement.services import get_current_year, get_current_datetime
-
-
+from procurement.services import get_current_year, decoder_iec
 
 
 class BudgetCosts(models.Model):
@@ -19,6 +16,11 @@ class BudgetCosts(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
     status = models.CharField("Статус", max_length=20, choices=PlanItemStatus.choices, default=PlanItemStatus.DRAFT, db_index=True)
+    # Заявка на изменение (Этап 2), в рамках которой создан этот черновик-снимок (см. PlanItemDetail.change_request).
+    change_request = models.ForeignKey(
+        'ChangeRequest', on_delete=models.PROTECT, related_name='draft_budget_costs',
+        verbose_name="Заявка на изменение", null=True, blank=True,
+    )
 
     # Данные, которые получаем с goszakupki.by
     purchases_items_id = models.IntegerField("id позиции ГПЗ на goszakupki.by")
@@ -56,54 +58,16 @@ class BudgetCosts(models.Model):
     def save(self, *args, **kwargs):
         """Автоматическая привязка к существующим родительским статьям ЭКР при сохранении"""
         if self.internal_economic_class:
-            # ИСПРАВЛЕНО: Проверяем канонический внутренний кэш Django для связи internal_economic_class
-            if hasattr(self, "_internal_economic_class_cache"):
-                code_str = self.internal_economic_class.code
-            else:
-                from .internalEconomicClassifier import InternalEconomicClassifier
-                # Достаем ТОЛЬКО строковый код из базы через легкий индексный запрос
-                code_str = (
-                    InternalEconomicClassifier.objects.filter(id=self.internal_economic_class_id)
-                    .values_list("code", flat=True)
-                    .first()
-                )
+            section_id, subsection_id, kind_id, article_id = decoder_iec(self.internal_economic_class)
 
-            if code_str:
-                current_len = len(code_str)
-
-                section_code = None
-                subsection_code = None
-                kind_code = None
-                article_code = None
-
-                # Динамическая нарезка по бесшаблонной структуре Минфина РБ (длина 10 или 7 знаков)
-                if current_len == 10:
-                    section_code = code_str[:1] + "000000"  # 1000000
-                    subsection_code = code_str[:2] + "00000"  # 1100000
-                    kind_code = code_str[:5] + "00"         # 1100300
-                    article_code = code_str[:7]             # 1100303
-
-                elif current_len == 7:
-                    section_code = code_str[:1] + "000000"
-                    subsection_code = code_str[:2] + "00000"
-                    if not code_str.endswith("00005") and not code_str.endswith("00"):
-                        kind_code = code_str[:5] + "00"
-                        article_code = code_str
-
-                # Собираем только определенные коды
-                search_codes = [c for c in [section_code, subsection_code, kind_code, article_code] if c]
-
-                from .internalEconomicClassifier import InternalEconomicClassifier
-                # Достаем ID родительских записей ОДНИМ быстрым SQL-запросом через __in
-                parent_mappings = dict(
-                    InternalEconomicClassifier.objects.filter(code__in=search_codes).values_list("code", "id")
-                )
-
-                # Безопасно присваиваем ID напрямую на уровне СУБД
-                self.economic_section_id = parent_mappings.get(section_code)
-                self.economic_subsection_id = parent_mappings.get(subsection_code)
-                self.economic_kind_id = parent_mappings.get(kind_code)
-                self.economic_article_id = parent_mappings.get(article_code)
+            if section_id:
+                self.internal_economic_section_id = section_id
+            if subsection_id:
+                self.internal_economic_subsection_id = subsection_id
+            if kind_id:
+                self.internal_economic_kind_id = kind_id
+            if article_id:
+                self.internal_economic_article_id = article_id
 
         super().save(*args, **kwargs)
 

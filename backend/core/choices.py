@@ -21,6 +21,29 @@ class PlanItemStatus(models.TextChoices):
     ARCHIVE = 'ARCHIVE', 'В архиве'
 
 
+class ChangeRequestKind(models.TextChoices):
+    """Что меняем — определяет, какие дочерние черновики создаются и как применяется одобрение."""
+    PLAN_ITEM_CHANGE = 'PLAN_ITEM_CHANGE', 'Изменение позиции плана'
+    PLAN_ITEM_EXCLUSION = 'PLAN_ITEM_EXCLUSION', 'Исключение позиции плана'
+    # Перераспределение лимита между держателями/статьями/кварталами — специалист сам
+    # предлагает набор изменений BudgetQuarterlyLimit (откуда/куда/сколько), сумма нетто = 0.
+    LIMIT_REDISTRIBUTION = 'LIMIT_REDISTRIBUTION', 'Перераспределение лимита'
+    # Зарезервировано для Этапа 3.4 (приём корректировок лимитов от Казначейства из
+    # fin_2026.xlsb) — пока не реализовано, сервисный слой намеренно отказывает на этом kind.
+    # Делит с LIMIT_REDISTRIBUTION одну и ту же логику submit/approve/reject (обе работают
+    # со строками BudgetQuarterlyLimit) — различается только то, откуда берутся черновики.
+    BUDGET_LIMIT_CORRECTION = 'BUDGET_LIMIT_CORRECTION', 'Корректировка лимита (Казначейство)'
+
+
+class ChangeRequestStatus(models.TextChoices):
+    """Простой, не зависящий от kind статус самой заявки (в отличие от PlanItemStatus,
+    который на дочерних черновиках дополнительно различает изменение/исключение)."""
+    DRAFT = 'DRAFT', 'Черновик'
+    ON_REVIEW = 'ON_REVIEW', 'На проверке'
+    APPROVED = 'APPROVED', 'Одобрена'
+    REJECTED = 'REJECTED', 'Отклонена'
+
+
 class ProcurementItemTypes(models.TextChoices):
     job = 'job', 'работа/услуга'
     product = 'product', 'товар'

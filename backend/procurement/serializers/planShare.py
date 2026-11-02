@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 from procurement.models import PlanShare
 from .department import DepartmentSerializer

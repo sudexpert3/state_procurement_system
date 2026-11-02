@@ -6,7 +6,7 @@ from .supplier import Supplier
 from .buyer import Buyer
 from .planShare import PlanShare
 from .procurementMethodDetail import ProcurementMethodDetail
-from ..services import get_current_year, get_current_date
+from procurement.services import get_current_year, get_current_date
 
 
 class Contract(models.Model):
@@ -73,51 +73,17 @@ class Contract(models.Model):
         # Если срок еще не вышел, но дней осталось больше нуля и меньше либо равно 5
         return 0 < remaining <= 5
 
-    # def get_quarterly_analytics(self, target_year: int):
-    #     """
-    #     Возвращает полную картину по кварталам: Первоначальный план, Факт и Динамический перенос остатков.
-    #     Идеально подходит для вывода в дополнительную таблицу на фронтенде.
-    #     """
-    #     # 1. Получаем все существующие записи квартального финансирования из БД
-    #     db_records = {rec.quarter: rec for rec in self.quarterly_finances.filter(year=target_year)}
-    #
-    #     total_contract_cost = self.total_cost
-    #     quarters = ['Q1', 'Q2', 'Q3', 'Q4']
-    #
-    #     # Базовое (первоначальное) распределение, если записей еще нет — делим поровну
-    #     base_equal_share = total_contract_cost / 4
-    #
-    #     result = {}
-    #     accumulated_economy = 0  # Сюда собирается недорасходованный остаток из прошлых кварталов
-    #
-    #     for q in quarters:
-    #         record = db_records.get(q)
-    #
-    #         # Извлекаем данные из базы или берем дефолты
-    #         init_plan = record.planned_cost if record else base_equal_share
-    #         fact = record.actual_cost if record else 0
-    #
-    #         # ВЫЧИСЛЕНИЕ ДИНАМИЧЕСКОГО ПРОГНОЗА (Бизнес-логика ГКСЭ):
-    #         if q in ['Q1', 'Q2']:
-    #             # Для прошедших кварталов планируемый расход равен фактическому,
-    #             # а остаток уходит в экономию для перераспределения
-    #             forecast_plan = fact
-    #             accumulated_economy += (init_plan - fact)
-    #         elif q == 'Q3':
-    #             # Для текущего (3-го) квартала: ставим базовый план + забираем ВСЮ накопленную экономию
-    #             forecast_plan = init_plan + accumulated_economy
-    #             accumulated_economy = 0  # Обнуляем, так как всё перенесли в Q3
-    #         else:
-    #             # Для 4-го квартала: забираем остаток от договора за вычетом всех расходов
-    #             # (Точно соответствует вашей фразе "оставшуюся от договора сумму")
-    #             forecast_plan = init_plan  # Базовый ориентир
-    #
-    #         result[q] = {
-    #             "initial_plan": round(init_plan, 2),
-    #             "actual_spent": round(fact, 2),
-    #             "dynamic_forecast": round(forecast_plan, 2)
-    #         }
-    #
+    def get_quarterly_finance(self):
+        """Реальные (не прогнозные) план/факт по кварталам, просуммированные по всем строкам
+        договора (всем contract_item, включая "сводную" запись с contract_item=None) —
+        никакой придуманной математики переноса остатков, только то, что есть в БД
+        (см. ContractQuarterlyFinance, Этап 4.3 — ручная корректировка планового значения
+        специалистом вместо автоматического прогноза)."""
+        from django.db.models import Sum
+        records = self.quarterly_finances.values('year', 'quarter').annotate(
+            planned_cost=Sum('planned_cost'), actual_cost=Sum('actual_cost'),
+        ).order_by('year', 'quarter')
+        return list(records)
     #     # Корректировка IV квартала: жесткая увязка "Остаток от договора"
     #     spent_q1_q3 = result['Q1']['actual_spent'] + result['Q2']['actual_spent'] + result['Q3']['dynamic_forecast']
     #     result['Q4']['dynamic_forecast'] = round(total_contract_cost - spent_q1_q3, 2)

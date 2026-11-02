@@ -9,6 +9,12 @@ python manage.py migrate
     2.3. Восстанавливаем командой: psql -U sps -d sps_db -f /var/lib/postgresql/backups/sps_db_backup.sql
 
 
+Как запускать:
+docker compose --profile prod up -d --build          # db+adminer+backend+frontend+nginx, вход на :80
+docker compose --profile backend-dev up -d --build   # db+adminer+frontend (:8090), backend — локально
+docker compose --profile frontend-dev up -d --build  # db+adminer+backend (:8000), frontend — локально
+
+
 
 
 

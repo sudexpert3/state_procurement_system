@@ -18,7 +18,12 @@ from .contract import ContractSerializer, ContractItemSerializer
 from .supplier import SupplierSerializer
 from .buyer import BuyerSerializer
 from .procurementMethodDetail import ProcurementMethodDetailSerializer, ProcurementMethodTreeSerializer
-from .treasuryPayment import TreasuryPaymentSerializer
+from .treasuryPayment import TreasuryPaymentSerializer, KindOfPaymentSerializer
+from .contractQuarterlyFinance import ContractQuarterlyFinanceSerializer
+from .changeRequest import (
+    ChangeRequestSerializer, ChangeRequestCreateSerializer, RejectSerializer,
+    RedistributionCreateSerializer,
+)
 
 
 
@@ -57,5 +62,12 @@ __all__ = [
     'ProcurementMethodDetailSerializer',
     'ProcurementMethodTreeSerializer',
     'TreasuryPaymentSerializer',
+    'KindOfPaymentSerializer',
+    'ContractQuarterlyFinanceSerializer',
+
+    'ChangeRequestSerializer',
+    'ChangeRequestCreateSerializer',
+    'RejectSerializer',
+    'RedistributionCreateSerializer',
 ]
 

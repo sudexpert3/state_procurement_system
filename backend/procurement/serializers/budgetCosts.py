@@ -116,51 +116,114 @@ class BudgetCostsImportSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    # Поля, которые реально описывают "ту же строку финансирования" (принадлежность
+    # позиции плана + год + источник бюджета). cost и прочие "сырые" атрибуты из API
+    # НЕ входят в идентичность — это именно то, что может измениться при пересмотре
+    # бюджета на портале и должно ОБНОВИТЬ существующую запись, а не породить новую.
+    _MUTABLE_FIELDS = (
+        'purchases_items_id', 'cost', 'functional_code', 'department_code',
+        'program_code', 'budget_code_name', 'unk', 'tk_id',
+        'functional_class', 'program_class',
+    )
+
+    # Поля "ручной" классификации ГКСЭ (см. import_reestr26.py) — портал о них не знает,
+    # при версионировании их нужно перенести со старого снимка на новый, иначе каждая
+    # смена cost на портале обнуляла бы уже проставленный код ЭКР.
+    _MANUAL_CLASSIFICATION_FIELDS = (
+        'internal_economic_class', 'internal_economic_section',
+        'internal_economic_subsection', 'internal_economic_kind', 'internal_economic_article',
+    )
+
     def create(self, validated_data):
-        """Идемпотентная запись: проверка дубликатов и сохранение строки финансирования"""
+        """Версионирование по образцу PlanItem/PlanItemDetail (см. CurrentStatus.md, решение
+        от 2026-10-28): сопоставление по СТАБИЛЬНОМУ ключу (позиция плана + год + источник
+        бюджета budget_code + статья ЭКР economic_code). Если значения совпали — это просто
+        повтор синхронизации, запись не трогаем. Если разошлись — старый снимок уходит в
+        ARCHIVE (неизменным, как есть — это и есть история), создаётся НОВЫЙ снимок со
+        статусом ACTIVE.
+
+        Было (баг, найден 2026-10-27, исправлен черновым патчем в тот же день, затем
+        переделан на версионирование 2026-10-28): в критерий поиска "уже существующей"
+        записи входил и `cost` — из-за этого при пересмотре суммы на портале между
+        синхронизациями (напр. 1100000 -> 1400000 для 2026-102377498-62) старая запись
+        никогда не находилась, создавалась новая, а старая зависала сиротой (252 случая
+        по плану 2026 года, подчищены разовой командой dedupe_budget_costs — к сожалению,
+        удалением, а не архивацией, см. CurrentStatus.md). Первая версия фикса просто
+        перезаписывала cost поверх старой записи — тоже неверно: уничтожала историю.
+
+        Второй баг того же рода (найден 2026-10-29, при разборе q_fin.txt/answer_fin.txt):
+        ключ `(plan_item, year, budget_code)` без `economic_code` был ещё слишком грубым —
+        одна позиция плана может законно иметь НЕСКОЛЬКО строк бюджета на один год (многолетняя
+        закупка с разбивкой по годам — это `year`, но ТАКЖЕ оплата по разным статьям ЭКР за
+        разные части одной закупки в ОДНОМ году — см. API `budget_costs: [...]`, список, а не
+        одна запись). При синхронизации список обрабатывается `many=True` последовательно —
+        вторая строка с ДРУГИМ `economic_code` того же (plan_item, year, budget_code) находила
+        первую как "предыдущую версию той же строки" и архивировала её, хотя это отдельная,
+        одновременно действующая строка бюджета. Подтверждено на реальных данных (2026-102377498-15/
+        -67/-144 и ещё 13 аналогичных случаев по всей БД, см. CurrentStatus.md, Проход 10) —
+        исправлено добавлением `economic_code` в ключ идентичности; восстановление уже
+        испорченных записей — отдельной командой `reactivate_split_budget_costs`.
+        """
         plan_item = validated_data.get('plan_item')
 
         existing_bc_qs = BudgetCosts.objects.filter(
             plan_item=plan_item,
-            purchases_items_id=validated_data.get('purchases_items_id'),
-            cost=validated_data.get('cost'),
-            functional_code=validated_data.get('functional_code'),
-            department_code=validated_data.get('department_code'),
-            economic_code=validated_data.get('economic_code'),
-            program_code=validated_data.get('program_code'),
-            budget_code=validated_data.get('budget_code'),
-            budget_code_name=validated_data.get('budget_code_name'),
-            unk=validated_data.get('unk'),
-            tk_id=validated_data.get('tk_id'),
             year=validated_data.get('year'),
+            budget_code=validated_data.get('budget_code'),
+            economic_code=validated_data.get('economic_code'),
         )
 
-        target_record = existing_bc_qs.first()
+        target_record = existing_bc_qs.filter(status=PlanItemStatus.ACTIVE).first()
 
-        # Сценарий А: Полный дубликат уже активен в системе
-        if target_record and target_record.status == PlanItemStatus.ACTIVE:
-            return target_record
+        if target_record:
+            changed = any(
+                field in validated_data and getattr(target_record, field) != validated_data[field]
+                for field in self._MUTABLE_FIELDS
+            )
+            # Сценарий А: полный повтор синхронизации — ничего не изменилось, запись не трогаем.
+            if not changed:
+                return target_record
 
-        # Сценарий Б: Идентичный черновик/пакет ротируется в ACTIVE
-        elif target_record and target_record.status == PlanItemStatus.UPLOAD:
+            # Сценарий А2: значения разошлись — версионируем: старый снимок в архив (как есть,
+            # это и есть история), новый снимок — ACTIVE, с переносом ручной классификации ЭКР.
+            with transaction.atomic():
+                target_record.status = PlanItemStatus.ARCHIVE
+                target_record.save(update_fields=['status', 'changed_at'])
+
+                new_data = dict(validated_data)
+                new_data['status'] = PlanItemStatus.ACTIVE
+                for field in self._MANUAL_CLASSIFICATION_FIELDS:
+                    new_data.setdefault(field, getattr(target_record, field))
+                new_record = BudgetCosts.objects.create(**new_data)
+
+            return new_record
+
+        # Сценарий Б: идентичный черновик/пакет ротируется в ACTIVE
+        target_record = existing_bc_qs.filter(status=PlanItemStatus.UPLOAD).first()
+        if target_record:
             with transaction.atomic():
                 BudgetCosts.objects.filter(
                     plan_item=plan_item,
                     status=PlanItemStatus.ACTIVE
                 ).update(status=PlanItemStatus.ARCHIVE)
 
-                # Активируем найденный пакет и сохраняем изменения в СУБД
+                for field in self._MUTABLE_FIELDS:
+                    if field in validated_data:
+                        setattr(target_record, field, validated_data[field])
                 target_record.status = PlanItemStatus.ACTIVE
-                target_record.save(update_fields=['status', 'changed_at'])
+                target_record.save()
 
             return target_record
 
-        # Сценарий В: Если запись найдена в промежуточных черновиках — уводим в архив
-        elif target_record:
-            if target_record.status in [PlanItemStatus.DRAFT, PlanItemStatus.DRAFT_ON_REVIEW,
-                                        PlanItemStatus.DRAFT_APPROVED, PlanItemStatus.DRAFT_REJECTED]:
-                target_record.delete()
-                target_record = None
+        # Сценарий В: запись найдена в промежуточных черновиках — уводим в архив
+        target_record = existing_bc_qs.exclude(
+            status__in=[PlanItemStatus.ACTIVE, PlanItemStatus.UPLOAD]
+        ).first()
+        if target_record and target_record.status in [
+            PlanItemStatus.DRAFT, PlanItemStatus.DRAFT_ON_REVIEW,
+            PlanItemStatus.DRAFT_APPROVED, PlanItemStatus.DRAFT_REJECTED,
+        ]:
+            target_record.delete()
 
         if 'status' not in validated_data:
             validated_data['status'] = PlanItemStatus.ACTIVE

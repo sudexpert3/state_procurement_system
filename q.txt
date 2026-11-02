@@ -45,7 +45,7 @@ npm run generate-types
   "budget_costs": [
     {
       "purchases_items_id": 119050286,
-      "cost": 12000,
+      "cost": 12000,в ф
       "functional_code": "3 12 0 39",
       "department_code": "55",
       "economic_code": "1 10 10 99",
@@ -58,86 +58,6 @@ npm run generate-types
     }
   ]
 }
-
-
- imported_plan_item_count += 1
-
-        # =====================================================================
-        # РЕАЛИЗАЦИЯ ВАШЕЙ ВЕДОМСТВЕННОЙ СВЕРКИ И РОТАЦИИ (Ветка else)
-        # =====================================================================
-        else:
-            # Вытягиваем саму существующую позицию СУБД
-            existing_plan_item = local_plan_item_qs.first()
-
-            # СЦЕНАРИЙ 2: У нас есть черновик (UPLOAD / DRAFT_APPROVED), который закупщик подписал ЭЦП
-            # Делаем рокировку статусов: старую ACTIVE гасим в ARCHIVE, черновик вводим в ACTIVE
-            pending_snapshot = PlanItemVersion.objects.filter(
-                plan_item=existing_plan_item,
-                status__in=[PlanStatus.DRAFT_APPROVED, PlanStatus.UPLOAD],
-                is_active=True
-            ).first()
-
-            if pending_snapshot:
-                # 1. Отправляем текущую ACTIVE версию в архив (ARCHIVE)
-                PlanItemVersion.objects.filter(plan_item=existing_plan_item, status=PlanStatus.ACTIVE).update(
-                    status=PlanStatus.ARCHIVE,
-                    is_active=False
-                )
-                BudgetCosts.objects.filter(plan_item=existing_plan_item, status=PlanStatus.ACTIVE).update(
-                    status=PlanStatus.ARCHIVE
-                )
-
-                # 2. Наш черновик переводим в статус ACTIVE — лимиты ОИ/ОК вступили в юридическую силу!
-                pending_snapshot.status = PlanStatus.ACTIVE
-                pending_snapshot.changed_at = timezone.now()
-                pending_snapshot.save()
-
-                # Активируем и связанный с ним черновик бюджета BudgetCosts
-                BudgetCosts.objects.filter(plan_item=existing_plan_item, status=PlanStatus.DRAFT).update(
-                    status=PlanStatus.ACTIVE
-                )
-
-                rotated_plan_item_count += 1
-                continue
-
-            # СЦЕНАРИЙ 3: Позиция ACTIVE есть, черновиков нет. Глубокая проверка полей на идентичность
-            active_version = PlanItemVersion.objects.filter(plan_item=existing_plan_item, status=PlanStatus.ACTIVE, is_active=True).first()
-            if active_version:
-                # Сверяем контрольную сумму критических полей СУБД и портала ТЕНДЕР
-                is_identical = (
-                    active_version.title == external_item.get('title') and
-                    active_version.okrb == external_item.get('okrb', '') and
-                    float(active_version.fund_cost) == float(external_item.get('fund_cost', 0)) and
-                    float(active_version.inner_cost) == float(external_item.get('inner_cost', 0)) and
-                    float(active_version.val_amount) == float(external_item.get('val_amount', 0))
-                )
-
-                # Если на портале данные изменились в обход нашей системы — создаем новый текстовый снимок
-                if not is_identical:
-                    active_version.is_active = False  # Архивируем старый снимок текста
-                    active_version.save()
-
-                    next_version_num = (PlanItemVersion.objects.filter(plan_item=existing_plan_item).aggregate(Max('version_number'))['version_number__max'] or 1) + 1
-
-                    # Генерируем инкремент текстовой версии
-                    PlanItemVersion.objects.create(
-                        plan_item=existing_plan_item,
-                        status=PlanStatus.ACTIVE,
-                        purchases_item_id=ext_item_id,
-                        purchases_id=external_item.get('purchases_id'),
-                        unp_budget=external_item.get('unp_budget'),
-                        num=ext_num,
-                        title=external_item.get('title'),
-                        okrb=external_item.get('okrb', ''),
-                        okrb_title=external_item.get('okrb_title'),
-                        type=external_item.get('type'),
-                        val_amount=external_item.get('val_amount', 0),
-                        val_type=external_item.get('val_type', ''),
-                        fund_cost=external_item.get('fund_cost', 0),
-                        inner_cost=external_item.get('inner_cost', 0),
-                        val_currency=external_item.get('val_currency', 'BYN'),
-                        version_number=next_version_num,
-                        is_active=True
 
 
 
@@ -172,6 +92,23 @@ class ContractQuarterlyFinance(models.Model):
      Не правильно обновляет данные при импорте с goszakupki.by. Нужен правильный алгоритм.
 101. Сделать представление для получения детальной информации о позиции плана PlanItem. Продолжить
 102. Сделать представление разбивки каждого budget_cost по подразделениям!!!
+103. Логику проверок и действий при сохранении объектов модели перенести в serializator/
+К примеру:
+
+    def validate(self, data):
+        """Комплексная проверка дат сотрудника"""
+        work_from = data.get('work_from')
+        work_to = data.get('work_to')
+
+        if work_from and work_to and work_from > work_to:
+            # Выбрасываем ошибку с привязкой к конкретному полю для фронтенда
+            raise serializers.ValidationError({
+                "work_to": "Дата увольнения не может быть раньше даты приема на работу."
+            })
+
+        # Обязательно возвращаем очищенные данные обратно
+        return data
+
 
 По модели PlanItem:
 1. Изменять update_at, при обновлении информации PlanItemDetail или BudgetCost с сайта goszakupki.by в случае,
@@ -180,4 +117,26 @@ class ContractQuarterlyFinance(models.Model):
 дату последнего изменения update_at и дату заключения первого договора (уточнить по какому договору считать дату?)
 
 ПО модели TreasuryPayment:
-1.
+ВЫПОЛНЕНО! 1. Добавить автоматическую разбивку ВНУТРЕННЕГО ЭКР по кодам пяти уровней из отдельного сервиса
+2. Добавить проверку: Дата разнесения платежа не должна быть раньше Дата осуществления платежа:
+
+ПО модели Contract:
+1. Если есть хоть одна платежка, то поле is_registered_in_treasury переводить в True
+2. Разобраться с методом get_quarterly_analytics. Возвращает полную картину по кварталам: Первоначальный план, Факт и Динамический перенос остатков
+3. Добавить проверку, чтобы общая сумма договора или всех договоров не превышала ориентировочную стоимость позиции по плану.
+
+ПО сериализатору Contract:
+1. Перед сохранением POST/PATCH данных проверять, чтобы общая сумма договора или всех договоров не превышала ориентировочную стоимость позиции по плану.
+
+ПО модели ContractItem:
+1. Сделать выборку плановых распределений при привязке к plan_share
+2. Проверка на перелимит количества и денег подразделения перед плановым распределениям для подразделения
+3. наименование позиции брать из плана, но редактировать!
+4. проверка перелимита количества и денег в целом по договору
+
+ПО модели BudgetCost:
+ВЫПОЛНЕНО! 1. Исправить автоматическую разбивку ВНУТРЕННЕГО ЭКР по кодам пяти уровней.
+ВЫПОЛНЕНО! 2. Вынести разбивку ВНУТРЕННЕГО ЭКР по кодам в отдельный сервис.
+
+По верстке:
+1. На странице с пунктами плана добавить поле: ОКРБ 007

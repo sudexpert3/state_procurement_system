@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models import Sum
 # from rest_framework.exceptions import ValidationError
 
-from core.choices import PlanItemStatus
+from core.choices import PlanItemStatus, ProcurementItemTypes
 from .budgetCosts import BudgetCosts
 from .department import Department
 
@@ -19,6 +19,11 @@ class PlanShare(models.Model):
     shared_cost = models.DecimalField("Сумма для подразделения (BYN)", max_digits=15, decimal_places=2, default=0)
     shared_fund_cost = models.DecimalField("Сумма для подразделения (внебюджетные фонды) (BYN)", max_digits=15, decimal_places=2, default=0)
     shared_inner_cost = models.DecimalField("Сумма для подразделения (собственные средства) (BYN)", max_digits=15, decimal_places=2, default=0)
+    # Заявка на изменение (Этап 2), в рамках которой создан этот черновик-снимок (см. PlanItemDetail.change_request).
+    change_request = models.ForeignKey(
+        'ChangeRequest', on_delete=models.PROTECT, related_name='draft_plan_shares',
+        verbose_name="Заявка на изменение", null=True, blank=True,
+    )
 
     class Meta:
         verbose_name = "Внутреннее распределение по подразделениям"
@@ -28,12 +33,27 @@ class PlanShare(models.Model):
         return f"{self.department.short_name} ({self.budget_cost.year} г.) — кол-во: {self.shared_amount}, сумм: {self.shared_cost} BYN"
 
     def save(self, *args, **kwargs):
-        if self.shared_amount:
+        # Бизнес-ограничения на распределение лимита (ниже) имеют смысл только для
+        # ДЕЙСТВУЮЩИХ записей. Черновики заявки на изменение (Этап 2) клонируют ACTIVE-строки
+        # в статус DRAFT ДО того, как старые ACTIVE-строки архивируются — без этой проверки
+        # клон с тем же shared_amount удваивал бы сумму против ещё-живого оригинала и ложно
+        # падал бы с "превышением". Когда черновик реально становится ACTIVE (одобрение,
+        # procurement.services.change_requests.approve), к этому моменту старые строки уже
+        # archived — проверка сработает корректно на финальном состоянии.
+        if self.status == PlanItemStatus.ACTIVE and self.shared_amount:
             plan_item = self.budget_cost.plan_item if self.budget_cost else None
             if plan_item:
                 detail = plan_item.details.filter(status=PlanItemStatus.ACTIVE).first()
 
-                if detail:
+                # Для услуг (type=job) "количество" — почти всегда формальная единица (обычно "1"),
+                # обозначающая саму закупку в целом, а не физически делимую величину. Когда одна
+                # многолетняя услуга оплачивается несколькими договорами/годами (см. реестр rd26,
+                # позиции 166/952 — суммарная стоимость совпадает с планом, а "1 услуга в 2026" +
+                # "1 услуга в 2027" формально суммируется в "2", хотя услуга одна), сквозной по годам
+                # контроль количества даёт ложное превышение. Для товаров (type=product) проверка
+                # остаётся обязательной — она ловит реальные ошибки распределения (напр. попытка
+                # закупить 10 единиц при выделенных 9.18).
+                if detail and detail.type != ProcurementItemTypes.job:
                     total_allowed_amount = detail.val_amount
                     active_budgets = plan_item.budget_costs.filter(status=PlanItemStatus.ACTIVE)
 
@@ -54,10 +74,18 @@ class PlanShare(models.Model):
                             f"Попытка добавить в {self.budget_cost.year} году: {self.shared_amount}."
                         )
 
-        if self.shared_cost:
+        if self.status == PlanItemStatus.ACTIVE and self.shared_cost:
             b_cost = self.budget_cost
             if b_cost:
-                total_cost = b_cost.cost
+                # Многолетнее резервирование (Этап 3.1/3.2, ТЗ п.5) — часть суммы статьи
+                # может быть уже обязана договорами, заключёнными ДО появления этой строки
+                # бюджета (напр. многолетний договор 2026 года, резервирующий часть 2027
+                # года, когда план 2027 ещё не был распределён). "Видимый" номинал статьи
+                # для распределения по подразделениям уменьшается на эту сумму — см.
+                # procurement.services.multi_year_reservation.
+                from procurement.services.multi_year_reservation import compute_reserved_amount
+                reserved = compute_reserved_amount(b_cost.plan_item, b_cost.year)
+                total_cost = b_cost.cost - reserved
 
                 shares_queryset = PlanShare.objects.filter(
                     budget_cost=self.budget_cost,
@@ -69,13 +97,14 @@ class PlanShare(models.Model):
                 already_saved_cost = shares_queryset.aggregate(total=Sum('shared_cost'))['total'] or 0
 
                 if total_cost < (already_saved_cost + self.shared_cost):
+                    reserved_note = f" (из них {reserved} BYN уже зарезервировано многолетними договорами)" if reserved else ""
                     raise ValidationError(message=f"Превышение суммы в {self.budget_cost.year} году! "
-                                                  f" Выделено всего: {total_cost} BYN"
+                                                  f" Доступно для распределения: {total_cost} BYN{reserved_note}."
                                                   f" Уже распределено: {already_saved_cost} BYN. "
                                                   f" Попытка добавить: {self.shared_cost} BYN.",
                                           )
 
-        if self.shared_fund_cost:
+        if self.status == PlanItemStatus.ACTIVE and self.shared_fund_cost:
             detail = self.budget_cost.plan_item.details.filter(status=PlanItemStatus.ACTIVE).first()
             if detail:
                 total_fund_cost = detail.fund_cost
@@ -96,7 +125,7 @@ class PlanShare(models.Model):
                                                   f" Попытка добавить: {self.shared_fund_cost}.",
                                           )
 
-        if self.shared_inner_cost:
+        if self.status == PlanItemStatus.ACTIVE and self.shared_inner_cost:
             detail = self.budget_cost.plan_item.details.filter(status=PlanItemStatus.ACTIVE).first()
             if detail:
                 total_inner_cost = detail.inner_cost
