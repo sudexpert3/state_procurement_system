@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 Создай новую секцию формы по аргументу: $ARGUMENTS
 
-Формат аргумента: `<имя-секции> в <путь-к-feature>` (например: `supplier-info в src/features/procurements/create`)
+Формат аргумента: `<имя-секции> в <путь-к-feature>` (например: `supplier-info в src/features/plan-items/create`)
 
 ## Шаги
 

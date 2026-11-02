@@ -15,11 +15,11 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 
+import { useBuyerDelete } from "./hooks/use-buyer-delete";
+import { useBuyers } from "./hooks/use-buyers";
 import { BuyerForm } from "./buyer-form";
 import { BuyersToolbar } from "./buyers-toolbar";
 import { createColumns } from "./columns";
-import { useBuyerDelete } from "./use-buyer-delete";
-import { useBuyers } from "./use-buyers";
 
 const BuyersPage = () => {
   const {
@@ -55,7 +55,7 @@ const BuyersPage = () => {
   return (
     <Card className="max-w-full gap-2 bg-transparent ring-0">
       <CardHeader>
-        <CardTitle>Для кого закупка</CardTitle>
+        <CardTitle>Закупщики</CardTitle>
         <CardDescription>Список заказчиков</CardDescription>
         <CardAction>
           <Button onClick={handleAdd}>
