@@ -28,7 +28,7 @@ from procurement.views import (PurchasesViewSet,
                                DepartmentViewSet,
                                GosZakupkiPushPlanItemsAPIView, GosZakupkiDeletePlanItemsAPIView, PlanItemDetailViewSet,
                                ChangeRequestViewSet, BudgetExecutionReportAPIView,
-                               DepartmentArticleLimitViewSet, GeneralMoneyReportAPIView,
+                               DepartmentArticleLimitViewSet, GeneralMoneyReportAPIView, PlanShareViewSet,
                                )
 from procurement.views import (get_purchases_view, get_purchases_items, get_data_gpz)
 
@@ -41,6 +41,7 @@ router.register(r'plan_items_details', PlanItemDetailViewSet, basename='plan_ite
 router.register(r'units_of_measurement', UnitOfMeasurementViewSet, basename='unit_of_measurement')
 router.register(r'okrb', OkrbProductViewSet, basename='okrb')
 router.register(r'budget_costs', BudgetCostsViewSet, basename='budget_costs')
+router.register(r'plan_shares', PlanShareViewSet, basename='plan_shares')
 router.register(r'functional_code', FunctionalCodeViewSet, basename='functional_code')
 router.register(r'economic_code', ExternalEconomicCodeViewSet, basename='economic_code')
 router.register(r'internal_economic_code', InternalEconomicClassifierViewSet, basename='internal_economic_classifier')

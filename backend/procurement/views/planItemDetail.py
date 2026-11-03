@@ -14,6 +14,7 @@ class PlanItemDetailViewSet(viewsets.ModelViewSet):
     serializer_class = PlanItemDetailSerializer
     permission_classes = [AllowAny]  # Временный режим отладки системы
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['status', 'change_request', 'plan_item']
 
     def get_queryset(self):
         """Оптимизируем SQL-запросы в зависимости от действия"""

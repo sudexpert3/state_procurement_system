@@ -9,9 +9,9 @@ class PlanItemDetailSerializer(serializers.ModelSerializer):
     buyer_detail = BuyerSerializer(source='buyer', read_only=True)
     class Meta:
         model = PlanItemDetail
-        fields = ['id', 'plan_item', 'created_at', 'changed_at', 'status', 'purchases_item_id', 'purchases_id',
-                  'unp_budget', 'num', 'title', 'okrb', 'okrb_title', 'okrb_product', 'type', 'val_amount',
-                  'val_type', 'val_unit', 'fund_cost', 'inner_cost', 'val_currency', 'procedure_months',
+        fields = ['id', 'plan_item', 'created_at', 'changed_at', 'status', 'change_request', 'purchases_item_id',
+                  'purchases_id', 'unp_budget', 'num', 'title', 'okrb', 'okrb_title', 'okrb_product', 'type',
+                  'val_amount', 'val_type', 'val_unit', 'fund_cost', 'inner_cost', 'val_currency', 'procedure_months',
                   'is_by_organizator', 'buyer', 'buyer_detail'
                   ]
         extra_kwargs = {

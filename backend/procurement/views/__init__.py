@@ -8,6 +8,7 @@ from .unitOfMeasurement import UnitOfMeasurementViewSet
 from .okrbProduct import OkrbProductViewSet
 
 from .budgetCosts import BudgetCostsViewSet
+from .planShare import PlanShareViewSet
 from .functionalCode import FunctionalCodeViewSet
 from .externalEconomicCode import ExternalEconomicCodeViewSet
 from .internalEconomicClassifier import InternalEconomicClassifierViewSet
@@ -45,6 +46,7 @@ __all__ = [
     'DepartmentViewSet',
 
     'BudgetCostsViewSet',
+    'PlanShareViewSet',
     'FunctionalCodeViewSet',
     'ExternalEconomicCodeViewSet',
     'InternalEconomicClassifierViewSet',

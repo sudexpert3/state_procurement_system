@@ -22,7 +22,7 @@ class BudgetCostsViewSet(viewsets.ModelViewSet):
     serializer_class = BudgetCostsSerializer
     permission_classes = [AllowAny]  # Временный отладочный режим системы без авторизации
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['year', 'purchases_items_id', 'budget_code']
+    filterset_fields = ['year', 'purchases_items_id', 'budget_code', 'status', 'change_request', 'plan_item']
 
     def create(self, request, *args, **kwargs):
         """
@@ -34,7 +34,7 @@ class BudgetCostsViewSet(viewsets.ModelViewSet):
         is_many = isinstance(request.data, list)
 
         serializer = self.get_serializer(data=request.data, many=is_many)
-        serializer.is_is_valid(raise_exception=True)
+        serializer.is_valid(raise_exception=True)
 
         try:
             # Обертываем запись в транзакцию: если хоть один сырой код в пакете вызовет сбой,

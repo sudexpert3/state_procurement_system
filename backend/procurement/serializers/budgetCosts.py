@@ -336,7 +336,7 @@ class BudgetCostsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BudgetCosts
-        fields = ['id', 'plan_item', 'status', 'purchases_items_id', 'aggregated_cost', 'cost',
+        fields = ['id', 'plan_item', 'status', 'change_request', 'purchases_items_id', 'aggregated_cost', 'cost',
                   # FUNCTIONAL_CODE:
                   'functional_class', 'functional_class_code_api', 'functional_class_detail',
                   'department_code',
