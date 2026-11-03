@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase
@@ -14,6 +15,7 @@ from procurement.serializers.contractQuarterlyFinance import ContractQuarterlyFi
 from procurement.services import change_requests as cr_service
 from procurement.services.budget_execution_report import compute_budget_execution_report
 from procurement.services.multi_year_reservation import compute_reserved_amount, compute_available_for_distribution
+from procurement.services import goszakupki_push
 
 
 class ChangeRequestEngineTestCase(TestCase):
@@ -615,3 +617,84 @@ class ContractGetQuarterlyFinanceTestCase(TestCase):
         q1 = next(r for r in result if r['quarter'] == QuarterTypes.Q1)
         self.assertEqual(q1['planned_cost'], Decimal('100.00'))
         self.assertEqual(q1['actual_cost'], Decimal('80.00'))
+
+
+class GoszakupkiPushTestCase(TestCase):
+    """Этап 5: отправка позиций ГПЗ на goszakupki.by (create-item/update-item/delete-items,
+    строго по doc/api.yaml) — реальный API недоступен из этой среды, поэтому клиент мокается."""
+
+    def setUp(self):
+        self.purchases = Purchases.objects.create(year=2026, purchase_id=68009)
+        self.plan_item = PlanItem.objects.create(
+            plan_purchase=self.purchases, num='2026-TEST-GZ-1', is_public=True,
+        )
+        self.detail = PlanItemDetail.objects.create(
+            plan_item=self.plan_item, status=PlanItemStatus.ACTIVE, num='2026-TEST-GZ-1',
+            title='Тестовая позиция для push', okrb='00.00.00.000', val_amount=Decimal('5'),
+            purchases_id=68009,
+        )
+        self.budget_cost = BudgetCosts.objects.create(
+            plan_item=self.plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=1,
+            cost=Decimal('1000.00'), year=2026,
+            functional_code='03 12 00 039', economic_code='1 10 10 99',
+            program_code='099 00', department_code='010', budget_code=1,
+        )
+
+    @patch('procurement.services.goszakupki_push.GoszakupkiAPI')
+    def test_create_when_no_purchases_item_id(self, mock_api_cls):
+        mock_client = mock_api_cls.return_value
+        mock_client.post_data.return_value = ({'id': 999, 'num': '2026-102377498-999'}, {})
+
+        result = goszakupki_push.push_plan_item(self.plan_item)
+
+        mock_client.post_data.assert_called_once()
+        called_endpoint = mock_client.post_data.call_args[0][0]
+        self.assertEqual(called_endpoint, '/purchase/create-item/68009')
+        payload = mock_client.post_data.call_args[0][1]
+        self.assertEqual(payload['title'], 'Тестовая позиция для push')
+        self.assertEqual(len(payload['budget_costs']), 1)
+        self.assertEqual(payload['budget_costs'][0]['functional_code'], '03 12 00 039')
+
+        self.detail.refresh_from_db()
+        self.plan_item.refresh_from_db()
+        self.assertEqual(self.detail.purchases_item_id, 999)
+        self.assertEqual(self.plan_item.num, '2026-102377498-999')
+        self.assertEqual(result['action'], 'create')
+
+    @patch('procurement.services.goszakupki_push.GoszakupkiAPI')
+    def test_update_when_purchases_item_id_present(self, mock_api_cls):
+        self.detail.purchases_item_id = 555
+        self.detail.save(update_fields=['purchases_item_id'])
+        mock_client = mock_api_cls.return_value
+        mock_client.put_data.return_value = ({'id': 555}, {})
+
+        result = goszakupki_push.push_plan_item(self.plan_item)
+
+        mock_client.put_data.assert_called_once()
+        self.assertEqual(mock_client.put_data.call_args[0][0], '/purchase/update-item/555')
+        self.assertEqual(result['action'], 'update')
+        mock_client.post_data.assert_not_called()
+
+    def test_non_public_item_rejected(self):
+        self.plan_item.is_public = False
+        self.plan_item.save(update_fields=['is_public'])
+        with self.assertRaises(ValueError):
+            goszakupki_push.push_plan_item(self.plan_item)
+
+    @patch('procurement.services.goszakupki_push.GoszakupkiAPI')
+    def test_delete_groups_by_purchases_id(self, mock_api_cls):
+        self.detail.purchases_item_id = 777
+        self.detail.save(update_fields=['purchases_item_id'])
+        mock_client = mock_api_cls.return_value
+        mock_client.put_data.return_value = ([777], {})
+
+        result = goszakupki_push.delete_plan_items([self.plan_item.id])
+
+        mock_client.put_data.assert_called_once_with('/purchase/delete-items/68009', {'ids': [777]})
+        self.assertEqual(result['deleted_purchases_item_ids'], [777])
+        self.assertEqual(result['skipped'], [])
+
+    def test_delete_skips_items_without_portal_ids(self):
+        result = goszakupki_push.delete_plan_items([self.plan_item.id])
+        self.assertEqual(len(result['skipped']), 1)
+        self.assertEqual(result['deleted_purchases_item_ids'], [])

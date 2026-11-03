@@ -93,3 +93,31 @@ class GoszakupkiAPI:
 
         response.raise_for_status()
         return response.json(), response.headers
+
+    def _write(self, method, endpoint, json_body=None):
+        """Общая реализация POST/PUT с той же авторизацией/повторной попыткой при 401,
+        что и get_data (см. выше) — для отправки черновика изменений ГПЗ (Этап 5, ТЗ п.3)."""
+        url = f"{self.BASE_URL}{endpoint}"
+        headers = self._get_auth_headers()
+        request_func = getattr(self.session, method)
+
+        try:
+            response = request_func(url, json=json_body, headers=headers, timeout=self.TIMEOUT, verify=False)
+        except requests.exceptions.RequestException:
+            response = request_func(url, json=json_body, headers=headers, timeout=self.TIMEOUT, verify=False)
+
+        if response.status_code == 401:
+            cache.delete('gz_token')
+            headers = self._get_auth_headers()
+            response = request_func(url, json=json_body, headers=headers, timeout=self.TIMEOUT, verify=False)
+
+        response.raise_for_status()
+        return response.json(), response.headers
+
+    def post_data(self, endpoint, json_body=None):
+        """POST-запрос (создание плана/позиции плана — doc/api.yaml)."""
+        return self._write('post', endpoint, json_body)
+
+    def put_data(self, endpoint, json_body=None):
+        """PUT-запрос (редактирование/удаление позиций плана — doc/api.yaml)."""
+        return self._write('put', endpoint, json_body)

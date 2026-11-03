@@ -19,6 +19,53 @@ from procurement.models import PlanItem, PlanItemDetail, BudgetCosts
 from procurement.serializers import PlanItemDetailImportSerializer, BudgetCostsImportSerializer
 
 
+def fetch_purchase_items_from_api(purchase_id, limit=None):
+    """Получает список позиций плана с goszakupki.by и детали каждой (включая budget_costs) —
+    тот же формат result_data, что принимает sync_plan_items_from_data(). Пагинация и порядок
+    вызовов (/purchase/items/{id} постранично, затем /purchase/view-item/{id} на каждую позицию)
+    идентичны management/commands/export_goszakupki_plan.py — та команда уже проверена на
+    реальных данных (её запускает пользователь с машины, у которой есть доступ к api.goszakupki.by,
+    т.к. из этой среды разработки прямой доступ недоступен).
+
+    В отличие от export_goszakupki_plan.py, не делает задержку между запросами деталей
+    (там это нужно для разовой офлайн-выгрузки тысяч позиций с паузами; здесь — синхронный
+    HTTP-вызов внутри одного запроса view, для которого любая задержка складывается в время
+    ответа). Если план большой, этот эндпоинт будет медленным — тот же компромисс, что и у
+    прямого обращения к API раньше."""
+    from api.api import GoszakupkiAPI
+
+    client = GoszakupkiAPI()
+
+    item_refs = []
+    page = 1
+    while True:
+        data, headers = client.get_data(f'/purchase/items/{purchase_id}', params={'page': page})
+        if not data:
+            break
+        item_refs.extend(data)
+
+        try:
+            page_count = int(headers.get('X-Pagination-Page-Count', page))
+        except (TypeError, ValueError):
+            page_count = page
+
+        if limit and len(item_refs) >= limit:
+            item_refs = item_refs[:limit]
+            break
+        if page >= page_count:
+            break
+        page += 1
+
+    result = []
+    for ref in item_refs:
+        item_id = ref.get('id')
+        if not item_id:
+            continue
+        detail, _headers = client.get_data(f'/purchase/view-item/{item_id}')
+        result.append(detail)
+    return result
+
+
 def sync_plan_items_from_data(purchase_master, result_data, log=None):
     """
     Идемпотентно создаёт/обновляет PlanItem+PlanItemDetail+BudgetCosts из result_data,

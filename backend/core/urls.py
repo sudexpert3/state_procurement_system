@@ -26,7 +26,7 @@ from procurement.views import (PurchasesViewSet,
                                ContractViewSet, SupplierViewSet, BuyerViewSet, ProcurementMethodDetailViewSet,
                                TreasuryPaymentViewSet, ContractQuarterlyFinanceViewSet,
                                DepartmentViewSet,
-                               GosZakupkiPushDraftAPIView, GosZakupkiPullActualAPIView, PlanItemDetailViewSet,
+                               GosZakupkiPushPlanItemsAPIView, GosZakupkiDeletePlanItemsAPIView, PlanItemDetailViewSet,
                                ChangeRequestViewSet, BudgetExecutionReportAPIView,
                                )
 from procurement.views import (get_purchases_view, get_purchases_items, get_data_gpz)
@@ -74,8 +74,8 @@ urlpatterns = [
 
     path('api/reports/budget_execution/', BudgetExecutionReportAPIView.as_view(), name='budget-execution-report'),
 
-    path('api/goszakupki/push-draft/', GosZakupkiPushDraftAPIView.as_view(), name='gz-push-draft'),
-    path('api/goszakupki/pull-actual/', GosZakupkiPullActualAPIView.as_view(), name='gz-pull-actual'),
+    path('api/goszakupki/push-plan-items/', GosZakupkiPushPlanItemsAPIView.as_view(), name='gz-push-plan-items'),
+    path('api/goszakupki/delete-plan-items/', GosZakupkiDeletePlanItemsAPIView.as_view(), name='gz-delete-plan-items'),
 
     path('api/', include(router.urls)),
 ]

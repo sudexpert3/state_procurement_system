@@ -2,32 +2,33 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
-from procurement.services.goszakupki_api import GosZakupkiAPIService
+
+from procurement.services.goszakupki_push import push_plan_items, delete_plan_items
 
 
-class GosZakupkiPushDraftAPIView(APIView):
-    """Вызов отправки подготовленного проекта изменений на goszakupki.by"""
+class GosZakupkiPushPlanItemsAPIView(APIView):
+    """Отправка одобренных изменений позиций ГПЗ на goszakupki.by — create-item/update-item
+    (ТЗ п.3, 16; см. procurement.services.goszakupki_push). Закупщику останется войти в
+    личный кабинет на портале, проверить черновик и опубликовать, подписав ЭЦП."""
     permission_classes = [AllowAny]
 
     def post(self, request):
-        plan_ids = request.data.get("plan_ids", [])
-        if not plan_ids:
-            return Response({"error": "Не выбраны пункты плана для отправки"}, status=status.HTTP_400_BAD_REQUEST)
+        plan_item_ids = request.data.get("plan_item_ids", [])
+        if not plan_item_ids:
+            return Response({"error": "Не переданы plan_item_ids"}, status=status.HTTP_400_BAD_REQUEST)
 
-        service = GosZakupkiAPIService()
-        result = service.send_draft_changes(plan_ids)
+        result = push_plan_items(plan_item_ids)
         return Response(result, status=status.HTTP_200_OK)
 
 
-class GosZakupkiPullActualAPIView(APIView):
-    """Синхронизация локальной СУБД с опубликованным на портале планом"""
+class GosZakupkiDeletePlanItemsAPIView(APIView):
+    """Удаление позиций ГПЗ на goszakupki.by — delete-items (исключение позиции из плана)."""
     permission_classes = [AllowAny]
 
-    def get(self, request):
-        unp = request.query_params.get("unp")
-        if not unp:
-            return Response({"error": "Не передан УНП организации ГКСЭ"}, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request):
+        plan_item_ids = request.data.get("plan_item_ids", [])
+        if not plan_item_ids:
+            return Response({"error": "Не переданы plan_item_ids"}, status=status.HTTP_400_BAD_REQUEST)
 
-        service = GosZakupkiAPIService()
-        result = service.pull_actual_published_plans(unp)
+        result = delete_plan_items(plan_item_ids)
         return Response(result, status=status.HTTP_200_OK)

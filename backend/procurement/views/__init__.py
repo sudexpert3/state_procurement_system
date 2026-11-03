@@ -22,7 +22,7 @@ from .procurementMethodDetail import ProcurementMethodDetailViewSet
 from .treasuryPayment import TreasuryPaymentViewSet
 from .contractQuarterlyFinance import ContractQuarterlyFinanceViewSet
 
-from .plan_sync import GosZakupkiPushDraftAPIView, GosZakupkiPullActualAPIView
+from .plan_sync import GosZakupkiPushPlanItemsAPIView, GosZakupkiDeletePlanItemsAPIView
 from .changeRequest import ChangeRequestViewSet
 from .budgetExecutionReport import BudgetExecutionReportAPIView
 
@@ -55,8 +55,8 @@ __all__ = [
     'TreasuryPaymentViewSet',
     'ContractQuarterlyFinanceViewSet',
 
-    'GosZakupkiPushDraftAPIView',
-    'GosZakupkiPullActualAPIView',
+    'GosZakupkiPushPlanItemsAPIView',
+    'GosZakupkiDeletePlanItemsAPIView',
 
     'ChangeRequestViewSet',
     'BudgetExecutionReportAPIView',

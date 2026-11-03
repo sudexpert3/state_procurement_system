@@ -8,8 +8,7 @@ from rest_framework.response import Response
 from api.api import GoszakupkiAPI
 from procurement.models import Purchases
 from procurement.serializers import PurchasesImportSerializer
-from procurement.services.get_data_from_file import get_API_data
-from procurement.services.goszakupki_sync import sync_plan_items_from_data
+from procurement.services.goszakupki_sync import fetch_purchase_items_from_api, sync_plan_items_from_data
 
 
 @api_view(['GET'])
@@ -122,11 +121,20 @@ def get_purchases_items(request, purchase_id):
     также management-командой sync_goszakupki_from_file для офлайн-файлов (когда прямого
     доступа к api.goszakupki.by нет).
 
-    ВНИМАНИЕ: данные сейчас читаются из тестового файла procurement/data/api_data.json,
-    а не с реального API (см. CurrentStatus.md, Этап 5 — реальные вызовы пока не включены).
+    Данные читаются с реального API (fetch_purchase_items_from_api — та же пагинация, что
+    в export_goszakupki_plan.py). Из этой среды разработки прямой доступ к api.goszakupki.by
+    недоступен (см. CurrentStatus.md, Этап 5) — реальный прогон предстоит пользователю; для
+    офлайн-работы без сети остаётся sync_goszakupki_from_file (та же sync_plan_items_from_data
+    поверх заранее выгруженного файла).
     """
     purchase_master = get_object_or_404(Purchases, purchase_id=purchase_id)
-    result_data = get_API_data('api_data.json')
+    try:
+        result_data = fetch_purchase_items_from_api(purchase_id)
+    except Exception as e:
+        return Response(
+            {"error": f"Сбой при получении позиций плана {purchase_id} с goszakupki.by: {e}"},
+            status=status.HTTP_502_BAD_GATEWAY
+        )
 
     if not result_data:
         return Response(
