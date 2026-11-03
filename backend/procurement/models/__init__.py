@@ -21,6 +21,7 @@ from .contractQuarterlyFinance import ContractQuarterlyFinance
 from .changeRequest import ChangeRequest
 from .budgetQuarterlyLimit import BudgetQuarterlyLimit
 from .articleQuarterlyAllocation import ArticleQuarterlyAllocation
+from .departmentArticleLimit import DepartmentArticleLimit
 
 
 # Явное определение экспортируемых моделей для линтеров и архитектурной чистоты
@@ -52,4 +53,5 @@ __all__ = [
     'ChangeRequest',
     'BudgetQuarterlyLimit',
     'ArticleQuarterlyAllocation',
+    'DepartmentArticleLimit',
 ]

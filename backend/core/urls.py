@@ -28,6 +28,7 @@ from procurement.views import (PurchasesViewSet,
                                DepartmentViewSet,
                                GosZakupkiPushPlanItemsAPIView, GosZakupkiDeletePlanItemsAPIView, PlanItemDetailViewSet,
                                ChangeRequestViewSet, BudgetExecutionReportAPIView,
+                               DepartmentArticleLimitViewSet, GeneralMoneyReportAPIView,
                                )
 from procurement.views import (get_purchases_view, get_purchases_items, get_data_gpz)
 
@@ -52,6 +53,7 @@ router.register(r'payments', TreasuryPaymentViewSet, basename='payments')
 router.register(r'contract_quarterly_finance', ContractQuarterlyFinanceViewSet, basename='contract_quarterly_finance')
 router.register(r'departments', DepartmentViewSet, basename='departments')
 router.register(r'change_requests', ChangeRequestViewSet, basename='change_requests')
+router.register(r'department_article_limits', DepartmentArticleLimitViewSet, basename='department_article_limits')
 
 
 # router.register(r'api_purchases', PurchasesViewSet, basename='api_purchases')
@@ -73,6 +75,7 @@ urlpatterns = [
     path('api/gosakupki/get_gpz/<int:purchase_id>/', get_data_gpz, name='get_data_gpz'),
 
     path('api/reports/budget_execution/', BudgetExecutionReportAPIView.as_view(), name='budget-execution-report'),
+    path('api/reports/general_money/', GeneralMoneyReportAPIView.as_view(), name='general-money-report'),
 
     path('api/goszakupki/push-plan-items/', GosZakupkiPushPlanItemsAPIView.as_view(), name='gz-push-plan-items'),
     path('api/goszakupki/delete-plan-items/', GosZakupkiDeletePlanItemsAPIView.as_view(), name='gz-delete-plan-items'),

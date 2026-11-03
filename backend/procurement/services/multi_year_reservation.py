@@ -29,6 +29,7 @@ from decimal import Decimal
 
 from django.db.models import Sum
 
+from core.choices import PlanItemStatus
 from procurement.models import ContractItem
 
 
@@ -42,6 +43,21 @@ def compute_reserved_amount(plan_item, year, department_id=None):
     ).exclude(plan_share__budget_cost__year=year)
     if department_id:
         qs = qs.filter(plan_share__department_id=department_id)
+    return qs.aggregate(s=Sum('contract_cost'))['s'] or Decimal('0')
+
+
+def compute_reserved_amount_by_article(functional_class_id, economic_class_id, year):
+    """Та же логика, что compute_reserved_amount(), но агрегированная по ВСЕЙ статье
+    (functional_class+economic_class) сразу, а не по одной позиции плана — нужна для отчёта
+    "Общие деньги" и калибровки доведённых лимитов (DEPARTMENT_LIMIT_CALIBRATION, Этап,
+    решение пользователя 2026-11-03)."""
+    qs = ContractItem.objects.filter(
+        year=year,
+        plan_share__status=PlanItemStatus.ACTIVE,
+        plan_share__budget_cost__status=PlanItemStatus.ACTIVE,
+        plan_share__budget_cost__functional_class_id=functional_class_id,
+        plan_share__budget_cost__economic_class_id=economic_class_id,
+    ).exclude(plan_share__budget_cost__year=year)
     return qs.aggregate(s=Sum('contract_cost'))['s'] or Decimal('0')
 
 

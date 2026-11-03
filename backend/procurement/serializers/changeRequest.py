@@ -43,3 +43,12 @@ class RedistributionLineSerializer(serializers.Serializer):
 class RedistributionCreateSerializer(serializers.Serializer):
     reason = serializers.CharField(required=False, allow_blank=True, default='')
     lines = RedistributionLineSerializer(many=True)
+
+
+class DepartmentLimitCalibrationCreateSerializer(serializers.Serializer):
+    """Вход для create_department_limit_calibration() — одна статья/год за раз (решение
+    пользователя 2026-11-03: калибровка всегда идёт по конкретной статье Минфина)."""
+    functional_class = serializers.IntegerField()
+    economic_class = serializers.IntegerField()
+    year = serializers.IntegerField()
+    reason = serializers.CharField(required=False, allow_blank=True, default='')

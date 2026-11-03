@@ -24,7 +24,9 @@ from .contractQuarterlyFinance import ContractQuarterlyFinanceViewSet
 
 from .plan_sync import GosZakupkiPushPlanItemsAPIView, GosZakupkiDeletePlanItemsAPIView
 from .changeRequest import ChangeRequestViewSet
+from .departmentArticleLimit import DepartmentArticleLimitViewSet
 from .budgetExecutionReport import BudgetExecutionReportAPIView
+from .generalMoneyReport import GeneralMoneyReportAPIView
 
 
 __all__ = [
@@ -59,5 +61,7 @@ __all__ = [
     'GosZakupkiDeletePlanItemsAPIView',
 
     'ChangeRequestViewSet',
+    'DepartmentArticleLimitViewSet',
     'BudgetExecutionReportAPIView',
+    'GeneralMoneyReportAPIView',
 ]

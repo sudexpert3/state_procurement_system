@@ -22,8 +22,9 @@ from .treasuryPayment import TreasuryPaymentSerializer, KindOfPaymentSerializer
 from .contractQuarterlyFinance import ContractQuarterlyFinanceSerializer
 from .changeRequest import (
     ChangeRequestSerializer, ChangeRequestCreateSerializer, RejectSerializer,
-    RedistributionCreateSerializer,
+    RedistributionCreateSerializer, DepartmentLimitCalibrationCreateSerializer,
 )
+from .departmentArticleLimit import DepartmentArticleLimitSerializer
 
 
 
@@ -69,5 +70,7 @@ __all__ = [
     'ChangeRequestCreateSerializer',
     'RejectSerializer',
     'RedistributionCreateSerializer',
+    'DepartmentLimitCalibrationCreateSerializer',
+    'DepartmentArticleLimitSerializer',
 ]
 

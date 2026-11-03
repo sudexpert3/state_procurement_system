@@ -10,7 +10,7 @@ from core.choices import ChangeRequestKind
 from procurement.models import ChangeRequest, PlanItem
 from procurement.serializers import (
     ChangeRequestSerializer, ChangeRequestCreateSerializer, RejectSerializer,
-    RedistributionCreateSerializer,
+    RedistributionCreateSerializer, DepartmentLimitCalibrationCreateSerializer,
 )
 from procurement.services import change_requests as cr_service
 
@@ -59,6 +59,26 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
         data = serializer.validated_data
         try:
             change_request = cr_service.create_redistribution(data['lines'], reason=data['reason'])
+        except DjangoValidationError as exc:
+            return Response({'detail': _error_message(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(ChangeRequestSerializer(change_request).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['post'])
+    def calibrate_department_limits(self, request):
+        """Создать заявку на калибровку разбивки статьи Минфина на подстатьи/держателей
+        лимита (kind=DEPARTMENT_LIMIT_CALIBRATION) — клонирует текущие ACTIVE строки
+        DepartmentArticleLimit этой статьи/года в черновик (см. cr_service.
+        create_department_limit_calibration). Дальше специалист правит строки через
+        /api/department_article_limits/ (change_request=этой заявки, status=DRAFT),
+        смотрит сверку через forecast/ и одобряет — как любую другую заявку."""
+        serializer = DepartmentLimitCalibrationCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        try:
+            change_request = cr_service.create_department_limit_calibration(
+                functional_class_id=data['functional_class'], economic_class_id=data['economic_class'],
+                year=data['year'], reason=data['reason'],
+            )
         except DjangoValidationError as exc:
             return Response({'detail': _error_message(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(ChangeRequestSerializer(change_request).data, status=status.HTTP_201_CREATED)
