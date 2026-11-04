@@ -1,17 +1,18 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import type { CostDepartment } from "@/shared/api/schema";
 import type { ContractDetail, PlanItemDetail } from "../procurement.mock";
 
 import { useMemo, useState } from "react";
 
 import { DepartmentsTable } from "@/features/plan-items/detail/components/departments-table";
 import { DataTable } from "@/shared/components/data-table/data-table";
+import { SectionCard } from "@/shared/components/section-card";
 import { CardContent } from "@/shared/components/ui/card";
 import { formatDate } from "@/shared/lib/helpers/format-date";
 import { formatByn, formatMoney } from "@/shared/lib/helpers/format-money";
 import { cn } from "@/shared/lib/utils";
 
 import { DetailField } from "../components/detail-field";
-import { SectionCard } from "../components/section-card";
 import { StatCard } from "../components/stat-card";
 
 const columns: ColumnDef<ContractDetail, unknown>[] = [
@@ -123,7 +124,11 @@ export const ContractsTab = ({ plan }: { plan: PlanItemDetail }) => {
 
             <DepartmentsTable
               title="Позиция договора"
-              data={selectedContract.departments}
+              // Таб целиком на моках (не подключён, см. plan-item-detail.page.tsx) —
+              // форма мок-данных (FinancingDepartment) не совпадает с реальной
+              // CostDepartment, которую ожидает DepartmentsTable после перехода
+              // на реальный API в info-tab.
+              data={selectedContract.departments as unknown as CostDepartment[]}
             />
           </div>
         )}

@@ -62,7 +62,8 @@ export const BaseInfoAnotherSection = ({
     },
     {
       select: (data) => {
-        return data as DepartmentNode[];
+        // TODO: убрать приведение после исправления sub_departments в OpenAPI.
+        return data as unknown as DepartmentNode[];
       },
     },
   );

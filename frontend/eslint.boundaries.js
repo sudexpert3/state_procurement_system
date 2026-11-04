@@ -21,6 +21,10 @@ export const eslintBoundariesConfig = {
         pattern: "./src/features/*",
       },
       {
+        type: "services",
+        pattern: "./src/services/*",
+      },
+      {
         type: "shared",
         pattern: "./src/shared",
       },
@@ -34,6 +38,12 @@ export const eslintBoundariesConfig = {
         rules: [
           {
             from: "shared",
+            disallow: ["app", "features", "services"],
+            message:
+              "Модуль нижележащего слоя (${file.type}) не может импортировать модуль вышележащего слоя (${dependency.type})",
+          },
+          {
+            from: "services",
             disallow: ["app", "features"],
             message:
               "Модуль нижележащего слоя (${file.type}) не может импортировать модуль вышележащего слоя (${dependency.type})",
@@ -60,7 +70,7 @@ export const eslintBoundariesConfig = {
             allow: "**",
           },
           {
-            target: ["features"],
+            target: ["features", "services"],
             allow: ["index.(ts|tsx)", "*.page.tsx"],
           },
         ],

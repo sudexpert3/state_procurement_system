@@ -1,7 +1,6 @@
-import type { Supplier } from "@/shared/api/schema";
+import type { StatusEnum, Supplier } from "@/shared/api/schema";
 import type { ContractItem } from "../create/form/contract-section/contract.schema";
 import type { PlanItemFormValues } from "../create/schema";
-import type { PlanStatus } from "./plan-meta";
 
 import { contractsMock } from "../create/form/contract-section/contracts.mock";
 
@@ -52,7 +51,7 @@ export type ContractDetail = ContractItem & {
 // contracts переопределены на ContractDetail (с поставщиком и позициями).
 export type PlanItemDetail = Omit<PlanItemFormValues, "contracts"> & {
   id: number;
-  status: PlanStatus;
+  status: StatusEnum;
   contracts: ContractDetail[];
   financing: FinancingYear[];
 };

@@ -8,10 +8,6 @@ import { toast } from "sonner";
 import { rqClient } from "@/shared/api/instance";
 import { handleHttpError } from "@/shared/lib/helpers/handle-http-error";
 
-type InternalEconomicCodeBody = InternalEconomicCode & {
-  parent?: number | null;
-};
-
 type Params = {
   item: InternalEconomicCode | null;
   onClose: () => void;
@@ -44,7 +40,7 @@ export const useInternalCodeForm = ({ item, onClose, onSuccess }: Params) => {
         updateMutation.mutate(
           {
             params: { path: { id: item.id } },
-            body: values as InternalEconomicCodeBody,
+            body: values,
           },
           {
             onSuccess: () => handleSuccess("Внутренний код ЭКР обновлён"),
@@ -59,11 +55,7 @@ export const useInternalCodeForm = ({ item, onClose, onSuccess }: Params) => {
       } else {
         createMutation.mutate(
           {
-            body: {
-              id: 0,
-              sub_codes: "",
-              ...values,
-            } as InternalEconomicCodeBody,
+            body: { id: 0, sub_codes: "", ...values },
           },
           {
             onSuccess: () => handleSuccess("Внутренний код ЭКР добавлен"),

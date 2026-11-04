@@ -1,6 +1,5 @@
+import { SectionCard } from "@/shared/components/section-card";
 import { CardContent } from "@/shared/components/ui/card";
-
-import { SectionCard } from "../components/section-card";
 
 export const PaymentsTab = () => (
   <SectionCard title="Платежи">

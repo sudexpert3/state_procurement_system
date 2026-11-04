@@ -13,7 +13,7 @@ export type PlanItemShort = ApiSchemas["PlanItemShort"];
 // возвращает массив распределений финансирования по подразделениям.
 export type CostDepartment = {
   readonly id: number;
-  status?: ApiSchemas["StatusEnum"];
+  status?: ApiSchemas["StatusBd6Enum"];
   readonly department_detail: Omit<
     ApiSchemas["DepartmentTree"],
     "sub_departments"
@@ -32,8 +32,6 @@ export type PlanItemFull = Omit<GeneratedPlanItemFull, "economic_details"> & {
   >;
 };
 export type PlanItem = ApiSchemas["PlanItem"];
-
-export type BudgetCostsImport = ApiSchemas["BudgetCostsImport"];
 
 export type Buyer = ApiSchemas["Buyer"];
 
@@ -66,11 +64,9 @@ export type InternalEconomicCode = Omit<
 
 export type OkrbProduct = ApiSchemas["OkrbProduct"];
 
-export type StatusEnum = ApiSchemas["StatusEnum"];
+export type StatusEnum = ApiSchemas["StatusBd6Enum"];
 export type TypeEnum = ApiSchemas["TypeEnum"];
 
-export type PaginatedBudgetCostsImportList =
-  ApiSchemas["PaginatedBudgetCostsImportList"];
 export type PaginatedContractList = ApiSchemas["PaginatedContractList"];
 
 export type ProcurementMethodDetail = ApiSchemas["ProcurementMethodDetail"];

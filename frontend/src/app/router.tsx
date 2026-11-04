@@ -4,12 +4,17 @@ import { createBrowserRouter, redirect } from "react-router";
 import { Toaster } from "sonner";
 
 import * as buyers from "@/features/buyers";
+import * as changeRequests from "@/features/change-requests";
 import * as codeOkrb from "@/features/code-okrb";
+import * as contracts from "@/features/contracts";
 import * as departments from "@/features/departments";
 import * as economicCode from "@/features/economic-code";
 import * as internalEconomicCode from "@/features/internal-economic-code";
+import * as limitCalibration from "@/features/limit-calibration";
+import * as payments from "@/features/payments";
 import * as planItems from "@/features/plan-items";
 import * as plans from "@/features/plans";
+import * as reports from "@/features/reports";
 import * as suppliers from "@/features/suppliers";
 import { ROUTES } from "@/shared/model/routes";
 
@@ -53,6 +58,18 @@ export const router = createBrowserRouter([
                 lazy: planItems.create,
               },
               {
+                path: ROUTES.CHANGE_REQUESTS,
+                lazy: changeRequests.list,
+              },
+              {
+                path: ROUTES.CONTRACTS,
+                lazy: contracts.list,
+              },
+              {
+                path: ROUTES.PAYMENTS,
+                lazy: payments.list,
+              },
+              {
                 path: ROUTES.ECONOMIC_CODE,
                 lazy: economicCode.list,
               },
@@ -75,6 +92,14 @@ export const router = createBrowserRouter([
               {
                 path: ROUTES.INTERNAL_ECONOMIC_CODE,
                 lazy: internalEconomicCode.list,
+              },
+              {
+                path: ROUTES.LIMIT_CALIBRATION,
+                lazy: limitCalibration.list,
+              },
+              {
+                path: ROUTES.REPORTS,
+                lazy: reports.list,
               },
             ],
           },

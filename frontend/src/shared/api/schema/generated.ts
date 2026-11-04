@@ -4,1781 +4,2805 @@
  */
 
 export interface paths {
-    "/api/budget_costs/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description Эндпоинт для пакетного импорта и распределения годового финансового обеспечения закупки.
-         *     Принимает сырые коды казначейства и автоматически увязывает их с иерархией ЭКР ГКСЭ.
-         */
-        get: operations["budget_costs_list"];
-        put?: never;
-        /**
-         * @description Кастомизированный метод POST.
-         *     Поддерживает передачу как одной финансовой строки {}, так и массива [{}, {}].
-         *     Исполняется строго в атомарной транзакции базы данных.
-         */
-        post: operations["budget_costs_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  "/api/budget_costs/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/budget_costs/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description Эндпоинт для пакетного импорта и распределения годового финансового обеспечения закупки.
-         *     Принимает сырые коды казначейства и автоматически увязывает их с иерархией ЭКР ГКСЭ.
-         */
-        get: operations["budget_costs_retrieve"];
-        /**
-         * @description Эндпоинт для пакетного импорта и распределения годового финансового обеспечения закупки.
-         *     Принимает сырые коды казначейства и автоматически увязывает их с иерархией ЭКР ГКСЭ.
-         */
-        put: operations["budget_costs_update"];
-        post?: never;
-        /**
-         * @description Эндпоинт для пакетного импорта и распределения годового финансового обеспечения закупки.
-         *     Принимает сырые коды казначейства и автоматически увязывает их с иерархией ЭКР ГКСЭ.
-         */
-        delete: operations["budget_costs_destroy"];
-        options?: never;
-        head?: never;
-        /**
-         * @description Эндпоинт для пакетного импорта и распределения годового финансового обеспечения закупки.
-         *     Принимает сырые коды казначейства и автоматически увязывает их с иерархией ЭКР ГКСЭ.
-         */
-        patch: operations["budget_costs_partial_update"];
-        trace?: never;
+    /**
+     * @description Эндпоинт для пакетного импорта и распределения годового финансового обеспечения закупки.
+     *     Принимает сырые коды казначейства и автоматически увязывает их с иерархией ЭКР ГКСЭ.
+     */
+    get: operations["budget_costs_list"];
+    put?: never;
+    /**
+     * @description Кастомизированный метод POST.
+     *     Поддерживает передачу как одной финансовой строки {}, так и массива [{}, {}].
+     *     Исполняется строго в атомарной транзакции базы данных.
+     */
+    post: operations["budget_costs_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/budget_costs/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/buyers/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Эндпоинт вывода списка ответственных работников-закупщиков */
-        get: operations["buyers_list"];
-        put?: never;
-        /** @description Эндпоинт вывода списка ответственных работников-закупщиков */
-        post: operations["buyers_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * @description Эндпоинт для пакетного импорта и распределения годового финансового обеспечения закупки.
+     *     Принимает сырые коды казначейства и автоматически увязывает их с иерархией ЭКР ГКСЭ.
+     */
+    get: operations["budget_costs_retrieve"];
+    /**
+     * @description Эндпоинт для пакетного импорта и распределения годового финансового обеспечения закупки.
+     *     Принимает сырые коды казначейства и автоматически увязывает их с иерархией ЭКР ГКСЭ.
+     */
+    put: operations["budget_costs_update"];
+    post?: never;
+    /**
+     * @description Эндпоинт для пакетного импорта и распределения годового финансового обеспечения закупки.
+     *     Принимает сырые коды казначейства и автоматически увязывает их с иерархией ЭКР ГКСЭ.
+     */
+    delete: operations["budget_costs_destroy"];
+    options?: never;
+    head?: never;
+    /**
+     * @description Эндпоинт для пакетного импорта и распределения годового финансового обеспечения закупки.
+     *     Принимает сырые коды казначейства и автоматически увязывает их с иерархией ЭКР ГКСЭ.
+     */
+    patch: operations["budget_costs_partial_update"];
+    trace?: never;
+  };
+  "/api/buyers/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/buyers/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Эндпоинт вывода списка ответственных работников-закупщиков */
-        get: operations["buyers_retrieve"];
-        /** @description Эндпоинт вывода списка ответственных работников-закупщиков */
-        put: operations["buyers_update"];
-        post?: never;
-        /** @description Эндпоинт вывода списка ответственных работников-закупщиков */
-        delete: operations["buyers_destroy"];
-        options?: never;
-        head?: never;
-        /** @description Эндпоинт вывода списка ответственных работников-закупщиков */
-        patch: operations["buyers_partial_update"];
-        trace?: never;
+    /** @description Эндпоинт вывода списка ответственных работников-закупщиков */
+    get: operations["buyers_list"];
+    put?: never;
+    /** @description Эндпоинт вывода списка ответственных работников-закупщиков */
+    post: operations["buyers_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/buyers/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/contracts/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Эндпоинт управления и казначейского контроля реестра договоров ГКСЭ */
-        get: operations["contracts_list"];
-        put?: never;
-        /** @description Эндпоинт управления и казначейского контроля реестра договоров ГКСЭ */
-        post: operations["contracts_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** @description Эндпоинт вывода списка ответственных работников-закупщиков */
+    get: operations["buyers_retrieve"];
+    /** @description Эндпоинт вывода списка ответственных работников-закупщиков */
+    put: operations["buyers_update"];
+    post?: never;
+    /** @description Эндпоинт вывода списка ответственных работников-закупщиков */
+    delete: operations["buyers_destroy"];
+    options?: never;
+    head?: never;
+    /** @description Эндпоинт вывода списка ответственных работников-закупщиков */
+    patch: operations["buyers_partial_update"];
+    trace?: never;
+  };
+  "/api/change_requests/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/contracts/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Эндпоинт управления и казначейского контроля реестра договоров ГКСЭ */
-        get: operations["contracts_retrieve"];
-        /** @description Эндпоинт управления и казначейского контроля реестра договоров ГКСЭ */
-        put: operations["contracts_update"];
-        post?: never;
-        /** @description Эндпоинт управления и казначейского контроля реестра договоров ГКСЭ */
-        delete: operations["contracts_destroy"];
-        options?: never;
-        head?: never;
-        /** @description Эндпоинт управления и казначейского контроля реестра договоров ГКСЭ */
-        patch: operations["contracts_partial_update"];
-        trace?: never;
+    /**
+     * @description Общий движок одобрения изменений (Этап 2) — заявки на изменение/исключение позиции
+     *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
+     *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
+     *
+     *     POST /change_requests/            — создать (plan_item, kind, reason)
+     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST /change_requests/{id}/approve/  — одобрить
+     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     */
+    get: operations["change_requests_list"];
+    put?: never;
+    /**
+     * @description Общий движок одобрения изменений (Этап 2) — заявки на изменение/исключение позиции
+     *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
+     *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
+     *
+     *     POST /change_requests/            — создать (plan_item, kind, reason)
+     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST /change_requests/{id}/approve/  — одобрить
+     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     */
+    post: operations["change_requests_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/change_requests/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/departments/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description Эндпоинт управления и вывода иерархического справочника подразделений ГКСЭ РБ.
-         *     Поддерживает плоский вывод, сквозной текстовый поиск и древовидную сборку структуры.
-         */
-        get: operations["departments_list"];
-        put?: never;
-        /**
-         * @description Эндпоинт управления и вывода иерархического справочника подразделений ГКСЭ РБ.
-         *     Поддерживает плоский вывод, сквозной текстовый поиск и древовидную сборку структуры.
-         */
-        post: operations["departments_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * @description Общий движок одобрения изменений (Этап 2) — заявки на изменение/исключение позиции
+     *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
+     *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
+     *
+     *     POST /change_requests/            — создать (plan_item, kind, reason)
+     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST /change_requests/{id}/approve/  — одобрить
+     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     */
+    get: operations["change_requests_retrieve"];
+    /**
+     * @description Общий движок одобрения изменений (Этап 2) — заявки на изменение/исключение позиции
+     *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
+     *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
+     *
+     *     POST /change_requests/            — создать (plan_item, kind, reason)
+     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST /change_requests/{id}/approve/  — одобрить
+     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     */
+    put: operations["change_requests_update"];
+    post?: never;
+    /**
+     * @description Общий движок одобрения изменений (Этап 2) — заявки на изменение/исключение позиции
+     *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
+     *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
+     *
+     *     POST /change_requests/            — создать (plan_item, kind, reason)
+     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST /change_requests/{id}/approve/  — одобрить
+     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     */
+    delete: operations["change_requests_destroy"];
+    options?: never;
+    head?: never;
+    /**
+     * @description Общий движок одобрения изменений (Этап 2) — заявки на изменение/исключение позиции
+     *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
+     *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
+     *
+     *     POST /change_requests/            — создать (plan_item, kind, reason)
+     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST /change_requests/{id}/approve/  — одобрить
+     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     */
+    patch: operations["change_requests_partial_update"];
+    trace?: never;
+  };
+  "/api/change_requests/{id}/approve/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/departments/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description Эндпоинт управления и вывода иерархического справочника подразделений ГКСЭ РБ.
-         *     Поддерживает плоский вывод, сквозной текстовый поиск и древовидную сборку структуры.
-         */
-        get: operations["departments_retrieve"];
-        /**
-         * @description Эндпоинт управления и вывода иерархического справочника подразделений ГКСЭ РБ.
-         *     Поддерживает плоский вывод, сквозной текстовый поиск и древовидную сборку структуры.
-         */
-        put: operations["departments_update"];
-        post?: never;
-        /**
-         * @description Эндпоинт управления и вывода иерархического справочника подразделений ГКСЭ РБ.
-         *     Поддерживает плоский вывод, сквозной текстовый поиск и древовидную сборку структуры.
-         */
-        delete: operations["departments_destroy"];
-        options?: never;
-        head?: never;
-        /**
-         * @description Эндпоинт управления и вывода иерархического справочника подразделений ГКСЭ РБ.
-         *     Поддерживает плоский вывод, сквозной текстовый поиск и древовидную сборку структуры.
-         */
-        patch: operations["departments_partial_update"];
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * @description Общий движок одобрения изменений (Этап 2) — заявки на изменение/исключение позиции
+     *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
+     *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
+     *
+     *     POST /change_requests/            — создать (plan_item, kind, reason)
+     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST /change_requests/{id}/approve/  — одобрить
+     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     */
+    post: operations["change_requests_approve_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/change_requests/{id}/forecast/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/economic_code/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["economic_code_list"];
-        put?: never;
-        post: operations["economic_code_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * @description Общий движок одобрения изменений (Этап 2) — заявки на изменение/исключение позиции
+     *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
+     *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
+     *
+     *     POST /change_requests/            — создать (plan_item, kind, reason)
+     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST /change_requests/{id}/approve/  — одобрить
+     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     */
+    get: operations["change_requests_forecast_retrieve"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/change_requests/{id}/reject/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/economic_code/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["economic_code_retrieve"];
-        put: operations["economic_code_update"];
-        post?: never;
-        delete: operations["economic_code_destroy"];
-        options?: never;
-        head?: never;
-        patch: operations["economic_code_partial_update"];
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * @description Общий движок одобрения изменений (Этап 2) — заявки на изменение/исключение позиции
+     *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
+     *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
+     *
+     *     POST /change_requests/            — создать (plan_item, kind, reason)
+     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST /change_requests/{id}/approve/  — одобрить
+     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     */
+    post: operations["change_requests_reject_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/change_requests/{id}/submit/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/functional_code/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["functional_code_list"];
-        put?: never;
-        post: operations["functional_code_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * @description Общий движок одобрения изменений (Этап 2) — заявки на изменение/исключение позиции
+     *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
+     *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
+     *
+     *     POST /change_requests/            — создать (plan_item, kind, reason)
+     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST /change_requests/{id}/approve/  — одобрить
+     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     */
+    post: operations["change_requests_submit_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/change_requests/calibrate_department_limits/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/functional_code/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["functional_code_retrieve"];
-        put: operations["functional_code_update"];
-        post?: never;
-        delete: operations["functional_code_destroy"];
-        options?: never;
-        head?: never;
-        patch: operations["functional_code_partial_update"];
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * @description Создать заявку на калибровку разбивки статьи Минфина на подстатьи/держателей
+     *     лимита (kind=DEPARTMENT_LIMIT_CALIBRATION) — клонирует текущие ACTIVE строки
+     *     DepartmentArticleLimit этой статьи/года в черновик (см. cr_service.
+     *     create_department_limit_calibration). Дальше специалист правит строки через
+     *     /api/department_article_limits/ (change_request=этой заявки, status=DRAFT),
+     *     смотрит сверку через forecast/ и одобряет — как любую другую заявку.
+     */
+    post: operations["change_requests_calibrate_department_limits_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/change_requests/redistribute/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/gosakupki/get_gpz/{purchase_id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["gosakupki_get_gpz_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * @description Создать заявку на перераспределение лимита (kind=LIMIT_REDISTRIBUTION) —
+     *     отдельная точка входа, т.к. форма черновика иная (набор строк BudgetQuarterlyLimit,
+     *     не клон позиции плана). Дальше — те же submit/approve/reject/forecast, что у любой
+     *     другой заявки.
+     */
+    post: operations["change_requests_redistribute_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/contract_quarterly_finance/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/gosakupki/get_purchases_all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["gosakupki_get_purchases_all_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * @description Эндпоинт ручной корректировки квартального плана договора (Этап 4.3).
+     *
+     *     planned_cost правится специалистом вручную; actual_cost пересчитывается
+     *     автоматически по платёжкам (TreasuryPayment) и, как правило, не редактируется
+     *     напрямую через этот эндпоинт — попытка завысить его сверх суммы договора будет
+     *     отклонена той же проверкой, что действует при разнесении платежа.
+     */
+    get: operations["contract_quarterly_finance_list"];
+    put?: never;
+    /**
+     * @description Эндпоинт ручной корректировки квартального плана договора (Этап 4.3).
+     *
+     *     planned_cost правится специалистом вручную; actual_cost пересчитывается
+     *     автоматически по платёжкам (TreasuryPayment) и, как правило, не редактируется
+     *     напрямую через этот эндпоинт — попытка завысить его сверх суммы договора будет
+     *     отклонена той же проверкой, что действует при разнесении платежа.
+     */
+    post: operations["contract_quarterly_finance_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/contract_quarterly_finance/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/gosakupki/get_purchases_items/{purchase_id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description Каскадный постраничный импорт детальных спецификаций ГПЗ
-         *     с автоматической фиксацией в СУБД PostgreSQL.
-         */
-        get: operations["gosakupki_get_purchases_items_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * @description Эндпоинт ручной корректировки квартального плана договора (Этап 4.3).
+     *
+     *     planned_cost правится специалистом вручную; actual_cost пересчитывается
+     *     автоматически по платёжкам (TreasuryPayment) и, как правило, не редактируется
+     *     напрямую через этот эндпоинт — попытка завысить его сверх суммы договора будет
+     *     отклонена той же проверкой, что действует при разнесении платежа.
+     */
+    get: operations["contract_quarterly_finance_retrieve"];
+    /**
+     * @description Эндпоинт ручной корректировки квартального плана договора (Этап 4.3).
+     *
+     *     planned_cost правится специалистом вручную; actual_cost пересчитывается
+     *     автоматически по платёжкам (TreasuryPayment) и, как правило, не редактируется
+     *     напрямую через этот эндпоинт — попытка завысить его сверх суммы договора будет
+     *     отклонена той же проверкой, что действует при разнесении платежа.
+     */
+    put: operations["contract_quarterly_finance_update"];
+    post?: never;
+    /**
+     * @description Эндпоинт ручной корректировки квартального плана договора (Этап 4.3).
+     *
+     *     planned_cost правится специалистом вручную; actual_cost пересчитывается
+     *     автоматически по платёжкам (TreasuryPayment) и, как правило, не редактируется
+     *     напрямую через этот эндпоинт — попытка завысить его сверх суммы договора будет
+     *     отклонена той же проверкой, что действует при разнесении платежа.
+     */
+    delete: operations["contract_quarterly_finance_destroy"];
+    options?: never;
+    head?: never;
+    /**
+     * @description Эндпоинт ручной корректировки квартального плана договора (Этап 4.3).
+     *
+     *     planned_cost правится специалистом вручную; actual_cost пересчитывается
+     *     автоматически по платёжкам (TreasuryPayment) и, как правило, не редактируется
+     *     напрямую через этот эндпоинт — попытка завысить его сверх суммы договора будет
+     *     отклонена той же проверкой, что действует при разнесении платежа.
+     */
+    patch: operations["contract_quarterly_finance_partial_update"];
+    trace?: never;
+  };
+  "/api/contracts/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/goszakupki/pull-actual/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Синхронизация локальной СУБД с опубликованным на портале планом */
-        get: operations["goszakupki_pull_actual_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** @description Эндпоинт управления и казначейского контроля реестра договоров ГКСЭ */
+    get: operations["contracts_list"];
+    put?: never;
+    /** @description Эндпоинт управления и казначейского контроля реестра договоров ГКСЭ */
+    post: operations["contracts_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/contracts/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/goszakupki/push-draft/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Вызов отправки подготовленного проекта изменений на goszakupki.by */
-        post: operations["goszakupki_push_draft_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** @description Эндпоинт управления и казначейского контроля реестра договоров ГКСЭ */
+    get: operations["contracts_retrieve"];
+    /** @description Эндпоинт управления и казначейского контроля реестра договоров ГКСЭ */
+    put: operations["contracts_update"];
+    post?: never;
+    /** @description Эндпоинт управления и казначейского контроля реестра договоров ГКСЭ */
+    delete: operations["contracts_destroy"];
+    options?: never;
+    head?: never;
+    /** @description Эндпоинт управления и казначейского контроля реестра договоров ГКСЭ */
+    patch: operations["contracts_partial_update"];
+    trace?: never;
+  };
+  "/api/department_article_limits/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/internal_economic_code/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["internal_economic_code_list"];
-        put?: never;
-        post: operations["internal_economic_code_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * @description CRUD строк калибровки (подстатьи/держатели лимита) — черновик правится через этот
+     *     эндпоинт (status=DRAFT, change_request=<заявка>), сверка — через
+     *     /api/change_requests/{id}/forecast/.
+     */
+    get: operations["department_article_limits_list"];
+    put?: never;
+    /**
+     * @description CRUD строк калибровки (подстатьи/держатели лимита) — черновик правится через этот
+     *     эндпоинт (status=DRAFT, change_request=<заявка>), сверка — через
+     *     /api/change_requests/{id}/forecast/.
+     */
+    post: operations["department_article_limits_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/department_article_limits/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/internal_economic_code/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["internal_economic_code_retrieve"];
-        put: operations["internal_economic_code_update"];
-        post?: never;
-        delete: operations["internal_economic_code_destroy"];
-        options?: never;
-        head?: never;
-        patch: operations["internal_economic_code_partial_update"];
-        trace?: never;
+    /**
+     * @description CRUD строк калибровки (подстатьи/держатели лимита) — черновик правится через этот
+     *     эндпоинт (status=DRAFT, change_request=<заявка>), сверка — через
+     *     /api/change_requests/{id}/forecast/.
+     */
+    get: operations["department_article_limits_retrieve"];
+    /**
+     * @description CRUD строк калибровки (подстатьи/держатели лимита) — черновик правится через этот
+     *     эндпоинт (status=DRAFT, change_request=<заявка>), сверка — через
+     *     /api/change_requests/{id}/forecast/.
+     */
+    put: operations["department_article_limits_update"];
+    post?: never;
+    /**
+     * @description CRUD строк калибровки (подстатьи/держатели лимита) — черновик правится через этот
+     *     эндпоинт (status=DRAFT, change_request=<заявка>), сверка — через
+     *     /api/change_requests/{id}/forecast/.
+     */
+    delete: operations["department_article_limits_destroy"];
+    options?: never;
+    head?: never;
+    /**
+     * @description CRUD строк калибровки (подстатьи/держатели лимита) — черновик правится через этот
+     *     эндпоинт (status=DRAFT, change_request=<заявка>), сверка — через
+     *     /api/change_requests/{id}/forecast/.
+     */
+    patch: operations["department_article_limits_partial_update"];
+    trace?: never;
+  };
+  "/api/departments/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/okrb/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["okrb_list"];
-        put?: never;
-        post: operations["okrb_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * @description Эндпоинт управления и вывода иерархического справочника подразделений ГКСЭ РБ.
+     *     Поддерживает плоский вывод, сквозной текстовый поиск и древовидную сборку структуры.
+     */
+    get: operations["departments_list"];
+    put?: never;
+    /**
+     * @description Эндпоинт управления и вывода иерархического справочника подразделений ГКСЭ РБ.
+     *     Поддерживает плоский вывод, сквозной текстовый поиск и древовидную сборку структуры.
+     */
+    post: operations["departments_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/departments/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/okrb/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["okrb_retrieve"];
-        put: operations["okrb_update"];
-        post?: never;
-        delete: operations["okrb_destroy"];
-        options?: never;
-        head?: never;
-        patch: operations["okrb_partial_update"];
-        trace?: never;
+    /**
+     * @description Эндпоинт управления и вывода иерархического справочника подразделений ГКСЭ РБ.
+     *     Поддерживает плоский вывод, сквозной текстовый поиск и древовидную сборку структуры.
+     */
+    get: operations["departments_retrieve"];
+    /**
+     * @description Эндпоинт управления и вывода иерархического справочника подразделений ГКСЭ РБ.
+     *     Поддерживает плоский вывод, сквозной текстовый поиск и древовидную сборку структуры.
+     */
+    put: operations["departments_update"];
+    post?: never;
+    /**
+     * @description Эндпоинт управления и вывода иерархического справочника подразделений ГКСЭ РБ.
+     *     Поддерживает плоский вывод, сквозной текстовый поиск и древовидную сборку структуры.
+     */
+    delete: operations["departments_destroy"];
+    options?: never;
+    head?: never;
+    /**
+     * @description Эндпоинт управления и вывода иерархического справочника подразделений ГКСЭ РБ.
+     *     Поддерживает плоский вывод, сквозной текстовый поиск и древовидную сборку структуры.
+     */
+    patch: operations["departments_partial_update"];
+    trace?: never;
+  };
+  "/api/economic_code/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/payments/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Эндпоинт для регистрации фактических оплат по договорам */
-        get: operations["payments_list"];
-        put?: never;
-        /** @description Эндпоинт для регистрации фактических оплат по договорам */
-        post: operations["payments_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations["economic_code_list"];
+    put?: never;
+    post: operations["economic_code_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/economic_code/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/payments/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Эндпоинт для регистрации фактических оплат по договорам */
-        get: operations["payments_retrieve"];
-        /** @description Эндпоинт для регистрации фактических оплат по договорам */
-        put: operations["payments_update"];
-        post?: never;
-        /** @description Эндпоинт для регистрации фактических оплат по договорам */
-        delete: operations["payments_destroy"];
-        options?: never;
-        head?: never;
-        /** @description Эндпоинт для регистрации фактических оплат по договорам */
-        patch: operations["payments_partial_update"];
-        trace?: never;
+    get: operations["economic_code_retrieve"];
+    put: operations["economic_code_update"];
+    post?: never;
+    delete: operations["economic_code_destroy"];
+    options?: never;
+    head?: never;
+    patch: operations["economic_code_partial_update"];
+    trace?: never;
+  };
+  "/api/functional_code/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/plan_items/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
-         *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
-         */
-        get: operations["plan_items_list"];
-        put?: never;
-        /**
-         * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
-         *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
-         */
-        post: operations["plan_items_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations["functional_code_list"];
+    put?: never;
+    post: operations["functional_code_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/functional_code/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/plan_items/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
-         *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
-         */
-        get: operations["plan_items_retrieve"];
-        /**
-         * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
-         *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
-         */
-        put: operations["plan_items_update"];
-        post?: never;
-        /**
-         * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
-         *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
-         */
-        delete: operations["plan_items_destroy"];
-        options?: never;
-        head?: never;
-        /**
-         * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
-         *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
-         */
-        patch: operations["plan_items_partial_update"];
-        trace?: never;
+    get: operations["functional_code_retrieve"];
+    put: operations["functional_code_update"];
+    post?: never;
+    delete: operations["functional_code_destroy"];
+    options?: never;
+    head?: never;
+    patch: operations["functional_code_partial_update"];
+    trace?: never;
+  };
+  "/api/gosakupki/get_gpz/{purchase_id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/plan_items_details/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
-         *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
-         */
-        get: operations["plan_items_details_list"];
-        put?: never;
-        /**
-         * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
-         *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
-         */
-        post: operations["plan_items_details_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations["gosakupki_get_gpz_retrieve"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/gosakupki/get_purchases_all": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/plan_items_details/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
-         *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
-         */
-        get: operations["plan_items_details_retrieve"];
-        /**
-         * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
-         *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
-         */
-        put: operations["plan_items_details_update"];
-        post?: never;
-        /**
-         * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
-         *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
-         */
-        delete: operations["plan_items_details_destroy"];
-        options?: never;
-        head?: never;
-        /**
-         * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
-         *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
-         */
-        patch: operations["plan_items_details_partial_update"];
-        trace?: never;
+    get: operations["gosakupki_get_purchases_all_retrieve"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/gosakupki/get_purchases_items/{purchase_id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/procurement_methods/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Эндпоинт вывода пунктов и статей процедур госзакупок РБ */
-        get: operations["procurement_methods_list"];
-        put?: never;
-        /** @description Эндпоинт вывода пунктов и статей процедур госзакупок РБ */
-        post: operations["procurement_methods_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * @description Каскадный импорт детальных спецификаций ГПЗ с автоматической фиксацией в БД.
+     *     Логика синхронизации вынесена в procurement.services.goszakupki_sync — используется
+     *     также management-командой sync_goszakupki_from_file для офлайн-файлов (когда прямого
+     *     доступа к api.goszakupki.by нет).
+     *
+     *     Данные читаются с реального API (fetch_purchase_items_from_api — та же пагинация, что
+     *     в export_goszakupki_plan.py). Из этой среды разработки прямой доступ к api.goszakupki.by
+     *     недоступен (см. CurrentStatus.md, Этап 5) — реальный прогон предстоит пользователю; для
+     *     офлайн-работы без сети остаётся sync_goszakupki_from_file (та же sync_plan_items_from_data
+     *     поверх заранее выгруженного файла).
+     */
+    get: operations["gosakupki_get_purchases_items_retrieve"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/goszakupki/delete-plan-items/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/procurement_methods/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Эндпоинт вывода пунктов и статей процедур госзакупок РБ */
-        get: operations["procurement_methods_retrieve"];
-        /** @description Эндпоинт вывода пунктов и статей процедур госзакупок РБ */
-        put: operations["procurement_methods_update"];
-        post?: never;
-        /** @description Эндпоинт вывода пунктов и статей процедур госзакупок РБ */
-        delete: operations["procurement_methods_destroy"];
-        options?: never;
-        head?: never;
-        /** @description Эндпоинт вывода пунктов и статей процедур госзакупок РБ */
-        patch: operations["procurement_methods_partial_update"];
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** @description Удаление позиций ГПЗ на goszakupki.by — delete-items (исключение позиции из плана). */
+    post: operations["goszakupki_delete_plan_items_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/goszakupki/push-plan-items/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/program_code/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["program_code_list"];
-        put?: never;
-        post: operations["program_code_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * @description Отправка одобренных изменений позиций ГПЗ на goszakupki.by — create-item/update-item
+     *     (ТЗ п.3, 16; см. procurement.services.goszakupki_push). Закупщику останется войти в
+     *     личный кабинет на портале, проверить черновик и опубликовать, подписав ЭЦП.
+     */
+    post: operations["goszakupki_push_plan_items_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/internal_economic_code/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/program_code/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["program_code_retrieve"];
-        put: operations["program_code_update"];
-        post?: never;
-        delete: operations["program_code_destroy"];
-        options?: never;
-        head?: never;
-        patch: operations["program_code_partial_update"];
-        trace?: never;
+    get: operations["internal_economic_code_list"];
+    put?: never;
+    post: operations["internal_economic_code_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/internal_economic_code/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/purchases/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description Эндпоинт ведомственного ведения годовых планов (Purchases) ГКСЭ.
-         *     Обеспечивает шлюзование пакетов с goszakupki.by и контроль признаков черновиков.
-         */
-        get: operations["purchases_list"];
-        put?: never;
-        /**
-         * @description Эндпоинт ведомственного ведения годовых планов (Purchases) ГКСЭ.
-         *     Обеспечивает шлюзование пакетов с goszakupki.by и контроль признаков черновиков.
-         */
-        post: operations["purchases_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations["internal_economic_code_retrieve"];
+    put: operations["internal_economic_code_update"];
+    post?: never;
+    delete: operations["internal_economic_code_destroy"];
+    options?: never;
+    head?: never;
+    patch: operations["internal_economic_code_partial_update"];
+    trace?: never;
+  };
+  "/api/okrb/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/purchases/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description Эндпоинт ведомственного ведения годовых планов (Purchases) ГКСЭ.
-         *     Обеспечивает шлюзование пакетов с goszakupki.by и контроль признаков черновиков.
-         */
-        get: operations["purchases_retrieve"];
-        /**
-         * @description Эндпоинт ведомственного ведения годовых планов (Purchases) ГКСЭ.
-         *     Обеспечивает шлюзование пакетов с goszakupki.by и контроль признаков черновиков.
-         */
-        put: operations["purchases_update"];
-        post?: never;
-        /**
-         * @description Эндпоинт ведомственного ведения годовых планов (Purchases) ГКСЭ.
-         *     Обеспечивает шлюзование пакетов с goszakupki.by и контроль признаков черновиков.
-         */
-        delete: operations["purchases_destroy"];
-        options?: never;
-        head?: never;
-        /**
-         * @description Эндпоинт ведомственного ведения годовых планов (Purchases) ГКСЭ.
-         *     Обеспечивает шлюзование пакетов с goszakupki.by и контроль признаков черновиков.
-         */
-        patch: operations["purchases_partial_update"];
-        trace?: never;
+    get: operations["okrb_list"];
+    put?: never;
+    post: operations["okrb_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/okrb/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/suppliers/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Эндпоинт управления ведомственным справочником контрагентов */
-        get: operations["suppliers_list"];
-        put?: never;
-        /** @description Эндпоинт управления ведомственным справочником контрагентов */
-        post: operations["suppliers_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations["okrb_retrieve"];
+    put: operations["okrb_update"];
+    post?: never;
+    delete: operations["okrb_destroy"];
+    options?: never;
+    head?: never;
+    patch: operations["okrb_partial_update"];
+    trace?: never;
+  };
+  "/api/payments/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/suppliers/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Эндпоинт управления ведомственным справочником контрагентов */
-        get: operations["suppliers_retrieve"];
-        /** @description Эндпоинт управления ведомственным справочником контрагентов */
-        put: operations["suppliers_update"];
-        post?: never;
-        /** @description Эндпоинт управления ведомственным справочником контрагентов */
-        delete: operations["suppliers_destroy"];
-        options?: never;
-        head?: never;
-        /** @description Эндпоинт управления ведомственным справочником контрагентов */
-        patch: operations["suppliers_partial_update"];
-        trace?: never;
+    /**
+     * @description Эндпоинт для регистрации фактических оплат — как по договорам, так и
+     *     "свободных" платёжек, относящихся на статью расходов напрямую (Этап 4.1)
+     */
+    get: operations["payments_list"];
+    put?: never;
+    /**
+     * @description Эндпоинт для регистрации фактических оплат — как по договорам, так и
+     *     "свободных" платёжек, относящихся на статью расходов напрямую (Этап 4.1)
+     */
+    post: operations["payments_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/payments/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/units_of_measurement/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description Эндпоинт ведомственного справочника единиц измерения ОКРБ 008-95.
-         *     Оптимизирован для быстрых выпадающих списков и автокомплитов на фронтенде.
-         */
-        get: operations["units_of_measurement_list"];
-        put?: never;
-        /**
-         * @description Эндпоинт ведомственного справочника единиц измерения ОКРБ 008-95.
-         *     Оптимизирован для быстрых выпадающих списков и автокомплитов на фронтенде.
-         */
-        post: operations["units_of_measurement_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * @description Эндпоинт для регистрации фактических оплат — как по договорам, так и
+     *     "свободных" платёжек, относящихся на статью расходов напрямую (Этап 4.1)
+     */
+    get: operations["payments_retrieve"];
+    /**
+     * @description Эндпоинт для регистрации фактических оплат — как по договорам, так и
+     *     "свободных" платёжек, относящихся на статью расходов напрямую (Этап 4.1)
+     */
+    put: operations["payments_update"];
+    post?: never;
+    /**
+     * @description Эндпоинт для регистрации фактических оплат — как по договорам, так и
+     *     "свободных" платёжек, относящихся на статью расходов напрямую (Этап 4.1)
+     */
+    delete: operations["payments_destroy"];
+    options?: never;
+    head?: never;
+    /**
+     * @description Эндпоинт для регистрации фактических оплат — как по договорам, так и
+     *     "свободных" платёжек, относящихся на статью расходов напрямую (Этап 4.1)
+     */
+    patch: operations["payments_partial_update"];
+    trace?: never;
+  };
+  "/api/plan_items/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/units_of_measurement/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * @description Эндпоинт ведомственного справочника единиц измерения ОКРБ 008-95.
-         *     Оптимизирован для быстрых выпадающих списков и автокомплитов на фронтенде.
-         */
-        get: operations["units_of_measurement_retrieve"];
-        /**
-         * @description Эндпоинт ведомственного справочника единиц измерения ОКРБ 008-95.
-         *     Оптимизирован для быстрых выпадающих списков и автокомплитов на фронтенде.
-         */
-        put: operations["units_of_measurement_update"];
-        post?: never;
-        /**
-         * @description Эндпоинт ведомственного справочника единиц измерения ОКРБ 008-95.
-         *     Оптимизирован для быстрых выпадающих списков и автокомплитов на фронтенде.
-         */
-        delete: operations["units_of_measurement_destroy"];
-        options?: never;
-        head?: never;
-        /**
-         * @description Эндпоинт ведомственного справочника единиц измерения ОКРБ 008-95.
-         *     Оптимизирован для быстрых выпадающих списков и автокомплитов на фронтенде.
-         */
-        patch: operations["units_of_measurement_partial_update"];
-        trace?: never;
+    /**
+     * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
+     *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
+     */
+    get: operations["plan_items_list"];
+    put?: never;
+    /**
+     * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
+     *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
+     */
+    post: operations["plan_items_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/plan_items/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    /**
+     * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
+     *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
+     */
+    get: operations["plan_items_retrieve"];
+    /**
+     * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
+     *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
+     */
+    put: operations["plan_items_update"];
+    post?: never;
+    /**
+     * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
+     *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
+     */
+    delete: operations["plan_items_destroy"];
+    options?: never;
+    head?: never;
+    /**
+     * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
+     *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
+     */
+    patch: operations["plan_items_partial_update"];
+    trace?: never;
+  };
+  "/api/plan_items_details/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
+     *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
+     */
+    get: operations["plan_items_details_list"];
+    put?: never;
+    /**
+     * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
+     *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
+     */
+    post: operations["plan_items_details_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/plan_items_details/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
+     *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
+     */
+    get: operations["plan_items_details_retrieve"];
+    /**
+     * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
+     *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
+     */
+    put: operations["plan_items_details_update"];
+    post?: never;
+    /**
+     * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
+     *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
+     */
+    delete: operations["plan_items_details_destroy"];
+    options?: never;
+    head?: never;
+    /**
+     * @description Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
+     *     Обеспечивает сквозной оперативный контроль лимитов и кассового исполнения обязательств.
+     */
+    patch: operations["plan_items_details_partial_update"];
+    trace?: never;
+  };
+  "/api/plan_shares/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Распределение лимита по подразделениям — в т.ч. для редактирования черновиков
+     *     PLAN_ITEM_CHANGE (ChangeRequest), где клонированные DRAFT-записи правятся через
+     *     обычный PATCH (фронтенд фильтрует по change_request).
+     */
+    get: operations["plan_shares_list"];
+    put?: never;
+    /**
+     * @description Распределение лимита по подразделениям — в т.ч. для редактирования черновиков
+     *     PLAN_ITEM_CHANGE (ChangeRequest), где клонированные DRAFT-записи правятся через
+     *     обычный PATCH (фронтенд фильтрует по change_request).
+     */
+    post: operations["plan_shares_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/plan_shares/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Распределение лимита по подразделениям — в т.ч. для редактирования черновиков
+     *     PLAN_ITEM_CHANGE (ChangeRequest), где клонированные DRAFT-записи правятся через
+     *     обычный PATCH (фронтенд фильтрует по change_request).
+     */
+    get: operations["plan_shares_retrieve"];
+    /**
+     * @description Распределение лимита по подразделениям — в т.ч. для редактирования черновиков
+     *     PLAN_ITEM_CHANGE (ChangeRequest), где клонированные DRAFT-записи правятся через
+     *     обычный PATCH (фронтенд фильтрует по change_request).
+     */
+    put: operations["plan_shares_update"];
+    post?: never;
+    /**
+     * @description Распределение лимита по подразделениям — в т.ч. для редактирования черновиков
+     *     PLAN_ITEM_CHANGE (ChangeRequest), где клонированные DRAFT-записи правятся через
+     *     обычный PATCH (фронтенд фильтрует по change_request).
+     */
+    delete: operations["plan_shares_destroy"];
+    options?: never;
+    head?: never;
+    /**
+     * @description Распределение лимита по подразделениям — в т.ч. для редактирования черновиков
+     *     PLAN_ITEM_CHANGE (ChangeRequest), где клонированные DRAFT-записи правятся через
+     *     обычный PATCH (фронтенд фильтрует по change_request).
+     */
+    patch: operations["plan_shares_partial_update"];
+    trace?: never;
+  };
+  "/api/procurement_methods/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Эндпоинт вывода пунктов и статей процедур госзакупок РБ */
+    get: operations["procurement_methods_list"];
+    put?: never;
+    /** @description Эндпоинт вывода пунктов и статей процедур госзакупок РБ */
+    post: operations["procurement_methods_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/procurement_methods/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Эндпоинт вывода пунктов и статей процедур госзакупок РБ */
+    get: operations["procurement_methods_retrieve"];
+    /** @description Эндпоинт вывода пунктов и статей процедур госзакупок РБ */
+    put: operations["procurement_methods_update"];
+    post?: never;
+    /** @description Эндпоинт вывода пунктов и статей процедур госзакупок РБ */
+    delete: operations["procurement_methods_destroy"];
+    options?: never;
+    head?: never;
+    /** @description Эндпоинт вывода пунктов и статей процедур госзакупок РБ */
+    patch: operations["procurement_methods_partial_update"];
+    trace?: never;
+  };
+  "/api/program_code/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["program_code_list"];
+    put?: never;
+    post: operations["program_code_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/program_code/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["program_code_retrieve"];
+    put: operations["program_code_update"];
+    post?: never;
+    delete: operations["program_code_destroy"];
+    options?: never;
+    head?: never;
+    patch: operations["program_code_partial_update"];
+    trace?: never;
+  };
+  "/api/purchases/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Эндпоинт ведомственного ведения годовых планов (Purchases) ГКСЭ.
+     *     Обеспечивает шлюзование пакетов с goszakupki.by и контроль признаков черновиков.
+     */
+    get: operations["purchases_list"];
+    put?: never;
+    /**
+     * @description Эндпоинт ведомственного ведения годовых планов (Purchases) ГКСЭ.
+     *     Обеспечивает шлюзование пакетов с goszakupki.by и контроль признаков черновиков.
+     */
+    post: operations["purchases_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/purchases/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Эндпоинт ведомственного ведения годовых планов (Purchases) ГКСЭ.
+     *     Обеспечивает шлюзование пакетов с goszakupki.by и контроль признаков черновиков.
+     */
+    get: operations["purchases_retrieve"];
+    /**
+     * @description Эндпоинт ведомственного ведения годовых планов (Purchases) ГКСЭ.
+     *     Обеспечивает шлюзование пакетов с goszakupki.by и контроль признаков черновиков.
+     */
+    put: operations["purchases_update"];
+    post?: never;
+    /**
+     * @description Эндпоинт ведомственного ведения годовых планов (Purchases) ГКСЭ.
+     *     Обеспечивает шлюзование пакетов с goszakupki.by и контроль признаков черновиков.
+     */
+    delete: operations["purchases_destroy"];
+    options?: never;
+    head?: never;
+    /**
+     * @description Эндпоинт ведомственного ведения годовых планов (Purchases) ГКСЭ.
+     *     Обеспечивает шлюзование пакетов с goszakupki.by и контроль признаков черновиков.
+     */
+    patch: operations["purchases_partial_update"];
+    trace?: never;
+  };
+  "/api/reports/budget_execution/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Оперативный отчёт «назначено — обязательства — оплачено — остаток» (Этап 4.4).
+     *
+     *     GET /api/reports/budget_execution/?year=2026&department=5&quarter=Q2
+     *
+     *     Все параметры опциональны. Без `quarter` — годовые суммы назначения; с `quarter` —
+     *     квартальное распределение (см. BudgetQuarterlyLimit, Этап 3.3). Строки — на уровне
+     *     (держатель лимита × статья ЭКР), группировку по иерархии подразделений и уровням
+     *     классификатора строит фронтенд.
+     */
+    get: operations["reports_budget_execution_retrieve"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/reports/general_money/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Отчёт «Общие деньги» (первый отчёт из серии — решение пользователя 2026-11-03;
+     *     остальные отчёты добавляются как отдельные пункты того же меню/эндпоинты).
+     *
+     *     GET /api/reports/general_money/?year=2026
+     *
+     *     Одна строка на статью (functional_class+economic_class) — org-wide, без разбивки по
+     *     подразделениям (для разбивки по держателям лимита — /api/reports/budget_execution/,
+     *     Этап 4.4). `year` по умолчанию — текущий календарный год.
+     */
+    get: operations["reports_general_money_retrieve"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/suppliers/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Эндпоинт управления ведомственным справочником контрагентов */
+    get: operations["suppliers_list"];
+    put?: never;
+    /** @description Эндпоинт управления ведомственным справочником контрагентов */
+    post: operations["suppliers_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/suppliers/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Эндпоинт управления ведомственным справочником контрагентов */
+    get: operations["suppliers_retrieve"];
+    /** @description Эндпоинт управления ведомственным справочником контрагентов */
+    put: operations["suppliers_update"];
+    post?: never;
+    /** @description Эндпоинт управления ведомственным справочником контрагентов */
+    delete: operations["suppliers_destroy"];
+    options?: never;
+    head?: never;
+    /** @description Эндпоинт управления ведомственным справочником контрагентов */
+    patch: operations["suppliers_partial_update"];
+    trace?: never;
+  };
+  "/api/units_of_measurement/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Эндпоинт ведомственного справочника единиц измерения ОКРБ 008-95.
+     *     Оптимизирован для быстрых выпадающих списков и автокомплитов на фронтенде.
+     */
+    get: operations["units_of_measurement_list"];
+    put?: never;
+    /**
+     * @description Эндпоинт ведомственного справочника единиц измерения ОКРБ 008-95.
+     *     Оптимизирован для быстрых выпадающих списков и автокомплитов на фронтенде.
+     */
+    post: operations["units_of_measurement_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/units_of_measurement/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Эндпоинт ведомственного справочника единиц измерения ОКРБ 008-95.
+     *     Оптимизирован для быстрых выпадающих списков и автокомплитов на фронтенде.
+     */
+    get: operations["units_of_measurement_retrieve"];
+    /**
+     * @description Эндпоинт ведомственного справочника единиц измерения ОКРБ 008-95.
+     *     Оптимизирован для быстрых выпадающих списков и автокомплитов на фронтенде.
+     */
+    put: operations["units_of_measurement_update"];
+    post?: never;
+    /**
+     * @description Эндпоинт ведомственного справочника единиц измерения ОКРБ 008-95.
+     *     Оптимизирован для быстрых выпадающих списков и автокомплитов на фронтенде.
+     */
+    delete: operations["units_of_measurement_destroy"];
+    options?: never;
+    head?: never;
+    /**
+     * @description Эндпоинт ведомственного справочника единиц измерения ОКРБ 008-95.
+     *     Оптимизирован для быстрых выпадающих списков и автокомплитов на фронтенде.
+     */
+    patch: operations["units_of_measurement_partial_update"];
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        BudgetCosts: {
-            readonly id: number;
-            /** Версия пункта плана */
-            plan_item?: number | null;
-            /** Статус */
-            status?: components["schemas"]["StatusEnum"];
-            /** Id позиции ГПЗ на goszakupki.by */
-            purchases_items_id: number;
-            /** Format: decimal */
-            readonly aggregated_cost: string;
-            /**
-             * Ориентировочная стоимость позиции ГПЗ
-             * Format: decimal
-             */
-            cost?: string;
-            /** Функциональная классификация */
-            functional_class?: number | null;
-            readonly functional_class_code_api: string;
-            readonly functional_class_detail: components["schemas"]["FunctionalCode"];
-            /** Код ведомственной классификации */
-            department_code?: string | null;
-            /** Внешний код ЭКР */
-            economic_class?: number | null;
-            readonly economic_class_code_api: string;
-            readonly economic_class_detail: components["schemas"]["ExternalEconomicCode"];
-            /** Программная классификация */
-            program_class?: number | null;
-            readonly program_class_code_api: string;
-            readonly program_class_detail: components["schemas"]["ProgramCode"];
-            /** Код бюджета позиции плана */
-            budget_code?: number;
-            /** Описание кода бюджета */
-            budget_code_name?: string;
-            /** УНК заказчика позиции */
-            unk?: string | null;
-            /** Код территориального казначейства */
-            tk_id?: number | null;
-            /** Год финансирования из бюджета */
-            year?: number;
-            /** Экономический код расходов (ЭКР) */
-            internal_economic_class?: number | null;
-            readonly internal_economic_class_code: string;
-            readonly internal_economic_class_detail: components["schemas"]["InternalEconomicClassifier"];
-            /** Раздел (Уровень 1) */
-            internal_economic_section?: number | null;
-            readonly internal_economic_section_code: string;
-            readonly internal_economic_section_detail: components["schemas"]["InternalEconomicClassifier"];
-            /** Подраздел (Уровень 2) */
-            internal_economic_subsection?: number | null;
-            readonly internal_economic_subsection_code: string;
-            readonly internal_economic_subsection_detail: components["schemas"]["InternalEconomicClassifier"];
-            /** Вид (Уровень 3) */
-            internal_economic_kind?: number | null;
-            readonly internal_economic_kind_code: string;
-            readonly internal_economic_kind_detail: components["schemas"]["InternalEconomicClassifier"];
-            /** Статья (Уровень 4) */
-            internal_economic_article?: number | null;
-            readonly internal_economic_article_code: string;
-            readonly internal_economic_article_detail: components["schemas"]["InternalEconomicClassifier"];
-        };
-        BudgetCostsForItem: {
-            readonly id: number;
-            /** Статус */
-            status?: components["schemas"]["StatusEnum"];
-            /** Год финансирования из бюджета */
-            year?: number;
-            readonly cost_detail: components["schemas"]["CostDetailResponseSchema"];
-            readonly functional_class_detail: components["schemas"]["FunctionalCode"];
-            readonly economic_class_detail: components["schemas"]["ExternalEconomicCode"];
-            readonly internal_economic_class_detail: components["schemas"]["InternalEconomicClassifier"];
-            readonly program_class_detail: components["schemas"]["ProgramCode"];
-            /** Код ведомственной классификации */
-            department_code?: string | null;
-            /** УНК заказчика позиции */
-            unk?: string | null;
-            /** Код территориального казначейства */
-            tk_id?: number | null;
-            /** Код бюджета позиции плана */
-            budget_code?: number;
-            /** Описание кода бюджета */
-            budget_code_name?: string;
-            readonly cost_departments: string;
-        };
-        BudgetCostsForShortItem: {
-            readonly id: number;
-            /** Год финансирования из бюджета */
-            year?: number;
-            /** Format: decimal */
-            readonly full_cost: string;
-            /** Функциональный код goszakupki.by */
-            functional_code?: string | null;
-            /** Экономический код goszakupki.by */
-            economic_code?: string | null;
-            readonly internal_economic_class_detail: components["schemas"]["InternalEconomicClassifier"];
-        };
-        /** @description Используется для POST/каскадного импорта 'сырых' финансовых данных из ИС Тендеры */
-        BudgetCostsImport: {
-            /** Id позиции ГПЗ на goszakupki.by */
-            purchases_items_id: number;
-            /**
-             * Ориентировочная стоимость позиции ГПЗ
-             * Format: decimal
-             */
-            cost?: string;
-            /** Функциональный код goszakupki.by */
-            functional_code?: string | null;
-            /** Функциональная классификация */
-            functional_class?: number | null;
-            /** Код ведомственной классификации */
-            department_code?: string | null;
-            /** Экономический код goszakupki.by */
-            economic_code?: string | null;
-            /** Внешний код ЭКР */
-            economic_class?: number | null;
-            /** Программный код goszakupki.by */
-            program_code?: string | null;
-            /** Программная классификация */
-            program_class?: number | null;
-            /** Код бюджета позиции плана */
-            budget_code?: number;
-            /** Описание кода бюджета */
-            budget_code_name?: string;
-            /** УНК заказчика позиции */
-            unk?: string | null;
-            /** Код территориального казначейства */
-            tk_id?: number | null;
-            /** Год финансирования из бюджета */
-            year?: number;
-            /** Версия пункта плана */
-            plan_item?: number | null;
-            /** Статус */
-            status?: components["schemas"]["StatusEnum"];
-            /** Экономический код расходов (ЭКР) */
-            internal_economic_class?: number | null;
-            /** Раздел (Уровень 1) */
-            internal_economic_section?: number | null;
-            /** Подраздел (Уровень 2) */
-            internal_economic_subsection?: number | null;
-            /** Вид (Уровень 3) */
-            internal_economic_kind?: number | null;
-            /** Статья (Уровень 4) */
-            internal_economic_article?: number | null;
-            /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            readonly changed_at: string;
-        };
-        /** @description Сериализатор для справочника работников-закупщиков ГКСЭ */
-        Buyer: {
-            readonly id: number;
-            /** Фамилия и инициалы */
-            shot_name: string;
-            /** ФИО полностью */
-            full_name: string;
-            /** Действующий (не действующий) сотрудник */
-            is_active?: boolean;
-        };
-        /** @description Единый зарегистрированный договор ГКСЭ (Шапка + Аналитика) */
-        Contract: {
-            readonly id: number;
-            /** Номер договора */
-            number: string;
-            /**
-             * Дата заключения договора
-             * Format: date
-             */
-            contract_date?: string;
-            /** Исполнитель/Поставщик */
-            supplier: number;
-            readonly supplier_detail: components["schemas"]["Supplier"];
-            /**
-             * Общая сумма договора
-             * Format: decimal
-             */
-            total_cost: string;
-            /** Закупщик */
-            buyer?: number | null;
-            /** Основной договор (для Доп. соглашений) */
-            parent_contract?: number | null;
-            /** Регистрация в территориальном казначействе */
-            is_registered_in_treasury?: boolean;
-            /** Условия оплаты */
-            payment_terms?: string | null;
-            /**
-             * Плановая дата поставки / выполнения работ / оказания услуг
-             * Format: date
-             */
-            planned_delivery_date: string;
-            /** Примечание / Дополнительная информация */
-            notice?: string | null;
-            /** Пункт перечня плана основных средств */
-            fixed_assets_plan_item?: string | null;
-            /**
-             * Вид процедуры закупки (Пункт)
-             * @description Выбор конкретного пункта процедуры из ведомственного справочника РБ
-             */
-            procurement_method_detail?: number | null;
-            readonly procurement_method_detail_info: components["schemas"]["ProcurementMethodDetail"];
-            /** Вид строительных работ / Объект строительства */
-            construction_type?: string | null;
-            /** Format: date-time */
-            readonly created_at: string;
-            readonly items: components["schemas"]["ContractItem"][];
-            readonly payments: components["schemas"]["TreasuryPayment"][];
-            readonly days_remaining: number;
-            readonly is_urgent_warning: boolean;
-            /** @description Интегрирует расчет поквартального прогноза (как в примере с картриджами) в JSON */
-            readonly quarterly_analytics: {
-                [key: string]: unknown;
-            };
-        };
-        /** @description Спецификация договора (Детализация списания лимитов подразделений) */
-        ContractItem: {
-            readonly id: number;
-            contract: number;
-            /** Наименование позиции, как в договоре */
-            title?: string | null;
-            /** Год позиции договора */
-            year?: number;
-            plan_share: number;
-            /**
-             * Количество по договору
-             * Format: decimal
-             */
-            contract_amount: string;
-            /**
-             * Сумма по договору
-             * Format: decimal
-             */
-            contract_cost: string;
-        };
-        CostDetailResponseSchema: {
-            /** Format: decimal */
-            total_cost: string;
-            /** Format: decimal */
-            budget_cost: string;
-            /** Format: decimal */
-            fund_cost: string;
-            /** Format: decimal */
-            inner_cost: string;
-        };
-        /** @description Рекурсивный сериализатор для автоматической сборки дерева подразделений ГКСЭ */
-        DepartmentTree: {
-            readonly id: number;
-            /** Полное наименование подразделения */
-            full_name: string;
-            /** Краткое наименование подразделения */
-            short_name: string;
-            /** Действующее подразделение */
-            is_active?: boolean;
-            readonly is_root: boolean;
-            /** Вышестоящее подразделение (Агрегатор) */
-            parent?: number | null;
-            readonly sub_departments: string;
-        };
-        ExternalEconomicCode: {
-            readonly id: number;
-            /** Код в формате API (например, '1 10 10 99') */
-            code_api: string;
-            /** Наименование статьи (например, '1.10.06.00 Оплата услуг связи') */
-            description: string;
-            /** Действующий код */
-            is_active?: boolean;
-        };
-        /** @description Сериализатор справочника функциональной классификации расходов Минфина РБ. */
-        FunctionalCode: {
-            readonly id: number;
-            /** Код в формате API (например, '3 12 0 851') */
-            code_api: string;
-            /** Наименование объекта/цели (например, '03_12_00 § 851 (Витебск 3)') */
-            description?: string | null;
-            /** Действующий код */
-            is_active?: boolean;
-        };
-        /** @description Базовый плоский сериализатор для создания, изменения и поиска статей ЭКР */
-        InternalEconomicClassifier: {
-            readonly id: number;
-            /** Код ЭКР (например, 1101008165) */
-            code: string;
-            /** Наименование (расшифровка кода) */
-            name: string;
-            /** Действующий код */
-            is_active?: boolean;
-            /** Вышестоящая статья/группа */
-            parent?: number | null;
-        };
-        /** @description Рекурсивный сериализатор для автоматической сборки дерева ЭКР Минфина РБ */
-        InternalEconomicClassifierTree: {
-            readonly id: number;
-            /** Код ЭКР (например, 1101008165) */
-            code: string;
-            /** Наименование (расшифровка кода) */
-            name: string;
-            /** Действующий код */
-            is_active?: boolean;
-            readonly sub_codes: string;
-        };
-        OkrbProduct: {
-            readonly id: number;
-            /** Код ОКРБ 007 (например, 62.01.11.900) */
-            code: string;
-            /** Наименование группировки/вида продукции */
-            title: string;
-            /** Актуальный код */
-            is_active?: boolean;
-        };
-        PaginatedBudgetCostsImportList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?offset=400&limit=100
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?offset=200&limit=100
-             */
-            previous?: string | null;
-            results: components["schemas"]["BudgetCostsImport"][];
-        };
-        PaginatedBudgetCostsList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?offset=400&limit=100
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?offset=200&limit=100
-             */
-            previous?: string | null;
-            results: components["schemas"]["BudgetCosts"][];
-        };
-        PaginatedContractList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?offset=400&limit=100
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?offset=200&limit=100
-             */
-            previous?: string | null;
-            results: components["schemas"]["Contract"][];
-        };
-        PaginatedPlanItemDetailList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?offset=400&limit=100
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?offset=200&limit=100
-             */
-            previous?: string | null;
-            results: components["schemas"]["PlanItemDetail"][];
-        };
-        PaginatedPlanItemShortList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?offset=400&limit=100
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?offset=200&limit=100
-             */
-            previous?: string | null;
-            results: components["schemas"]["PlanItemShort"][];
-        };
-        PatchedBudgetCosts: {
-            readonly id?: number;
-            /** Версия пункта плана */
-            plan_item?: number | null;
-            /** Статус */
-            status?: components["schemas"]["StatusEnum"];
-            /** Id позиции ГПЗ на goszakupki.by */
-            purchases_items_id?: number;
-            /** Format: decimal */
-            readonly aggregated_cost?: string;
-            /**
-             * Ориентировочная стоимость позиции ГПЗ
-             * Format: decimal
-             */
-            cost?: string;
-            /** Функциональная классификация */
-            functional_class?: number | null;
-            readonly functional_class_code_api?: string;
-            readonly functional_class_detail?: components["schemas"]["FunctionalCode"];
-            /** Код ведомственной классификации */
-            department_code?: string | null;
-            /** Внешний код ЭКР */
-            economic_class?: number | null;
-            readonly economic_class_code_api?: string;
-            readonly economic_class_detail?: components["schemas"]["ExternalEconomicCode"];
-            /** Программная классификация */
-            program_class?: number | null;
-            readonly program_class_code_api?: string;
-            readonly program_class_detail?: components["schemas"]["ProgramCode"];
-            /** Код бюджета позиции плана */
-            budget_code?: number;
-            /** Описание кода бюджета */
-            budget_code_name?: string;
-            /** УНК заказчика позиции */
-            unk?: string | null;
-            /** Код территориального казначейства */
-            tk_id?: number | null;
-            /** Год финансирования из бюджета */
-            year?: number;
-            /** Экономический код расходов (ЭКР) */
-            internal_economic_class?: number | null;
-            readonly internal_economic_class_code?: string;
-            readonly internal_economic_class_detail?: components["schemas"]["InternalEconomicClassifier"];
-            /** Раздел (Уровень 1) */
-            internal_economic_section?: number | null;
-            readonly internal_economic_section_code?: string;
-            readonly internal_economic_section_detail?: components["schemas"]["InternalEconomicClassifier"];
-            /** Подраздел (Уровень 2) */
-            internal_economic_subsection?: number | null;
-            readonly internal_economic_subsection_code?: string;
-            readonly internal_economic_subsection_detail?: components["schemas"]["InternalEconomicClassifier"];
-            /** Вид (Уровень 3) */
-            internal_economic_kind?: number | null;
-            readonly internal_economic_kind_code?: string;
-            readonly internal_economic_kind_detail?: components["schemas"]["InternalEconomicClassifier"];
-            /** Статья (Уровень 4) */
-            internal_economic_article?: number | null;
-            readonly internal_economic_article_code?: string;
-            readonly internal_economic_article_detail?: components["schemas"]["InternalEconomicClassifier"];
-        };
-        /** @description Используется для POST/каскадного импорта 'сырых' финансовых данных из ИС Тендеры */
-        PatchedBudgetCostsImport: {
-            /** Id позиции ГПЗ на goszakupki.by */
-            purchases_items_id?: number;
-            /**
-             * Ориентировочная стоимость позиции ГПЗ
-             * Format: decimal
-             */
-            cost?: string;
-            /** Функциональный код goszakupki.by */
-            functional_code?: string | null;
-            /** Функциональная классификация */
-            functional_class?: number | null;
-            /** Код ведомственной классификации */
-            department_code?: string | null;
-            /** Экономический код goszakupki.by */
-            economic_code?: string | null;
-            /** Внешний код ЭКР */
-            economic_class?: number | null;
-            /** Программный код goszakupki.by */
-            program_code?: string | null;
-            /** Программная классификация */
-            program_class?: number | null;
-            /** Код бюджета позиции плана */
-            budget_code?: number;
-            /** Описание кода бюджета */
-            budget_code_name?: string;
-            /** УНК заказчика позиции */
-            unk?: string | null;
-            /** Код территориального казначейства */
-            tk_id?: number | null;
-            /** Год финансирования из бюджета */
-            year?: number;
-            /** Версия пункта плана */
-            plan_item?: number | null;
-            /** Статус */
-            status?: components["schemas"]["StatusEnum"];
-            /** Экономический код расходов (ЭКР) */
-            internal_economic_class?: number | null;
-            /** Раздел (Уровень 1) */
-            internal_economic_section?: number | null;
-            /** Подраздел (Уровень 2) */
-            internal_economic_subsection?: number | null;
-            /** Вид (Уровень 3) */
-            internal_economic_kind?: number | null;
-            /** Статья (Уровень 4) */
-            internal_economic_article?: number | null;
-            /** Format: date-time */
-            readonly created_at?: string;
-            /** Format: date-time */
-            readonly changed_at?: string;
-        };
-        /** @description Сериализатор для справочника работников-закупщиков ГКСЭ */
-        PatchedBuyer: {
-            readonly id?: number;
-            /** Фамилия и инициалы */
-            shot_name?: string;
-            /** ФИО полностью */
-            full_name?: string;
-            /** Действующий (не действующий) сотрудник */
-            is_active?: boolean;
-        };
-        /** @description Единый зарегистрированный договор ГКСЭ (Шапка + Аналитика) */
-        PatchedContract: {
-            readonly id?: number;
-            /** Номер договора */
-            number?: string;
-            /**
-             * Дата заключения договора
-             * Format: date
-             */
-            contract_date?: string;
-            /** Исполнитель/Поставщик */
-            supplier?: number;
-            readonly supplier_detail?: components["schemas"]["Supplier"];
-            /**
-             * Общая сумма договора
-             * Format: decimal
-             */
-            total_cost?: string;
-            /** Закупщик */
-            buyer?: number | null;
-            /** Основной договор (для Доп. соглашений) */
-            parent_contract?: number | null;
-            /** Регистрация в территориальном казначействе */
-            is_registered_in_treasury?: boolean;
-            /** Условия оплаты */
-            payment_terms?: string | null;
-            /**
-             * Плановая дата поставки / выполнения работ / оказания услуг
-             * Format: date
-             */
-            planned_delivery_date?: string;
-            /** Примечание / Дополнительная информация */
-            notice?: string | null;
-            /** Пункт перечня плана основных средств */
-            fixed_assets_plan_item?: string | null;
-            /**
-             * Вид процедуры закупки (Пункт)
-             * @description Выбор конкретного пункта процедуры из ведомственного справочника РБ
-             */
-            procurement_method_detail?: number | null;
-            readonly procurement_method_detail_info?: components["schemas"]["ProcurementMethodDetail"];
-            /** Вид строительных работ / Объект строительства */
-            construction_type?: string | null;
-            /** Format: date-time */
-            readonly created_at?: string;
-            readonly items?: components["schemas"]["ContractItem"][];
-            readonly payments?: components["schemas"]["TreasuryPayment"][];
-            readonly days_remaining?: number;
-            readonly is_urgent_warning?: boolean;
-            /** @description Интегрирует расчет поквартального прогноза (как в примере с картриджами) в JSON */
-            readonly quarterly_analytics?: {
-                [key: string]: unknown;
-            };
-        };
-        /** @description Рекурсивный сериализатор для автоматической сборки дерева подразделений ГКСЭ */
-        PatchedDepartmentTree: {
-            readonly id?: number;
-            /** Полное наименование подразделения */
-            full_name?: string;
-            /** Краткое наименование подразделения */
-            short_name?: string;
-            /** Действующее подразделение */
-            is_active?: boolean;
-            readonly is_root?: boolean;
-            /** Вышестоящее подразделение (Агрегатор) */
-            parent?: number | null;
-            readonly sub_departments?: string;
-        };
-        PatchedExternalEconomicCode: {
-            readonly id?: number;
-            /** Код в формате API (например, '1 10 10 99') */
-            code_api?: string;
-            /** Наименование статьи (например, '1.10.06.00 Оплата услуг связи') */
-            description?: string;
-            /** Действующий код */
-            is_active?: boolean;
-        };
-        /** @description Сериализатор справочника функциональной классификации расходов Минфина РБ. */
-        PatchedFunctionalCode: {
-            readonly id?: number;
-            /** Код в формате API (например, '3 12 0 851') */
-            code_api?: string;
-            /** Наименование объекта/цели (например, '03_12_00 § 851 (Витебск 3)') */
-            description?: string | null;
-            /** Действующий код */
-            is_active?: boolean;
-        };
-        /** @description Рекурсивный сериализатор для автоматической сборки дерева ЭКР Минфина РБ */
-        PatchedInternalEconomicClassifierTree: {
-            readonly id?: number;
-            /** Код ЭКР (например, 1101008165) */
-            code?: string;
-            /** Наименование (расшифровка кода) */
-            name?: string;
-            /** Действующий код */
-            is_active?: boolean;
-            readonly sub_codes?: string;
-        };
-        PatchedOkrbProduct: {
-            readonly id?: number;
-            /** Код ОКРБ 007 (например, 62.01.11.900) */
-            code?: string;
-            /** Наименование группировки/вида продукции */
-            title?: string;
-            /** Актуальный код */
-            is_active?: boolean;
-        };
-        PatchedPlanItem: {
-            readonly id?: number;
-            plan_purchase?: number;
-            /** Регистрационный номер позиции ГПЗ на goszakupki.by */
-            num?: string | null;
-            /** Публикуется на goszakupki.by? */
-            is_public?: boolean;
-            /** Активная позиция? */
-            is_active?: boolean;
-            /** Format: date-time */
-            readonly created_at?: string;
-            /** Format: date-time */
-            readonly updated_at?: string;
-        };
-        PatchedPlanItemDetail: {
-            readonly id?: number;
-            plan_item?: number;
-            /** Format: date-time */
-            readonly created_at?: string;
-            /** Format: date-time */
-            readonly changed_at?: string;
-            /** Статус */
-            status?: components["schemas"]["StatusEnum"];
-            /**
-             * Id позиции ГПЗ на goszakupki.by
-             * Format: int64
-             */
-            purchases_item_id?: number | null;
-            /**
-             * Идентификатор ГПЗ на goszakupki.by
-             * Format: int64
-             */
-            purchases_id?: number | null;
-            /** УНП */
-            unp_budget?: string;
-            /** Регистрационный номер позиции ГПЗ на goszakupki.by */
-            num?: string;
-            /** Наименование позиции ГПЗ на goszakupki.by */
-            title?: string;
-            /** Код ОКРБ 007 позиции ГПЗ на goszakupki.by */
-            okrb?: string;
-            /** Наименование позиции ГПЗ на goszakupki.by */
-            okrb_title?: string;
-            /** Продукция по ОКРБ 007 */
-            okrb_product?: number | null;
-            /** Вид предмета закупки для позиции ГПЗ на goszakupki.by */
-            type?: components["schemas"]["TypeEnum"];
-            /**
-             * Объем закупки позиции ГПЗ на goszakupki.by
-             * Format: decimal
-             */
-            val_amount?: string;
-            /** Код ОКРБ 008 позиции ГПЗ на goszakupki.by */
-            val_type?: string;
-            /** Единица измерения */
-            val_unit?: number | null;
-            /**
-             * Цена позиции ГПЗ за счет средств внебюджетных фондов на goszakupki.by
-             * Format: decimal
-             */
-            fund_cost?: string;
-            /**
-             * Цена позиции ГПЗ за счет средств собственных средств на goszakupki.by
-             * Format: decimal
-             */
-            inner_cost?: string;
-            /** Валюта позиции ГПЗ на goszakupki.by */
-            val_currency?: components["schemas"]["ValCurrencyEnum"];
-            /** Список месяцев (от 1 до 12), в которые проводится процедура */
-            procedure_months?: unknown;
-            /** Отметка о проведении закупки организатором на goszakupki.by */
-            is_by_organizator?: boolean;
-            /** Закупщик */
-            buyer?: number | null;
-            readonly buyer_detail?: components["schemas"]["Buyer"];
-        };
-        /** @description Сериализатор иерархических пунктов процедур закупок РБ */
-        PatchedProcurementMethodTree: {
-            readonly id?: number;
-            /**
-             * Наименование процедуры / пункта
-             * @description Например: 'ОИ по пункту 26 (Коммунальные услуги)' или 'Электронный аукцион'
-             */
-            name?: string;
-            /** Актуальный метод */
-            is_active?: boolean;
-            /**
-             * Родительский метод закупки
-             * @description Оставьте пустым, если это верхнеуровневый метод (например, просто 'Закупка из одного источника')
-             */
-            parent?: number | null;
-            readonly sub_methods?: string;
-        };
-        /** @description Сериализатор справочника функциональной классификации расходов Минфина РБ. */
-        PatchedProgramCode: {
-            readonly id?: number;
-            /** Код в формате API (например, '99 0') */
-            code_api?: string;
-            /** Официальный вид (например, '99_00' или '19_01') и наименование */
-            description?: string | null;
-            /** Действующая программа */
-            is_active?: boolean;
-        };
-        PatchedPurchases: {
-            readonly id?: number;
-            /** ID плана */
-            purchase_id?: number | null;
-            /** Регистрационный номер плана ГПЗ на goszakupki.by */
-            purchase_num?: string | null;
-            /** Наименование организации */
-            company?: string;
-            /** Ведомственная принадлежность */
-            ved?: string;
-            /** Страна организации */
-            country?: string;
-            /** Область (регион) организации */
-            region?: string | null;
-            /** Город (населенный пункт) организации */
-            city?: string | null;
-            /** Адрес организации */
-            address?: string | null;
-            /** Идентификатор ведомства, к которому относится организация */
-            establishment?: number | null;
-            /**
-             * Время добавления плана
-             * Format: date-time
-             */
-            date_added?: string | null;
-            /**
-             * Время редактирования плана
-             * Format: date-time
-             */
-            date_edit?: string | null;
-            /**
-             * Дата утверждения плана
-             * Format: date-time
-             */
-            date_sign?: string | null;
-            /** Лицо утвердившее план */
-            signer_descrip?: string;
-            /** Лицо разместившее план */
-            sender_descrip?: string;
-            /** Год плана */
-            year?: number | null;
-            /** Признак черновика плана */
-            is_draft?: number;
-            /** Метка времени последнего обновления плана закупок */
-            at_updated?: string | null;
-        };
-        /** @description Сериализатор контрагентов (ЕАЭС: УНП/ИНН) */
-        PatchedSupplier: {
-            readonly id?: number;
-            /** Наименование организации */
-            name?: string;
-            /** УНП */
-            unp?: string;
-        };
-        /** @description Обновленный сериализатор единиц измерения под актуальную модель */
-        PatchedUnitOfMeasurement: {
-            readonly id?: number;
-            /** Код в формате API (например, '0642') */
-            code?: string;
-            /** Краткое наименование (например, 'шт.', 'ед.') */
-            short_name?: string;
-            /** Актуальный код */
-            is_active?: boolean;
-        };
-        PlanItem: {
-            readonly id: number;
-            plan_purchase: number;
-            /** Регистрационный номер позиции ГПЗ на goszakupki.by */
-            num?: string | null;
-            /** Публикуется на goszakupki.by? */
-            is_public?: boolean;
-            /** Активная позиция? */
-            is_active?: boolean;
-            /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            readonly updated_at: string;
-        };
-        PlanItemDetail: {
-            readonly id: number;
-            plan_item: number;
-            /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            readonly changed_at: string;
-            /** Статус */
-            status?: components["schemas"]["StatusEnum"];
-            /**
-             * Id позиции ГПЗ на goszakupki.by
-             * Format: int64
-             */
-            purchases_item_id?: number | null;
-            /**
-             * Идентификатор ГПЗ на goszakupki.by
-             * Format: int64
-             */
-            purchases_id?: number | null;
-            /** УНП */
-            unp_budget?: string;
-            /** Регистрационный номер позиции ГПЗ на goszakupki.by */
-            num: string;
-            /** Наименование позиции ГПЗ на goszakupki.by */
-            title: string;
-            /** Код ОКРБ 007 позиции ГПЗ на goszakupki.by */
-            okrb: string;
-            /** Наименование позиции ГПЗ на goszakupki.by */
-            okrb_title: string;
-            /** Продукция по ОКРБ 007 */
-            okrb_product?: number | null;
-            /** Вид предмета закупки для позиции ГПЗ на goszakupki.by */
-            type?: components["schemas"]["TypeEnum"];
-            /**
-             * Объем закупки позиции ГПЗ на goszakupki.by
-             * Format: decimal
-             */
-            val_amount?: string;
-            /** Код ОКРБ 008 позиции ГПЗ на goszakupki.by */
-            val_type: string;
-            /** Единица измерения */
-            val_unit?: number | null;
-            /**
-             * Цена позиции ГПЗ за счет средств внебюджетных фондов на goszakupki.by
-             * Format: decimal
-             */
-            fund_cost?: string;
-            /**
-             * Цена позиции ГПЗ за счет средств собственных средств на goszakupki.by
-             * Format: decimal
-             */
-            inner_cost?: string;
-            /** Валюта позиции ГПЗ на goszakupki.by */
-            val_currency?: components["schemas"]["ValCurrencyEnum"];
-            /** Список месяцев (от 1 до 12), в которые проводится процедура */
-            procedure_months?: unknown;
-            /** Отметка о проведении закупки организатором на goszakupki.by */
-            is_by_organizator?: boolean;
-            /** Закупщик */
-            buyer?: number | null;
-            readonly buyer_detail: components["schemas"]["Buyer"];
-        };
-        /**
-         * @description Cериализатор позиций ГПЗ для React-фронтенда.
-         *     Автоматически собирает корень, актуальную детальную информацию текст и финансовые лимиты.
-         */
-        PlanItemFull: {
-            readonly id: number;
-            plan_purchase: number;
-            /** Регистрационный номер позиции ГПЗ на goszakupki.by */
-            num?: string | null;
-            /** Публикуется на goszakupki.by? */
-            is_public?: boolean;
-            /** Активная позиция? */
-            is_active?: boolean;
-            /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            readonly updated_at: string;
-            readonly title: string;
-            readonly okrb: string;
-            readonly okrb_title: string;
-            readonly type: string;
-            readonly val_unit: string;
-            /** Format: decimal */
-            readonly val_amount: string;
-            readonly procedure_months: number[];
-            readonly is_by_organizator: number[];
-            readonly buyer_detail: components["schemas"]["Buyer"][];
-            readonly aggregated_cost: components["schemas"]["CostDetailResponseSchema"];
-            readonly economic_details: components["schemas"]["BudgetCostsForItem"][];
-        };
-        /**
-         * @description Канонический сериализатор позиций ГПЗ для собственного React-фронтенда.
-         *     Автоматически собирает плоский корень, активный текст и финансовые лимиты.
-         */
-        PlanItemShort: {
-            readonly id: number;
-            /** Регистрационный номер позиции ГПЗ на goszakupki.by */
-            num?: string | null;
-            readonly title: string;
-            readonly okrb: string;
-            readonly val_unit: string;
-            /** Format: decimal */
-            readonly val_amount: string;
-            /** Format: decimal */
-            readonly aggregated_cost: string;
-            readonly economic_details: components["schemas"]["BudgetCostsForShortItem"][];
-            readonly contracts: boolean;
-            /** Публикуется на goszakupki.by? */
-            is_public?: boolean;
-            /** Активная позиция? */
-            is_active?: boolean;
-            /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            readonly updated_at: string;
-        };
-        /** @description Сериализатор пунктов процедур закупок РБ */
-        ProcurementMethodDetail: {
-            readonly id: number;
-            /**
-             * Наименование процедуры / пункта
-             * @description Например: 'ОИ по пункту 26 (Коммунальные услуги)' или 'Электронный аукцион'
-             */
-            name: string;
-            /**
-             * Родительский метод закупки
-             * @description Оставьте пустым, если это верхнеуровневый метод (например, просто 'Закупка из одного источника')
-             */
-            parent?: number | null;
-            /** Актуальный метод */
-            is_active?: boolean;
-        };
-        /** @description Сериализатор иерархических пунктов процедур закупок РБ */
-        ProcurementMethodTree: {
-            readonly id: number;
-            /**
-             * Наименование процедуры / пункта
-             * @description Например: 'ОИ по пункту 26 (Коммунальные услуги)' или 'Электронный аукцион'
-             */
-            name: string;
-            /** Актуальный метод */
-            is_active?: boolean;
-            /**
-             * Родительский метод закупки
-             * @description Оставьте пустым, если это верхнеуровневый метод (например, просто 'Закупка из одного источника')
-             */
-            parent?: number | null;
-            readonly sub_methods: string;
-        };
-        /** @description Сериализатор справочника функциональной классификации расходов Минфина РБ. */
-        ProgramCode: {
-            readonly id: number;
-            /** Код в формате API (например, '99 0') */
-            code_api: string;
-            /** Официальный вид (например, '99_00' или '19_01') и наименование */
-            description?: string | null;
-            /** Действующая программа */
-            is_active?: boolean;
-        };
-        Purchases: {
-            readonly id: number;
-            /** ID плана */
-            purchase_id?: number | null;
-            /** Регистрационный номер плана ГПЗ на goszakupki.by */
-            purchase_num?: string | null;
-            /** Наименование организации */
-            company?: string;
-            /** Ведомственная принадлежность */
-            ved?: string;
-            /** Страна организации */
-            country?: string;
-            /** Область (регион) организации */
-            region?: string | null;
-            /** Город (населенный пункт) организации */
-            city?: string | null;
-            /** Адрес организации */
-            address?: string | null;
-            /** Идентификатор ведомства, к которому относится организация */
-            establishment?: number | null;
-            /**
-             * Время добавления плана
-             * Format: date-time
-             */
-            date_added?: string | null;
-            /**
-             * Время редактирования плана
-             * Format: date-time
-             */
-            date_edit?: string | null;
-            /**
-             * Дата утверждения плана
-             * Format: date-time
-             */
-            date_sign?: string | null;
-            /** Лицо утвердившее план */
-            signer_descrip?: string;
-            /** Лицо разместившее план */
-            sender_descrip?: string;
-            /** Год плана */
-            year?: number | null;
-            /** Признак черновика плана */
-            is_draft?: number;
-            /** Метка времени последнего обновления плана закупок */
-            at_updated?: string | null;
-        };
+  schemas: {
+    BudgetCosts: {
+      readonly id: number;
+      /** Версия пункта плана */
+      plan_item?: number | null;
+      /** Статус */
+      status?: components["schemas"]["StatusBd6Enum"];
+      /** Заявка на изменение */
+      change_request?: number | null;
+      /** Id позиции ГПЗ на goszakupki.by */
+      purchases_items_id: number;
+      /** Format: decimal */
+      readonly aggregated_cost: string;
+      /**
+       * Ориентировочная стоимость позиции ГПЗ
+       * Format: decimal
+       */
+      cost?: string;
+      /** Функциональная классификация */
+      functional_class?: number | null;
+      readonly functional_class_code_api: string;
+      readonly functional_class_detail: components["schemas"]["FunctionalCode"];
+      /** Код ведомственной классификации */
+      department_code?: string | null;
+      /** Внешний код ЭКР */
+      economic_class?: number | null;
+      readonly economic_class_code_api: string;
+      readonly economic_class_detail: components["schemas"]["ExternalEconomicCode"];
+      /** Программная классификация */
+      program_class?: number | null;
+      readonly program_class_code_api: string;
+      readonly program_class_detail: components["schemas"]["ProgramCode"];
+      /** Код бюджета позиции плана */
+      budget_code?: number;
+      /** Описание кода бюджета */
+      budget_code_name?: string;
+      /** УНК заказчика позиции */
+      unk?: string | null;
+      /** Код территориального казначейства */
+      tk_id?: number | null;
+      /** Год финансирования из бюджета */
+      year?: number;
+      /** Экономический код расходов (ЭКР) */
+      internal_economic_class?: number | null;
+      readonly internal_economic_class_code: string;
+      readonly internal_economic_class_detail: components["schemas"]["InternalEconomicClassifier"];
+      /** Раздел (Уровень 1) */
+      internal_economic_section?: number | null;
+      readonly internal_economic_section_code: string;
+      readonly internal_economic_section_detail: components["schemas"]["InternalEconomicClassifier"];
+      /** Подраздел (Уровень 2) */
+      internal_economic_subsection?: number | null;
+      readonly internal_economic_subsection_code: string;
+      readonly internal_economic_subsection_detail: components["schemas"]["InternalEconomicClassifier"];
+      /** Вид (Уровень 3) */
+      internal_economic_kind?: number | null;
+      readonly internal_economic_kind_code: string;
+      readonly internal_economic_kind_detail: components["schemas"]["InternalEconomicClassifier"];
+      /** Статья (Уровень 4) */
+      internal_economic_article?: number | null;
+      readonly internal_economic_article_code: string;
+      readonly internal_economic_article_detail: components["schemas"]["InternalEconomicClassifier"];
+    };
+    BudgetCostsForItem: {
+      readonly id: number;
+      /** Статус */
+      status?: components["schemas"]["StatusBd6Enum"];
+      /** Год финансирования из бюджета */
+      year?: number;
+      readonly cost_detail: components["schemas"]["CostDetailResponseSchema"];
+      readonly functional_class_detail: components["schemas"]["FunctionalCode"];
+      readonly economic_class_detail: components["schemas"]["ExternalEconomicCode"];
+      readonly internal_economic_class_detail: components["schemas"]["InternalEconomicClassifier"];
+      readonly program_class_detail: components["schemas"]["ProgramCode"];
+      /** Код ведомственной классификации */
+      department_code?: string | null;
+      /** УНК заказчика позиции */
+      unk?: string | null;
+      /** Код территориального казначейства */
+      tk_id?: number | null;
+      /** Код бюджета позиции плана */
+      budget_code?: number;
+      /** Описание кода бюджета */
+      budget_code_name?: string;
+      readonly cost_departments: string;
+    };
+    BudgetCostsForShortItem: {
+      readonly id: number;
+      /** Год финансирования из бюджета */
+      year?: number;
+      /** Format: decimal */
+      readonly full_cost: string;
+      /** Функциональный код goszakupki.by */
+      functional_code?: string | null;
+      /** Экономический код goszakupki.by */
+      economic_code?: string | null;
+      readonly internal_economic_class_detail: components["schemas"]["InternalEconomicClassifier"];
+    };
+    /** @description Сериализатор для справочника работников-закупщиков ГКСЭ */
+    Buyer: {
+      readonly id: number;
+      /** Фамилия и инициалы */
+      shot_name: string;
+      /** ФИО полностью */
+      full_name: string;
+      /** Действующий (не действующий) сотрудник */
+      is_active?: boolean;
+    };
+    ChangeRequest: {
+      readonly id: number;
+      /** Позиция плана */
+      plan_item?: number | null;
+      readonly plan_item_num: string;
+      /** Вид заявки */
+      kind: components["schemas"]["KindEnum"];
+      readonly kind_display: string;
+      /** Статус */
+      readonly status: components["schemas"]["ChangeRequestStatusEnum"];
+      readonly status_display: string;
+      /**
+       * Обоснование заявителя
+       * @description Для исключения позиции — обязательно; для изменения — опциональный комментарий.
+       */
+      reason?: string;
+      /** Причина отклонения */
+      readonly rejection_reason: string;
+      /**
+       * Отправлена на проверку
+       * Format: date-time
+       */
+      readonly submitted_at: string | null;
+      /**
+       * Решение принято
+       * Format: date-time
+       */
+      readonly reviewed_at: string | null;
+      /** Format: date-time */
+      readonly created_at: string;
+      /** Format: date-time */
+      readonly changed_at: string;
+    };
+    /**
+     * @description * `DRAFT` - Черновик
+     *     * `ON_REVIEW` - На проверке
+     *     * `APPROVED` - Одобрена
+     *     * `REJECTED` - Отклонена
+     * @enum {string}
+     */
+    ChangeRequestStatusEnum: "DRAFT" | "ON_REVIEW" | "APPROVED" | "REJECTED";
+    /** @description Единый зарегистрированный договор ГКСЭ (Шапка + Аналитика) */
+    Contract: {
+      readonly id: number;
+      /** Номер договора */
+      number: string;
+      /**
+       * Дата заключения договора
+       * Format: date
+       */
+      contract_date?: string;
+      /** Исполнитель/Поставщик */
+      supplier: number;
+      readonly supplier_detail: components["schemas"]["Supplier"];
+      /**
+       * Общая сумма договора
+       * Format: decimal
+       */
+      total_cost: string;
+      /** Закупщик */
+      buyer?: number | null;
+      /** Основной договор (для Доп. соглашений) */
+      parent_contract?: number | null;
+      /** Регистрация в территориальном казначействе */
+      is_registered_in_treasury?: boolean;
+      /** Условия оплаты */
+      payment_terms?: string | null;
+      /**
+       * Плановая дата поставки / выполнения работ / оказания услуг
+       * Format: date
+       */
+      planned_delivery_date: string;
+      /** Примечание / Дополнительная информация */
+      notice?: string | null;
+      /** Пункт перечня плана основных средств */
+      fixed_assets_plan_item?: string | null;
+      /**
+       * Вид процедуры закупки (Пункт)
+       * @description Выбор конкретного пункта процедуры из ведомственного справочника РБ
+       */
+      procurement_method_detail?: number | null;
+      readonly procurement_method_detail_info: components["schemas"]["ProcurementMethodDetail"];
+      /** Вид строительных работ / Объект строительства */
+      construction_type?: string | null;
+      /** Format: date-time */
+      readonly created_at: string;
+      readonly items: components["schemas"]["ContractItem"][];
+      readonly payments: components["schemas"]["TreasuryPayment"][];
+      readonly days_remaining: number;
+      readonly is_urgent_warning: boolean;
+      readonly quarterly_finance: unknown[];
+    };
+    /** @description Спецификация договора (Детализация списания лимитов подразделений) */
+    ContractItem: {
+      readonly id: number;
+      contract: number;
+      /** Наименование позиции, как в договоре */
+      title?: string | null;
+      /** Год позиции договора */
+      year?: number;
+      plan_share: number;
+      /**
+       * Количество по договору
+       * Format: decimal
+       */
+      contract_amount: string;
+      /**
+       * Сумма по договору
+       * Format: decimal
+       */
+      contract_cost: string;
+    };
+    /**
+     * @description Квартальный план/факт договора (Этап 4.3) — специалист вручную корректирует
+     *     planned_cost (ручная правка квартального плана), actual_cost пересчитывается
+     *     автоматически по платёжкам (см. TreasuryPayment.save()) и обычно не правится руками.
+     */
+    ContractQuarterlyFinance: {
+      readonly id: number;
+      /** Договор */
+      contract: number;
+      /** Строка договора (подразделение) */
+      contract_item?: number | null;
+      /** Квартал */
+      quarter: components["schemas"]["QuarterEnum"];
+      /** Год */
+      year?: number;
+      /**
+       * Прогнозируемый (планируемый) расход
+       * Format: decimal
+       */
+      planned_cost?: string;
+      /**
+       * Фактический расход (по платежным поручениям)
+       * Format: decimal
+       */
+      actual_cost?: string;
+    };
+    CostDetailResponseSchema: {
+      /** Format: decimal */
+      total_cost: string;
+      /** Format: decimal */
+      budget_cost: string;
+      /** Format: decimal */
+      fund_cost: string;
+      /** Format: decimal */
+      inner_cost: string;
+    };
+    /** @description Базовый сериализатор для создания, изменения и плоского вывода подразделений */
+    Department: {
+      readonly id: number;
+      /** Полное наименование подразделения */
+      full_name: string;
+      /** Краткое наименование подразделения */
+      short_name: string;
+      /** Действующее подразделение */
+      is_active?: boolean;
+      /** Вышестоящее подразделение (Агрегатор) */
+      parent?: number | null;
+      readonly is_root: boolean;
+    };
+    /**
+     * @description CRUD черновика калибровки (Этап, kind=DEPARTMENT_LIMIT_CALIBRATION) — специалист
+     *     добавляет/правит/удаляет строки подстатей (department=null) и держателей (department
+     *     заполнен) через обычный REST, затем смотрит сверку через
+     *     /api/change_requests/{id}/forecast/ (переиспользует общий движок, Этап 2).
+     */
+    DepartmentArticleLimit: {
+      readonly id: number;
+      /**
+       * Статус
+       * @default ACTIVE
+       */
+      status: components["schemas"]["StatusBd6Enum"];
+      /** Функциональная классификация (раздел/параграф) */
+      functional_class: number;
+      readonly functional_code: string;
+      /** Статья ЭКР (внешняя, от Минфина/Казначейства) */
+      economic_class: number;
+      readonly economic_code: string;
+      /** Подстатья (внутренний классификатор ГКСЭ) */
+      internal_economic_class: number;
+      readonly internal_economic_class_code: string;
+      /** Держатель лимита (подразделение) */
+      department?: number | null;
+      readonly department_name: string;
+      /** Год */
+      year: number;
+      /**
+       * Сумма (BYN)
+       * Format: decimal
+       */
+      amount?: string;
+      /** Заявка на изменение */
+      change_request?: number | null;
+      /** Format: date-time */
+      readonly created_at: string;
+      /** Format: date-time */
+      readonly changed_at: string;
+    };
+    /** @description Рекурсивный сериализатор для автоматической сборки дерева подразделений ГКСЭ */
+    DepartmentTree: {
+      readonly id: number;
+      /** Полное наименование подразделения */
+      full_name: string;
+      /** Краткое наименование подразделения */
+      short_name: string;
+      /** Действующее подразделение */
+      is_active?: boolean;
+      readonly is_root: boolean;
+      /** Вышестоящее подразделение (Агрегатор) */
+      parent?: number | null;
+      readonly sub_departments: string;
+    };
+    ExternalEconomicCode: {
+      readonly id: number;
+      /** Код в формате API (например, '1 10 10 99') */
+      code_api: string;
+      /** Наименование статьи (например, '1.10.06.00 Оплата услуг связи') */
+      description: string;
+      /** Действующий код */
+      is_active?: boolean;
+    };
+    /** @description Сериализатор справочника функциональной классификации расходов Минфина РБ. */
+    FunctionalCode: {
+      readonly id: number;
+      /** Код в формате API (например, '3 12 0 851') */
+      code_api: string;
+      /** Наименование объекта/цели (например, '03_12_00 § 851 (Витебск 3)') */
+      description?: string | null;
+      /** Действующий код */
+      is_active?: boolean;
+    };
+    /** @description Базовый плоский сериализатор для создания, изменения и поиска статей ЭКР */
+    InternalEconomicClassifier: {
+      readonly id: number;
+      /** Код ЭКР (например, 1101008165) */
+      code: string;
+      /** Наименование (расшифровка кода) */
+      name: string;
+      /** Действующий код */
+      is_active?: boolean;
+      /** Вышестоящая статья/группа */
+      parent?: number | null;
+    };
+    /** @description Рекурсивный сериализатор для автоматической сборки дерева ЭКР Минфина РБ */
+    InternalEconomicClassifierTree: {
+      readonly id: number;
+      /** Код ЭКР (например, 1101008165) */
+      code: string;
+      /** Наименование (расшифровка кода) */
+      name: string;
+      /** Действующий код */
+      is_active?: boolean;
+      readonly sub_codes: string;
+    };
+    /**
+     * @description * `PLAN_ITEM_CHANGE` - Изменение позиции плана
+     *     * `PLAN_ITEM_EXCLUSION` - Исключение позиции плана
+     *     * `LIMIT_REDISTRIBUTION` - Перераспределение лимита
+     *     * `BUDGET_LIMIT_CORRECTION` - Корректировка лимита (Казначейство)
+     *     * `DEPARTMENT_LIMIT_CALIBRATION` - Калибровка лимитов по подразделениям
+     * @enum {string}
+     */
+    KindEnum:
+      | "PLAN_ITEM_CHANGE"
+      | "PLAN_ITEM_EXCLUSION"
+      | "LIMIT_REDISTRIBUTION"
+      | "BUDGET_LIMIT_CORRECTION"
+      | "DEPARTMENT_LIMIT_CALIBRATION";
+    /** @description Справочник видов платежей (обычный / возврат-восстановление кассового расхода) */
+    KindOfPayment: {
+      readonly id: number;
+      /** Название типа платежа */
+      name: string;
+      /** Уменьшает фактический расход (возврат / восстановление кассовых расходов) */
+      is_refund?: boolean;
+    };
+    OkrbProduct: {
+      readonly id: number;
+      /** Код ОКРБ 007 (например, 62.01.11.900) */
+      code: string;
+      /** Наименование группировки/вида продукции */
+      title: string;
+      /** Актуальный код */
+      is_active?: boolean;
+    };
+    PaginatedBudgetCostsList: {
+      /** @example 123 */
+      count: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=400&limit=100
+       */
+      next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=200&limit=100
+       */
+      previous?: string | null;
+      results: components["schemas"]["BudgetCosts"][];
+    };
+    PaginatedChangeRequestList: {
+      /** @example 123 */
+      count: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=400&limit=100
+       */
+      next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=200&limit=100
+       */
+      previous?: string | null;
+      results: components["schemas"]["ChangeRequest"][];
+    };
+    PaginatedContractList: {
+      /** @example 123 */
+      count: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=400&limit=100
+       */
+      next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=200&limit=100
+       */
+      previous?: string | null;
+      results: components["schemas"]["Contract"][];
+    };
+    PaginatedContractQuarterlyFinanceList: {
+      /** @example 123 */
+      count: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=400&limit=100
+       */
+      next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=200&limit=100
+       */
+      previous?: string | null;
+      results: components["schemas"]["ContractQuarterlyFinance"][];
+    };
+    PaginatedDepartmentArticleLimitList: {
+      /** @example 123 */
+      count: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=400&limit=100
+       */
+      next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=200&limit=100
+       */
+      previous?: string | null;
+      results: components["schemas"]["DepartmentArticleLimit"][];
+    };
+    PaginatedPlanItemDetailList: {
+      /** @example 123 */
+      count: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=400&limit=100
+       */
+      next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=200&limit=100
+       */
+      previous?: string | null;
+      results: components["schemas"]["PlanItemDetail"][];
+    };
+    PaginatedPlanItemShortList: {
+      /** @example 123 */
+      count: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=400&limit=100
+       */
+      next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=200&limit=100
+       */
+      previous?: string | null;
+      results: components["schemas"]["PlanItemShort"][];
+    };
+    PaginatedPlanShareList: {
+      /** @example 123 */
+      count: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=400&limit=100
+       */
+      next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=200&limit=100
+       */
+      previous?: string | null;
+      results: components["schemas"]["PlanShare"][];
+    };
+    PaginatedTreasuryPaymentList: {
+      /** @example 123 */
+      count: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=400&limit=100
+       */
+      next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=200&limit=100
+       */
+      previous?: string | null;
+      results: components["schemas"]["TreasuryPayment"][];
+    };
+    PatchedBudgetCosts: {
+      readonly id?: number;
+      /** Версия пункта плана */
+      plan_item?: number | null;
+      /** Статус */
+      status?: components["schemas"]["StatusBd6Enum"];
+      /** Заявка на изменение */
+      change_request?: number | null;
+      /** Id позиции ГПЗ на goszakupki.by */
+      purchases_items_id?: number;
+      /** Format: decimal */
+      readonly aggregated_cost?: string;
+      /**
+       * Ориентировочная стоимость позиции ГПЗ
+       * Format: decimal
+       */
+      cost?: string;
+      /** Функциональная классификация */
+      functional_class?: number | null;
+      readonly functional_class_code_api?: string;
+      readonly functional_class_detail?: components["schemas"]["FunctionalCode"];
+      /** Код ведомственной классификации */
+      department_code?: string | null;
+      /** Внешний код ЭКР */
+      economic_class?: number | null;
+      readonly economic_class_code_api?: string;
+      readonly economic_class_detail?: components["schemas"]["ExternalEconomicCode"];
+      /** Программная классификация */
+      program_class?: number | null;
+      readonly program_class_code_api?: string;
+      readonly program_class_detail?: components["schemas"]["ProgramCode"];
+      /** Код бюджета позиции плана */
+      budget_code?: number;
+      /** Описание кода бюджета */
+      budget_code_name?: string;
+      /** УНК заказчика позиции */
+      unk?: string | null;
+      /** Код территориального казначейства */
+      tk_id?: number | null;
+      /** Год финансирования из бюджета */
+      year?: number;
+      /** Экономический код расходов (ЭКР) */
+      internal_economic_class?: number | null;
+      readonly internal_economic_class_code?: string;
+      readonly internal_economic_class_detail?: components["schemas"]["InternalEconomicClassifier"];
+      /** Раздел (Уровень 1) */
+      internal_economic_section?: number | null;
+      readonly internal_economic_section_code?: string;
+      readonly internal_economic_section_detail?: components["schemas"]["InternalEconomicClassifier"];
+      /** Подраздел (Уровень 2) */
+      internal_economic_subsection?: number | null;
+      readonly internal_economic_subsection_code?: string;
+      readonly internal_economic_subsection_detail?: components["schemas"]["InternalEconomicClassifier"];
+      /** Вид (Уровень 3) */
+      internal_economic_kind?: number | null;
+      readonly internal_economic_kind_code?: string;
+      readonly internal_economic_kind_detail?: components["schemas"]["InternalEconomicClassifier"];
+      /** Статья (Уровень 4) */
+      internal_economic_article?: number | null;
+      readonly internal_economic_article_code?: string;
+      readonly internal_economic_article_detail?: components["schemas"]["InternalEconomicClassifier"];
+    };
+    /** @description Сериализатор для справочника работников-закупщиков ГКСЭ */
+    PatchedBuyer: {
+      readonly id?: number;
+      /** Фамилия и инициалы */
+      shot_name?: string;
+      /** ФИО полностью */
+      full_name?: string;
+      /** Действующий (не действующий) сотрудник */
+      is_active?: boolean;
+    };
+    PatchedChangeRequest: {
+      readonly id?: number;
+      /** Позиция плана */
+      plan_item?: number | null;
+      readonly plan_item_num?: string;
+      /** Вид заявки */
+      kind?: components["schemas"]["KindEnum"];
+      readonly kind_display?: string;
+      /** Статус */
+      readonly status?: components["schemas"]["ChangeRequestStatusEnum"];
+      readonly status_display?: string;
+      /**
+       * Обоснование заявителя
+       * @description Для исключения позиции — обязательно; для изменения — опциональный комментарий.
+       */
+      reason?: string;
+      /** Причина отклонения */
+      readonly rejection_reason?: string;
+      /**
+       * Отправлена на проверку
+       * Format: date-time
+       */
+      readonly submitted_at?: string | null;
+      /**
+       * Решение принято
+       * Format: date-time
+       */
+      readonly reviewed_at?: string | null;
+      /** Format: date-time */
+      readonly created_at?: string;
+      /** Format: date-time */
+      readonly changed_at?: string;
+    };
+    /** @description Единый зарегистрированный договор ГКСЭ (Шапка + Аналитика) */
+    PatchedContract: {
+      readonly id?: number;
+      /** Номер договора */
+      number?: string;
+      /**
+       * Дата заключения договора
+       * Format: date
+       */
+      contract_date?: string;
+      /** Исполнитель/Поставщик */
+      supplier?: number;
+      readonly supplier_detail?: components["schemas"]["Supplier"];
+      /**
+       * Общая сумма договора
+       * Format: decimal
+       */
+      total_cost?: string;
+      /** Закупщик */
+      buyer?: number | null;
+      /** Основной договор (для Доп. соглашений) */
+      parent_contract?: number | null;
+      /** Регистрация в территориальном казначействе */
+      is_registered_in_treasury?: boolean;
+      /** Условия оплаты */
+      payment_terms?: string | null;
+      /**
+       * Плановая дата поставки / выполнения работ / оказания услуг
+       * Format: date
+       */
+      planned_delivery_date?: string;
+      /** Примечание / Дополнительная информация */
+      notice?: string | null;
+      /** Пункт перечня плана основных средств */
+      fixed_assets_plan_item?: string | null;
+      /**
+       * Вид процедуры закупки (Пункт)
+       * @description Выбор конкретного пункта процедуры из ведомственного справочника РБ
+       */
+      procurement_method_detail?: number | null;
+      readonly procurement_method_detail_info?: components["schemas"]["ProcurementMethodDetail"];
+      /** Вид строительных работ / Объект строительства */
+      construction_type?: string | null;
+      /** Format: date-time */
+      readonly created_at?: string;
+      readonly items?: components["schemas"]["ContractItem"][];
+      readonly payments?: components["schemas"]["TreasuryPayment"][];
+      readonly days_remaining?: number;
+      readonly is_urgent_warning?: boolean;
+      readonly quarterly_finance?: unknown[];
+    };
+    /**
+     * @description Квартальный план/факт договора (Этап 4.3) — специалист вручную корректирует
+     *     planned_cost (ручная правка квартального плана), actual_cost пересчитывается
+     *     автоматически по платёжкам (см. TreasuryPayment.save()) и обычно не правится руками.
+     */
+    PatchedContractQuarterlyFinance: {
+      readonly id?: number;
+      /** Договор */
+      contract?: number;
+      /** Строка договора (подразделение) */
+      contract_item?: number | null;
+      /** Квартал */
+      quarter?: components["schemas"]["QuarterEnum"];
+      /** Год */
+      year?: number;
+      /**
+       * Прогнозируемый (планируемый) расход
+       * Format: decimal
+       */
+      planned_cost?: string;
+      /**
+       * Фактический расход (по платежным поручениям)
+       * Format: decimal
+       */
+      actual_cost?: string;
+    };
+    /**
+     * @description CRUD черновика калибровки (Этап, kind=DEPARTMENT_LIMIT_CALIBRATION) — специалист
+     *     добавляет/правит/удаляет строки подстатей (department=null) и держателей (department
+     *     заполнен) через обычный REST, затем смотрит сверку через
+     *     /api/change_requests/{id}/forecast/ (переиспользует общий движок, Этап 2).
+     */
+    PatchedDepartmentArticleLimit: {
+      readonly id?: number;
+      /**
+       * Статус
+       * @default ACTIVE
+       */
+      status: components["schemas"]["StatusBd6Enum"];
+      /** Функциональная классификация (раздел/параграф) */
+      functional_class?: number;
+      readonly functional_code?: string;
+      /** Статья ЭКР (внешняя, от Минфина/Казначейства) */
+      economic_class?: number;
+      readonly economic_code?: string;
+      /** Подстатья (внутренний классификатор ГКСЭ) */
+      internal_economic_class?: number;
+      readonly internal_economic_class_code?: string;
+      /** Держатель лимита (подразделение) */
+      department?: number | null;
+      readonly department_name?: string;
+      /** Год */
+      year?: number;
+      /**
+       * Сумма (BYN)
+       * Format: decimal
+       */
+      amount?: string;
+      /** Заявка на изменение */
+      change_request?: number | null;
+      /** Format: date-time */
+      readonly created_at?: string;
+      /** Format: date-time */
+      readonly changed_at?: string;
+    };
+    /** @description Рекурсивный сериализатор для автоматической сборки дерева подразделений ГКСЭ */
+    PatchedDepartmentTree: {
+      readonly id?: number;
+      /** Полное наименование подразделения */
+      full_name?: string;
+      /** Краткое наименование подразделения */
+      short_name?: string;
+      /** Действующее подразделение */
+      is_active?: boolean;
+      readonly is_root?: boolean;
+      /** Вышестоящее подразделение (Агрегатор) */
+      parent?: number | null;
+      readonly sub_departments?: string;
+    };
+    PatchedExternalEconomicCode: {
+      readonly id?: number;
+      /** Код в формате API (например, '1 10 10 99') */
+      code_api?: string;
+      /** Наименование статьи (например, '1.10.06.00 Оплата услуг связи') */
+      description?: string;
+      /** Действующий код */
+      is_active?: boolean;
+    };
+    /** @description Сериализатор справочника функциональной классификации расходов Минфина РБ. */
+    PatchedFunctionalCode: {
+      readonly id?: number;
+      /** Код в формате API (например, '3 12 0 851') */
+      code_api?: string;
+      /** Наименование объекта/цели (например, '03_12_00 § 851 (Витебск 3)') */
+      description?: string | null;
+      /** Действующий код */
+      is_active?: boolean;
+    };
+    /** @description Рекурсивный сериализатор для автоматической сборки дерева ЭКР Минфина РБ */
+    PatchedInternalEconomicClassifierTree: {
+      readonly id?: number;
+      /** Код ЭКР (например, 1101008165) */
+      code?: string;
+      /** Наименование (расшифровка кода) */
+      name?: string;
+      /** Действующий код */
+      is_active?: boolean;
+      readonly sub_codes?: string;
+    };
+    PatchedOkrbProduct: {
+      readonly id?: number;
+      /** Код ОКРБ 007 (например, 62.01.11.900) */
+      code?: string;
+      /** Наименование группировки/вида продукции */
+      title?: string;
+      /** Актуальный код */
+      is_active?: boolean;
+    };
+    PatchedPlanItem: {
+      readonly id?: number;
+      plan_purchase?: number;
+      /** Регистрационный номер позиции ГПЗ на goszakupki.by */
+      num?: string | null;
+      /** Публикуется на goszakupki.by? */
+      is_public?: boolean;
+      /** Активная позиция? */
+      is_active?: boolean;
+      /** Format: date-time */
+      readonly created_at?: string;
+      /** Format: date-time */
+      readonly updated_at?: string;
+    };
+    PatchedPlanItemDetail: {
+      readonly id?: number;
+      plan_item?: number;
+      /** Format: date-time */
+      readonly created_at?: string;
+      /** Format: date-time */
+      readonly changed_at?: string;
+      /** Статус */
+      status?: components["schemas"]["StatusBd6Enum"];
+      /** Заявка на изменение */
+      change_request?: number | null;
+      /**
+       * Id позиции ГПЗ на goszakupki.by
+       * Format: int64
+       */
+      purchases_item_id?: number | null;
+      /**
+       * Идентификатор ГПЗ на goszakupki.by
+       * Format: int64
+       */
+      purchases_id?: number | null;
+      /** УНП */
+      unp_budget?: string;
+      /** Регистрационный номер позиции ГПЗ на goszakupki.by */
+      num?: string;
+      /** Наименование позиции ГПЗ на goszakupki.by */
+      title?: string;
+      /** Код ОКРБ 007 позиции ГПЗ на goszakupki.by */
+      okrb?: string;
+      /** Наименование позиции ГПЗ на goszakupki.by */
+      okrb_title?: string;
+      /** Продукция по ОКРБ 007 */
+      okrb_product?: number | null;
+      /** Вид предмета закупки для позиции ГПЗ на goszakupki.by */
+      type?: components["schemas"]["TypeEnum"];
+      /**
+       * Объем закупки позиции ГПЗ на goszakupki.by
+       * Format: decimal
+       */
+      val_amount?: string;
+      /** Код ОКРБ 008 позиции ГПЗ на goszakupki.by */
+      val_type?: string;
+      /** Единица измерения */
+      val_unit?: number | null;
+      /**
+       * Цена позиции ГПЗ за счет средств внебюджетных фондов на goszakupki.by
+       * Format: decimal
+       */
+      fund_cost?: string;
+      /**
+       * Цена позиции ГПЗ за счет средств собственных средств на goszakupki.by
+       * Format: decimal
+       */
+      inner_cost?: string;
+      /** Валюта позиции ГПЗ на goszakupki.by */
+      val_currency?: components["schemas"]["ValCurrencyEnum"];
+      /** Список месяцев (от 1 до 12), в которые проводится процедура */
+      procedure_months?: unknown;
+      /** Отметка о проведении закупки организатором на goszakupki.by */
+      is_by_organizator?: boolean;
+      /** Закупщик */
+      buyer?: number | null;
+      readonly buyer_detail?: components["schemas"]["Buyer"];
+    };
+    PatchedPlanShare: {
+      readonly id?: number;
+      /** Статус */
+      status?: components["schemas"]["StatusBd6Enum"];
+      /** Финансирование по пункту плана закупки */
+      budget_cost?: number;
+      /** Подразделение ГКСЭ */
+      department?: number;
+      /**
+       * Количество для подразделения
+       * Format: decimal
+       */
+      shared_amount?: string;
+      /**
+       * Сумма для подразделения (BYN)
+       * Format: decimal
+       */
+      shared_cost?: string;
+      /**
+       * Сумма для подразделения (внебюджетные фонды) (BYN)
+       * Format: decimal
+       */
+      shared_fund_cost?: string;
+      /**
+       * Сумма для подразделения (собственные средства) (BYN)
+       * Format: decimal
+       */
+      shared_inner_cost?: string;
+      /** Заявка на изменение */
+      change_request?: number | null;
+    };
+    /** @description Сериализатор иерархических пунктов процедур закупок РБ */
+    PatchedProcurementMethodTree: {
+      readonly id?: number;
+      /**
+       * Наименование процедуры / пункта
+       * @description Например: 'ОИ по пункту 26 (Коммунальные услуги)' или 'Электронный аукцион'
+       */
+      name?: string;
+      /** Актуальный метод */
+      is_active?: boolean;
+      /**
+       * Родительский метод закупки
+       * @description Оставьте пустым, если это верхнеуровневый метод (например, просто 'Закупка из одного источника')
+       */
+      parent?: number | null;
+      readonly sub_methods?: string;
+    };
+    /** @description Сериализатор справочника функциональной классификации расходов Минфина РБ. */
+    PatchedProgramCode: {
+      readonly id?: number;
+      /** Код в формате API (например, '99 0') */
+      code_api?: string;
+      /** Официальный вид (например, '99_00' или '19_01') и наименование */
+      description?: string | null;
+      /** Действующая программа */
+      is_active?: boolean;
+    };
+    PatchedPurchases: {
+      readonly id?: number;
+      /** ID плана */
+      purchase_id?: number | null;
+      /** Регистрационный номер плана ГПЗ на goszakupki.by */
+      purchase_num?: string | null;
+      /** Наименование организации */
+      company?: string;
+      /** Ведомственная принадлежность */
+      ved?: string;
+      /** Страна организации */
+      country?: string;
+      /** Область (регион) организации */
+      region?: string | null;
+      /** Город (населенный пункт) организации */
+      city?: string | null;
+      /** Адрес организации */
+      address?: string | null;
+      /** Идентификатор ведомства, к которому относится организация */
+      establishment?: number | null;
+      /**
+       * Время добавления плана
+       * Format: date-time
+       */
+      date_added?: string | null;
+      /**
+       * Время редактирования плана
+       * Format: date-time
+       */
+      date_edit?: string | null;
+      /**
+       * Дата утверждения плана
+       * Format: date-time
+       */
+      date_sign?: string | null;
+      /** Лицо утвердившее план */
+      signer_descrip?: string;
+      /** Лицо разместившее план */
+      sender_descrip?: string;
+      /** Год плана */
+      year?: number | null;
+      /** Признак черновика плана */
+      is_draft?: number;
+      /** Метка времени последнего обновления плана закупок */
+      at_updated?: string | null;
+    };
+    /** @description Сериализатор контрагентов (ЕАЭС: УНП/ИНН) */
+    PatchedSupplier: {
+      readonly id?: number;
+      /** Наименование организации */
+      name?: string;
+      /** УНП */
+      unp?: string | null;
+    };
+    /**
+     * @description Сериализатор платежных поручений (фактические кассовые оплаты).
+     *
+     *     Поддерживает два сценария (Этап 4.1):
+     *     - оплата по договору (contract заполнен) — списывается с конкретной строки договора;
+     *     - "свободная" платёжка без договора (contract пуст) — относится на статью расходов
+     *       (functional_class/economic_class/internal_economic_class) и подразделения (departments)
+     *       напрямую, без привязки к позиции плана.
+     */
+    PatchedTreasuryPayment: {
+      readonly id?: number;
+      /** Договор */
+      contract?: number | null;
+      readonly quarter?: string;
+      /**
+       * Номер платежного поручения
+       * @description Внутренний номер платежки из системы Клиент-ТК Минфина
+       */
+      payment_number?: string | null;
+      /** Финансовый год */
+      payment_year?: number;
+      /**
+       * Дата осуществления платежа
+       * Format: date
+       */
+      payment_date?: string;
+      /**
+       * Дата разнесения платежа
+       * Format: date
+       */
+      save_date?: string;
+      /**
+       * Дата_время первого сохранения
+       * Format: date-time
+       */
+      readonly created_at?: string;
+      /**
+       * Дата_время последнего изменения
+       * Format: date-time
+       */
+      readonly changed_at?: string;
+      /**
+       * Сумма оплаты
+       * Format: decimal
+       */
+      amount?: string;
+      /** Вид платежа */
+      kind?: number | null;
+      readonly kind_detail?: components["schemas"]["KindOfPayment"];
+      /**
+       * Примечание
+       * @description Примечание
+       */
+      notice?: string | null;
+      /** Экономический код расходов (ЭКР) */
+      internal_economic_class?: number | null;
+      readonly internal_economic_class_detail?: components["schemas"]["InternalEconomicClassifier"];
+      /** Внешний код ЭКР */
+      economic_class?: number | null;
+      readonly economic_class_detail?: components["schemas"]["ExternalEconomicCode"];
+      /** Функциональная классификация */
+      functional_class?: number | null;
+      readonly functional_class_detail?: components["schemas"]["FunctionalCode"];
+      /** Программная классификация */
+      program_class?: number | null;
+      readonly program_class_detail?: components["schemas"]["ProgramCode"];
+      /** Подразделения (для оперативного учёта) */
+      departments?: number[];
+      readonly departments_detail?: components["schemas"]["Department"][];
+    };
+    /** @description Обновленный сериализатор единиц измерения под актуальную модель */
+    PatchedUnitOfMeasurement: {
+      readonly id?: number;
+      /** Код в формате API (например, '0642') */
+      code?: string;
+      /** Краткое наименование (например, 'шт.', 'ед.') */
+      short_name?: string;
+      /** Актуальный код */
+      is_active?: boolean;
+    };
+    PlanItem: {
+      readonly id: number;
+      plan_purchase: number;
+      /** Регистрационный номер позиции ГПЗ на goszakupki.by */
+      num?: string | null;
+      /** Публикуется на goszakupki.by? */
+      is_public?: boolean;
+      /** Активная позиция? */
+      is_active?: boolean;
+      /** Format: date-time */
+      readonly created_at: string;
+      /** Format: date-time */
+      readonly updated_at: string;
+    };
+    PlanItemDetail: {
+      readonly id: number;
+      plan_item: number;
+      /** Format: date-time */
+      readonly created_at: string;
+      /** Format: date-time */
+      readonly changed_at: string;
+      /** Статус */
+      status?: components["schemas"]["StatusBd6Enum"];
+      /** Заявка на изменение */
+      change_request?: number | null;
+      /**
+       * Id позиции ГПЗ на goszakupki.by
+       * Format: int64
+       */
+      purchases_item_id?: number | null;
+      /**
+       * Идентификатор ГПЗ на goszakupki.by
+       * Format: int64
+       */
+      purchases_id?: number | null;
+      /** УНП */
+      unp_budget?: string;
+      /** Регистрационный номер позиции ГПЗ на goszakupki.by */
+      num: string;
+      /** Наименование позиции ГПЗ на goszakupki.by */
+      title: string;
+      /** Код ОКРБ 007 позиции ГПЗ на goszakupki.by */
+      okrb: string;
+      /** Наименование позиции ГПЗ на goszakupki.by */
+      okrb_title: string;
+      /** Продукция по ОКРБ 007 */
+      okrb_product?: number | null;
+      /** Вид предмета закупки для позиции ГПЗ на goszakupki.by */
+      type?: components["schemas"]["TypeEnum"];
+      /**
+       * Объем закупки позиции ГПЗ на goszakupki.by
+       * Format: decimal
+       */
+      val_amount?: string;
+      /** Код ОКРБ 008 позиции ГПЗ на goszakupki.by */
+      val_type: string;
+      /** Единица измерения */
+      val_unit?: number | null;
+      /**
+       * Цена позиции ГПЗ за счет средств внебюджетных фондов на goszakupki.by
+       * Format: decimal
+       */
+      fund_cost?: string;
+      /**
+       * Цена позиции ГПЗ за счет средств собственных средств на goszakupki.by
+       * Format: decimal
+       */
+      inner_cost?: string;
+      /** Валюта позиции ГПЗ на goszakupki.by */
+      val_currency?: components["schemas"]["ValCurrencyEnum"];
+      /** Список месяцев (от 1 до 12), в которые проводится процедура */
+      procedure_months?: unknown;
+      /** Отметка о проведении закупки организатором на goszakupki.by */
+      is_by_organizator?: boolean;
+      /** Закупщик */
+      buyer?: number | null;
+      readonly buyer_detail: components["schemas"]["Buyer"];
+    };
+    /**
+     * @description Cериализатор позиций ГПЗ для React-фронтенда.
+     *     Автоматически собирает корень, актуальную детальную информацию текст и финансовые лимиты.
+     */
+    PlanItemFull: {
+      readonly id: number;
+      plan_purchase: number;
+      /** Регистрационный номер позиции ГПЗ на goszakupki.by */
+      num?: string | null;
+      /** Публикуется на goszakupki.by? */
+      is_public?: boolean;
+      /** Активная позиция? */
+      is_active?: boolean;
+      /** Format: date-time */
+      readonly created_at: string;
+      /** Format: date-time */
+      readonly updated_at: string;
+      readonly title: string;
+      readonly okrb: string;
+      readonly okrb_title: string;
+      readonly type: string;
+      readonly val_unit: string;
+      /** Format: decimal */
+      readonly val_amount: string;
+      readonly procedure_months: number[];
+      readonly is_by_organizator: number[];
+      readonly buyer_detail: components["schemas"]["Buyer"][];
+      readonly aggregated_cost: components["schemas"]["CostDetailResponseSchema"];
+      readonly economic_details: components["schemas"]["BudgetCostsForItem"][];
+    };
+    /**
+     * @description Канонический сериализатор позиций ГПЗ для собственного React-фронтенда.
+     *     Автоматически собирает плоский корень, активный текст и финансовые лимиты.
+     */
+    PlanItemShort: {
+      readonly id: number;
+      /** Регистрационный номер позиции ГПЗ на goszakupki.by */
+      num?: string | null;
+      readonly title: string;
+      readonly okrb: string;
+      readonly val_unit: string;
+      /** Format: decimal */
+      readonly val_amount: string;
+      /** Format: decimal */
+      readonly aggregated_cost: string;
+      readonly economic_details: components["schemas"]["BudgetCostsForShortItem"][];
+      readonly contracts: boolean;
+      /** Публикуется на goszakupki.by? */
+      is_public?: boolean;
+      /** Активная позиция? */
+      is_active?: boolean;
+      /** Format: date-time */
+      readonly created_at: string;
+      /** Format: date-time */
+      readonly updated_at: string;
+    };
+    PlanShare: {
+      readonly id: number;
+      /** Статус */
+      status?: components["schemas"]["StatusBd6Enum"];
+      /** Финансирование по пункту плана закупки */
+      budget_cost: number;
+      /** Подразделение ГКСЭ */
+      department: number;
+      /**
+       * Количество для подразделения
+       * Format: decimal
+       */
+      shared_amount?: string;
+      /**
+       * Сумма для подразделения (BYN)
+       * Format: decimal
+       */
+      shared_cost?: string;
+      /**
+       * Сумма для подразделения (внебюджетные фонды) (BYN)
+       * Format: decimal
+       */
+      shared_fund_cost?: string;
+      /**
+       * Сумма для подразделения (собственные средства) (BYN)
+       * Format: decimal
+       */
+      shared_inner_cost?: string;
+      /** Заявка на изменение */
+      change_request?: number | null;
+    };
+    /** @description Сериализатор пунктов процедур закупок РБ */
+    ProcurementMethodDetail: {
+      readonly id: number;
+      /**
+       * Наименование процедуры / пункта
+       * @description Например: 'ОИ по пункту 26 (Коммунальные услуги)' или 'Электронный аукцион'
+       */
+      name: string;
+      /**
+       * Родительский метод закупки
+       * @description Оставьте пустым, если это верхнеуровневый метод (например, просто 'Закупка из одного источника')
+       */
+      parent?: number | null;
+      /** Актуальный метод */
+      is_active?: boolean;
+    };
+    /** @description Сериализатор иерархических пунктов процедур закупок РБ */
+    ProcurementMethodTree: {
+      readonly id: number;
+      /**
+       * Наименование процедуры / пункта
+       * @description Например: 'ОИ по пункту 26 (Коммунальные услуги)' или 'Электронный аукцион'
+       */
+      name: string;
+      /** Актуальный метод */
+      is_active?: boolean;
+      /**
+       * Родительский метод закупки
+       * @description Оставьте пустым, если это верхнеуровневый метод (например, просто 'Закупка из одного источника')
+       */
+      parent?: number | null;
+      readonly sub_methods: string;
+    };
+    /** @description Сериализатор справочника функциональной классификации расходов Минфина РБ. */
+    ProgramCode: {
+      readonly id: number;
+      /** Код в формате API (например, '99 0') */
+      code_api: string;
+      /** Официальный вид (например, '99_00' или '19_01') и наименование */
+      description?: string | null;
+      /** Действующая программа */
+      is_active?: boolean;
+    };
+    Purchases: {
+      readonly id: number;
+      /** ID плана */
+      purchase_id?: number | null;
+      /** Регистрационный номер плана ГПЗ на goszakupki.by */
+      purchase_num?: string | null;
+      /** Наименование организации */
+      company?: string;
+      /** Ведомственная принадлежность */
+      ved?: string;
+      /** Страна организации */
+      country?: string;
+      /** Область (регион) организации */
+      region?: string | null;
+      /** Город (населенный пункт) организации */
+      city?: string | null;
+      /** Адрес организации */
+      address?: string | null;
+      /** Идентификатор ведомства, к которому относится организация */
+      establishment?: number | null;
+      /**
+       * Время добавления плана
+       * Format: date-time
+       */
+      date_added?: string | null;
+      /**
+       * Время редактирования плана
+       * Format: date-time
+       */
+      date_edit?: string | null;
+      /**
+       * Дата утверждения плана
+       * Format: date-time
+       */
+      date_sign?: string | null;
+      /** Лицо утвердившее план */
+      signer_descrip?: string;
+      /** Лицо разместившее план */
+      sender_descrip?: string;
+      /** Год плана */
+      year?: number | null;
+      /** Признак черновика плана */
+      is_draft?: number;
+      /** Метка времени последнего обновления плана закупок */
+      at_updated?: string | null;
+    };
+    /**
+     * @description * `Q1` - I Квартал
+     *     * `Q2` - II Квартал
+     *     * `Q3` - III Квартал
+     *     * `Q4` - IV Квартал
+     * @enum {string}
+     */
+    QuarterEnum: "Q1" | "Q2" | "Q3" | "Q4";
+    /**
+     * @description * `ACTIVE` - Актуальный (Доступен для договоров)
+     *     * `DRAFT` - Черновик (изменения)
+     *     * `EXCLUSION` - Черновик (исключение)
+     *     * `DRAFT_ON_REVIEW` - На проверке у финансиста (изменение)
+     *     * `EXCLUSION_ON_REVIEW` - На проверке у финансиста (исключение)
+     *     * `DRAFT_APPROVED` - Одобрен финансистом (изменение)
+     *     * `EXCLUSION_APPROVED` - Одобрен финансистом (исключение)
+     *     * `DRAFT_REJECTED` - Отклонен финансистом (изменение)
+     *     * `EXCLUSION_REJECTED` - Отклонен финансистом (исключение)
+     *     * `UPLOAD` - Загружен на площадку
+     *     * `ARCHIVE` - В архиве
+     * @enum {string}
+     */
+    StatusBd6Enum:
+      | "ACTIVE"
+      | "DRAFT"
+      | "EXCLUSION"
+      | "DRAFT_ON_REVIEW"
+      | "EXCLUSION_ON_REVIEW"
+      | "DRAFT_APPROVED"
+      | "EXCLUSION_APPROVED"
+      | "DRAFT_REJECTED"
+      | "EXCLUSION_REJECTED"
+      | "UPLOAD"
+      | "ARCHIVE";
+    /** @description Сериализатор контрагентов (ЕАЭС: УНП/ИНН) */
+    Supplier: {
+      readonly id: number;
+      /** Наименование организации */
+      name: string;
+      /** УНП */
+      unp?: string | null;
+    };
+    /**
+     * @description Сериализатор платежных поручений (фактические кассовые оплаты).
+     *
+     *     Поддерживает два сценария (Этап 4.1):
+     *     - оплата по договору (contract заполнен) — списывается с конкретной строки договора;
+     *     - "свободная" платёжка без договора (contract пуст) — относится на статью расходов
+     *       (functional_class/economic_class/internal_economic_class) и подразделения (departments)
+     *       напрямую, без привязки к позиции плана.
+     */
+    TreasuryPayment: {
+      readonly id: number;
+      /** Договор */
+      contract?: number | null;
+      readonly quarter: string;
+      /**
+       * Номер платежного поручения
+       * @description Внутренний номер платежки из системы Клиент-ТК Минфина
+       */
+      payment_number?: string | null;
+      /** Финансовый год */
+      payment_year?: number;
+      /**
+       * Дата осуществления платежа
+       * Format: date
+       */
+      payment_date?: string;
+      /**
+       * Дата разнесения платежа
+       * Format: date
+       */
+      save_date?: string;
+      /**
+       * Дата_время первого сохранения
+       * Format: date-time
+       */
+      readonly created_at: string;
+      /**
+       * Дата_время последнего изменения
+       * Format: date-time
+       */
+      readonly changed_at: string;
+      /**
+       * Сумма оплаты
+       * Format: decimal
+       */
+      amount?: string;
+      /** Вид платежа */
+      kind?: number | null;
+      readonly kind_detail: components["schemas"]["KindOfPayment"];
+      /**
+       * Примечание
+       * @description Примечание
+       */
+      notice?: string | null;
+      /** Экономический код расходов (ЭКР) */
+      internal_economic_class?: number | null;
+      readonly internal_economic_class_detail: components["schemas"]["InternalEconomicClassifier"];
+      /** Внешний код ЭКР */
+      economic_class?: number | null;
+      readonly economic_class_detail: components["schemas"]["ExternalEconomicCode"];
+      /** Функциональная классификация */
+      functional_class?: number | null;
+      readonly functional_class_detail: components["schemas"]["FunctionalCode"];
+      /** Программная классификация */
+      program_class?: number | null;
+      readonly program_class_detail: components["schemas"]["ProgramCode"];
+      /** Подразделения (для оперативного учёта) */
+      departments?: number[];
+      readonly departments_detail: components["schemas"]["Department"][];
+    };
+    /**
+     * @description * `job` - работа/услуга
+     *     * `product` - товар
+     * @enum {string}
+     */
+    TypeEnum: "job" | "product";
+    /** @description Обновленный сериализатор единиц измерения под актуальную модель */
+    UnitOfMeasurement: {
+      readonly id: number;
+      /** Код в формате API (например, '0642') */
+      code: string;
+      /** Краткое наименование (например, 'шт.', 'ед.') */
+      short_name: string;
+      /** Актуальный код */
+      is_active?: boolean;
+    };
+    /**
+     * @description * `BYN` - Белорусский рубль (BYN)
+     *     * `RUB` - Российский рубль (RUB)
+     *     * `USD` - Доллар США (USD)
+     *     * `EUR` - Евро (EUR)
+     *     * `CNY` - Китайский юань (CNY)
+     * @enum {string}
+     */
+    ValCurrencyEnum: "BYN" | "RUB" | "USD" | "EUR" | "CNY";
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
+}
+export type $defs = Record<string, never>;
+export interface operations {
+  budget_costs_list: {
+    parameters: {
+      query?: {
+        budget_code?: number;
+        change_request?: number;
+        /** @description Number of results to return per page. */
+        limit?: number;
+        /** @description The initial index from which to return the results. */
+        offset?: number;
+        plan_item?: number;
+        purchases_items_id?: number;
         /**
          * @description * `ACTIVE` - Актуальный (Доступен для договоров)
          *     * `DRAFT` - Черновик (изменения)
@@ -1791,2529 +2815,3375 @@ export interface components {
          *     * `EXCLUSION_REJECTED` - Отклонен финансистом (исключение)
          *     * `UPLOAD` - Загружен на площадку
          *     * `ARCHIVE` - В архиве
-         * @enum {string}
          */
-        StatusEnum: "ACTIVE" | "DRAFT" | "EXCLUSION" | "DRAFT_ON_REVIEW" | "EXCLUSION_ON_REVIEW" | "DRAFT_APPROVED" | "EXCLUSION_APPROVED" | "DRAFT_REJECTED" | "EXCLUSION_REJECTED" | "UPLOAD" | "ARCHIVE";
-        /** @description Сериализатор контрагентов (ЕАЭС: УНП/ИНН) */
-        Supplier: {
-            readonly id: number;
-            /** Наименование организации */
-            name: string;
-            /** УНП */
-            unp: string;
+        status?:
+          | "ACTIVE"
+          | "ARCHIVE"
+          | "DRAFT"
+          | "DRAFT_APPROVED"
+          | "DRAFT_ON_REVIEW"
+          | "DRAFT_REJECTED"
+          | "EXCLUSION"
+          | "EXCLUSION_APPROVED"
+          | "EXCLUSION_ON_REVIEW"
+          | "EXCLUSION_REJECTED"
+          | "UPLOAD";
+        year?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        /** @description Сериализатор платежных поручений (Фактические кассовые оплаты) */
-        TreasuryPayment: {
-            readonly id: number;
-            /** Договор */
-            contract?: number | null;
-            /**
-             * Номер платежного поручения
-             * @description Внутренний номер платежки из системы Клиент-ТК Минфина
-             */
-            payment_number?: string | null;
-            /**
-             * Дата разнесения платежа
-             * Format: date
-             */
-            payment_date?: string;
-            /**
-             * Сумма оплаты
-             * Format: decimal
-             */
-            amount?: string;
-            /** Format: date-time */
-            readonly created_at: string;
+        content: {
+          "application/json": components["schemas"]["PaginatedBudgetCostsList"];
         };
+      };
+    };
+  };
+  budget_costs_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BudgetCosts"];
+        "application/x-www-form-urlencoded": components["schemas"]["BudgetCosts"];
+        "multipart/form-data": components["schemas"]["BudgetCosts"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BudgetCosts"];
+        };
+      };
+    };
+  };
+  budget_costs_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Бюджетное финансирование. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BudgetCosts"];
+        };
+      };
+    };
+  };
+  budget_costs_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Бюджетное финансирование. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BudgetCosts"];
+        "application/x-www-form-urlencoded": components["schemas"]["BudgetCosts"];
+        "multipart/form-data": components["schemas"]["BudgetCosts"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BudgetCosts"];
+        };
+      };
+    };
+  };
+  budget_costs_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Бюджетное финансирование. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  budget_costs_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Бюджетное финансирование. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedBudgetCosts"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedBudgetCosts"];
+        "multipart/form-data": components["schemas"]["PatchedBudgetCosts"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BudgetCosts"];
+        };
+      };
+    };
+  };
+  buyers_list: {
+    parameters: {
+      query?: {
+        is_active?: boolean;
+        /** @description A search term. */
+        search?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Buyer"][];
+        };
+      };
+    };
+  };
+  buyers_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Buyer"];
+        "application/x-www-form-urlencoded": components["schemas"]["Buyer"];
+        "multipart/form-data": components["schemas"]["Buyer"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Buyer"];
+        };
+      };
+    };
+  };
+  buyers_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Работник-закупщик. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Buyer"];
+        };
+      };
+    };
+  };
+  buyers_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Работник-закупщик. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Buyer"];
+        "application/x-www-form-urlencoded": components["schemas"]["Buyer"];
+        "multipart/form-data": components["schemas"]["Buyer"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Buyer"];
+        };
+      };
+    };
+  };
+  buyers_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Работник-закупщик. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  buyers_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Работник-закупщик. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedBuyer"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedBuyer"];
+        "multipart/form-data": components["schemas"]["PatchedBuyer"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Buyer"];
+        };
+      };
+    };
+  };
+  change_requests_list: {
+    parameters: {
+      query?: {
         /**
-         * @description * `job` - работа/услуга
-         *     * `product` - товар
-         * @enum {string}
+         * @description * `PLAN_ITEM_CHANGE` - Изменение позиции плана
+         *     * `PLAN_ITEM_EXCLUSION` - Исключение позиции плана
+         *     * `LIMIT_REDISTRIBUTION` - Перераспределение лимита
+         *     * `BUDGET_LIMIT_CORRECTION` - Корректировка лимита (Казначейство)
+         *     * `DEPARTMENT_LIMIT_CALIBRATION` - Калибровка лимитов по подразделениям
          */
-        TypeEnum: "job" | "product";
-        /** @description Обновленный сериализатор единиц измерения под актуальную модель */
-        UnitOfMeasurement: {
-            readonly id: number;
-            /** Код в формате API (например, '0642') */
-            code: string;
-            /** Краткое наименование (например, 'шт.', 'ед.') */
-            short_name: string;
-            /** Актуальный код */
-            is_active?: boolean;
-        };
+        kind?:
+          | "BUDGET_LIMIT_CORRECTION"
+          | "DEPARTMENT_LIMIT_CALIBRATION"
+          | "LIMIT_REDISTRIBUTION"
+          | "PLAN_ITEM_CHANGE"
+          | "PLAN_ITEM_EXCLUSION";
+        /** @description Number of results to return per page. */
+        limit?: number;
+        /** @description The initial index from which to return the results. */
+        offset?: number;
+        plan_item?: number;
         /**
-         * @description * `BYN` - Белорусский рубль (BYN)
-         *     * `RUB` - Российский рубль (RUB)
-         *     * `USD` - Доллар США (USD)
-         *     * `EUR` - Евро (EUR)
-         *     * `CNY` - Китайский юань (CNY)
-         * @enum {string}
+         * @description * `DRAFT` - Черновик
+         *     * `ON_REVIEW` - На проверке
+         *     * `APPROVED` - Одобрена
+         *     * `REJECTED` - Отклонена
          */
-        ValCurrencyEnum: "BYN" | "RUB" | "USD" | "EUR" | "CNY";
-    };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
-}
-export type $defs = Record<string, never>;
-export interface operations {
-    budget_costs_list: {
-        parameters: {
-            query?: {
-                budget_code?: number;
-                /** @description Number of results to return per page. */
-                limit?: number;
-                /** @description The initial index from which to return the results. */
-                offset?: number;
-                purchases_items_id?: number;
-                year?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedBudgetCostsList"];
-                };
-            };
-        };
-    };
-    budget_costs_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BudgetCosts"];
-                "application/x-www-form-urlencoded": components["schemas"]["BudgetCosts"];
-                "multipart/form-data": components["schemas"]["BudgetCosts"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BudgetCosts"];
-                };
-            };
-        };
-    };
-    budget_costs_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Бюджетное финансирование. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BudgetCosts"];
-                };
-            };
-        };
-    };
-    budget_costs_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Бюджетное финансирование. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BudgetCosts"];
-                "application/x-www-form-urlencoded": components["schemas"]["BudgetCosts"];
-                "multipart/form-data": components["schemas"]["BudgetCosts"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BudgetCosts"];
-                };
-            };
-        };
-    };
-    budget_costs_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Бюджетное финансирование. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    budget_costs_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Бюджетное финансирование. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedBudgetCosts"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedBudgetCosts"];
-                "multipart/form-data": components["schemas"]["PatchedBudgetCosts"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BudgetCosts"];
-                };
-            };
-        };
-    };
-    buyers_list: {
-        parameters: {
-            query?: {
-                is_active?: boolean;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Buyer"][];
-                };
-            };
-        };
-    };
-    buyers_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Buyer"];
-                "application/x-www-form-urlencoded": components["schemas"]["Buyer"];
-                "multipart/form-data": components["schemas"]["Buyer"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Buyer"];
-                };
-            };
-        };
-    };
-    buyers_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Работник-закупщик. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Buyer"];
-                };
-            };
-        };
-    };
-    buyers_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Работник-закупщик. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Buyer"];
-                "application/x-www-form-urlencoded": components["schemas"]["Buyer"];
-                "multipart/form-data": components["schemas"]["Buyer"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Buyer"];
-                };
-            };
-        };
-    };
-    buyers_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Работник-закупщик. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    buyers_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Работник-закупщик. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedBuyer"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedBuyer"];
-                "multipart/form-data": components["schemas"]["PatchedBuyer"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Buyer"];
-                };
-            };
-        };
-    };
-    contracts_list: {
-        parameters: {
-            query?: {
-                /** @description Number of results to return per page. */
-                limit?: number;
-                /** @description The initial index from which to return the results. */
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedContractList"];
-                };
-            };
-        };
-    };
-    contracts_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Contract"];
-                "application/x-www-form-urlencoded": components["schemas"]["Contract"];
-                "multipart/form-data": components["schemas"]["Contract"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Contract"];
-                };
-            };
-        };
-    };
-    contracts_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Договор. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Contract"];
-                };
-            };
-        };
-    };
-    contracts_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Договор. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Contract"];
-                "application/x-www-form-urlencoded": components["schemas"]["Contract"];
-                "multipart/form-data": components["schemas"]["Contract"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Contract"];
-                };
-            };
-        };
-    };
-    contracts_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Договор. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    contracts_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Договор. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedContract"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedContract"];
-                "multipart/form-data": components["schemas"]["PatchedContract"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Contract"];
-                };
-            };
-        };
-    };
-    departments_list: {
-        parameters: {
-            query?: {
-                is_active?: boolean;
-                parent?: number;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DepartmentTree"][];
-                };
-            };
-        };
-    };
-    departments_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DepartmentTree"];
-                "application/x-www-form-urlencoded": components["schemas"]["DepartmentTree"];
-                "multipart/form-data": components["schemas"]["DepartmentTree"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DepartmentTree"];
-                };
-            };
-        };
-    };
-    departments_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Подразделение. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DepartmentTree"];
-                };
-            };
-        };
-    };
-    departments_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Подразделение. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DepartmentTree"];
-                "application/x-www-form-urlencoded": components["schemas"]["DepartmentTree"];
-                "multipart/form-data": components["schemas"]["DepartmentTree"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DepartmentTree"];
-                };
-            };
-        };
-    };
-    departments_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Подразделение. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    departments_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Подразделение. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedDepartmentTree"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedDepartmentTree"];
-                "multipart/form-data": components["schemas"]["PatchedDepartmentTree"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DepartmentTree"];
-                };
-            };
-        };
-    };
-    economic_code_list: {
-        parameters: {
-            query?: {
-                is_active?: boolean;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ExternalEconomicCode"][];
-                };
-            };
-        };
-    };
-    economic_code_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ExternalEconomicCode"];
-                "application/x-www-form-urlencoded": components["schemas"]["ExternalEconomicCode"];
-                "multipart/form-data": components["schemas"]["ExternalEconomicCode"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ExternalEconomicCode"];
-                };
-            };
-        };
-    };
-    economic_code_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код ЭКР (goszakupki.by). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ExternalEconomicCode"];
-                };
-            };
-        };
-    };
-    economic_code_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код ЭКР (goszakupki.by). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ExternalEconomicCode"];
-                "application/x-www-form-urlencoded": components["schemas"]["ExternalEconomicCode"];
-                "multipart/form-data": components["schemas"]["ExternalEconomicCode"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ExternalEconomicCode"];
-                };
-            };
-        };
-    };
-    economic_code_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код ЭКР (goszakupki.by). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    economic_code_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код ЭКР (goszakupki.by). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedExternalEconomicCode"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedExternalEconomicCode"];
-                "multipart/form-data": components["schemas"]["PatchedExternalEconomicCode"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ExternalEconomicCode"];
-                };
-            };
-        };
-    };
-    functional_code_list: {
-        parameters: {
-            query?: {
-                is_active?: boolean;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FunctionalCode"][];
-                };
-            };
-        };
-    };
-    functional_code_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FunctionalCode"];
-                "application/x-www-form-urlencoded": components["schemas"]["FunctionalCode"];
-                "multipart/form-data": components["schemas"]["FunctionalCode"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FunctionalCode"];
-                };
-            };
-        };
-    };
-    functional_code_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код функциональной классификации. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FunctionalCode"];
-                };
-            };
-        };
-    };
-    functional_code_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код функциональной классификации. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FunctionalCode"];
-                "application/x-www-form-urlencoded": components["schemas"]["FunctionalCode"];
-                "multipart/form-data": components["schemas"]["FunctionalCode"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FunctionalCode"];
-                };
-            };
-        };
-    };
-    functional_code_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код функциональной классификации. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    functional_code_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код функциональной классификации. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedFunctionalCode"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedFunctionalCode"];
-                "multipart/form-data": components["schemas"]["PatchedFunctionalCode"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FunctionalCode"];
-                };
-            };
-        };
-    };
-    gosakupki_get_gpz_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                purchase_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    gosakupki_get_purchases_all_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    gosakupki_get_purchases_items_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                purchase_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    goszakupki_pull_actual_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    goszakupki_push_draft_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    internal_economic_code_list: {
-        parameters: {
-            query?: {
-                is_active?: boolean;
-                parent?: number;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalEconomicClassifierTree"][];
-                };
-            };
-        };
-    };
-    internal_economic_code_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InternalEconomicClassifierTree"];
-                "application/x-www-form-urlencoded": components["schemas"]["InternalEconomicClassifierTree"];
-                "multipart/form-data": components["schemas"]["InternalEconomicClassifierTree"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalEconomicClassifierTree"];
-                };
-            };
-        };
-    };
-    internal_economic_code_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код ЭКР (внутренний ГКСЭ). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalEconomicClassifierTree"];
-                };
-            };
-        };
-    };
-    internal_economic_code_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код ЭКР (внутренний ГКСЭ). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InternalEconomicClassifierTree"];
-                "application/x-www-form-urlencoded": components["schemas"]["InternalEconomicClassifierTree"];
-                "multipart/form-data": components["schemas"]["InternalEconomicClassifierTree"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalEconomicClassifierTree"];
-                };
-            };
-        };
-    };
-    internal_economic_code_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код ЭКР (внутренний ГКСЭ). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    internal_economic_code_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код ЭКР (внутренний ГКСЭ). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedInternalEconomicClassifierTree"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedInternalEconomicClassifierTree"];
-                "multipart/form-data": components["schemas"]["PatchedInternalEconomicClassifierTree"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalEconomicClassifierTree"];
-                };
-            };
-        };
-    };
-    okrb_list: {
-        parameters: {
-            query?: {
-                is_active?: boolean;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OkrbProduct"][];
-                };
-            };
-        };
-    };
-    okrb_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OkrbProduct"];
-                "application/x-www-form-urlencoded": components["schemas"]["OkrbProduct"];
-                "multipart/form-data": components["schemas"]["OkrbProduct"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OkrbProduct"];
-                };
-            };
-        };
-    };
-    okrb_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код ОКРБ 007. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OkrbProduct"];
-                };
-            };
-        };
-    };
-    okrb_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код ОКРБ 007. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OkrbProduct"];
-                "application/x-www-form-urlencoded": components["schemas"]["OkrbProduct"];
-                "multipart/form-data": components["schemas"]["OkrbProduct"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OkrbProduct"];
-                };
-            };
-        };
-    };
-    okrb_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код ОКРБ 007. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    okrb_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код ОКРБ 007. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedOkrbProduct"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedOkrbProduct"];
-                "multipart/form-data": components["schemas"]["PatchedOkrbProduct"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OkrbProduct"];
-                };
-            };
-        };
-    };
-    payments_list: {
-        parameters: {
-            query?: {
-                contract?: number;
-                /** @description Number of results to return per page. */
-                limit?: number;
-                /** @description The initial index from which to return the results. */
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedBudgetCostsImportList"];
-                };
-            };
-        };
-    };
-    payments_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BudgetCostsImport"];
-                "application/x-www-form-urlencoded": components["schemas"]["BudgetCostsImport"];
-                "multipart/form-data": components["schemas"]["BudgetCostsImport"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BudgetCostsImport"];
-                };
-            };
-        };
-    };
-    payments_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Платежное поручение. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BudgetCostsImport"];
-                };
-            };
-        };
-    };
-    payments_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Платежное поручение. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BudgetCostsImport"];
-                "application/x-www-form-urlencoded": components["schemas"]["BudgetCostsImport"];
-                "multipart/form-data": components["schemas"]["BudgetCostsImport"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BudgetCostsImport"];
-                };
-            };
-        };
-    };
-    payments_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Платежное поручение. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    payments_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Платежное поручение. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedBudgetCostsImport"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedBudgetCostsImport"];
-                "multipart/form-data": components["schemas"]["PatchedBudgetCostsImport"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BudgetCostsImport"];
-                };
-            };
-        };
-    };
-    plan_items_list: {
-        parameters: {
-            query?: {
-                /** @description Number of results to return per page. */
-                limit?: number;
-                /** @description The initial index from which to return the results. */
-                offset?: number;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedPlanItemShortList"];
-                };
-            };
-        };
-    };
-    plan_items_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PlanItem"];
-                "application/x-www-form-urlencoded": components["schemas"]["PlanItem"];
-                "multipart/form-data": components["schemas"]["PlanItem"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlanItem"];
-                };
-            };
-        };
-    };
-    plan_items_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Пункт плана закупки (мастер-запись). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlanItemFull"];
-                };
-            };
-        };
-    };
-    plan_items_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Пункт плана закупки (мастер-запись). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PlanItem"];
-                "application/x-www-form-urlencoded": components["schemas"]["PlanItem"];
-                "multipart/form-data": components["schemas"]["PlanItem"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlanItem"];
-                };
-            };
-        };
-    };
-    plan_items_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Пункт плана закупки (мастер-запись). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    plan_items_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Пункт плана закупки (мастер-запись). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedPlanItem"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedPlanItem"];
-                "multipart/form-data": components["schemas"]["PatchedPlanItem"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlanItem"];
-                };
-            };
-        };
-    };
-    plan_items_details_list: {
-        parameters: {
-            query?: {
-                /** @description Number of results to return per page. */
-                limit?: number;
-                /** @description The initial index from which to return the results. */
-                offset?: number;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedPlanItemDetailList"];
-                };
-            };
-        };
-    };
-    plan_items_details_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PlanItemDetail"];
-                "application/x-www-form-urlencoded": components["schemas"]["PlanItemDetail"];
-                "multipart/form-data": components["schemas"]["PlanItemDetail"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlanItemDetail"];
-                };
-            };
-        };
-    };
-    plan_items_details_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Пункт плана закупки (детальная информация). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlanItemDetail"];
-                };
-            };
-        };
-    };
-    plan_items_details_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Пункт плана закупки (детальная информация). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PlanItemDetail"];
-                "application/x-www-form-urlencoded": components["schemas"]["PlanItemDetail"];
-                "multipart/form-data": components["schemas"]["PlanItemDetail"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlanItemDetail"];
-                };
-            };
-        };
-    };
-    plan_items_details_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Пункт плана закупки (детальная информация). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    plan_items_details_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Пункт плана закупки (детальная информация). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedPlanItemDetail"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedPlanItemDetail"];
-                "multipart/form-data": components["schemas"]["PatchedPlanItemDetail"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlanItemDetail"];
-                };
-            };
-        };
-    };
-    procurement_methods_list: {
-        parameters: {
-            query?: {
-                is_active?: boolean;
-                parent?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProcurementMethodTree"][];
-                };
-            };
-        };
-    };
-    procurement_methods_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProcurementMethodTree"];
-                "application/x-www-form-urlencoded": components["schemas"]["ProcurementMethodTree"];
-                "multipart/form-data": components["schemas"]["ProcurementMethodTree"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProcurementMethodTree"];
-                };
-            };
-        };
-    };
-    procurement_methods_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Детализация процедуры закупки. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProcurementMethodTree"];
-                };
-            };
-        };
-    };
-    procurement_methods_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Детализация процедуры закупки. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProcurementMethodTree"];
-                "application/x-www-form-urlencoded": components["schemas"]["ProcurementMethodTree"];
-                "multipart/form-data": components["schemas"]["ProcurementMethodTree"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProcurementMethodTree"];
-                };
-            };
-        };
-    };
-    procurement_methods_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Детализация процедуры закупки. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    procurement_methods_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Детализация процедуры закупки. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedProcurementMethodTree"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedProcurementMethodTree"];
-                "multipart/form-data": components["schemas"]["PatchedProcurementMethodTree"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProcurementMethodTree"];
-                };
-            };
-        };
-    };
-    program_code_list: {
-        parameters: {
-            query?: {
-                is_active?: boolean;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProgramCode"][];
-                };
-            };
-        };
-    };
-    program_code_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProgramCode"];
-                "application/x-www-form-urlencoded": components["schemas"]["ProgramCode"];
-                "multipart/form-data": components["schemas"]["ProgramCode"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProgramCode"];
-                };
-            };
-        };
-    };
-    program_code_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код программной классификации. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProgramCode"];
-                };
-            };
-        };
-    };
-    program_code_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код программной классификации. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProgramCode"];
-                "application/x-www-form-urlencoded": components["schemas"]["ProgramCode"];
-                "multipart/form-data": components["schemas"]["ProgramCode"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProgramCode"];
-                };
-            };
-        };
-    };
-    program_code_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код программной классификации. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    program_code_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Код программной классификации. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedProgramCode"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedProgramCode"];
-                "multipart/form-data": components["schemas"]["PatchedProgramCode"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProgramCode"];
-                };
-            };
-        };
-    };
-    purchases_list: {
-        parameters: {
-            query?: {
-                is_draft?: number;
-                purchase_id?: number;
-                year?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Purchases"][];
-                };
-            };
-        };
-    };
-    purchases_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["Purchases"];
-                "application/x-www-form-urlencoded": components["schemas"]["Purchases"];
-                "multipart/form-data": components["schemas"]["Purchases"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Purchases"];
-                };
-            };
-        };
-    };
-    purchases_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this План закупок ГКСЭ. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Purchases"];
-                };
-            };
-        };
-    };
-    purchases_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this План закупок ГКСЭ. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["Purchases"];
-                "application/x-www-form-urlencoded": components["schemas"]["Purchases"];
-                "multipart/form-data": components["schemas"]["Purchases"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Purchases"];
-                };
-            };
-        };
-    };
-    purchases_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this План закупок ГКСЭ. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    purchases_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this План закупок ГКСЭ. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedPurchases"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedPurchases"];
-                "multipart/form-data": components["schemas"]["PatchedPurchases"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Purchases"];
-                };
-            };
-        };
-    };
-    suppliers_list: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Supplier"][];
-                };
-            };
-        };
-    };
-    suppliers_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Supplier"];
-                "application/x-www-form-urlencoded": components["schemas"]["Supplier"];
-                "multipart/form-data": components["schemas"]["Supplier"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Supplier"];
-                };
-            };
-        };
-    };
-    suppliers_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Поставщик. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Supplier"];
-                };
-            };
-        };
-    };
-    suppliers_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Поставщик. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Supplier"];
-                "application/x-www-form-urlencoded": components["schemas"]["Supplier"];
-                "multipart/form-data": components["schemas"]["Supplier"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Supplier"];
-                };
-            };
-        };
-    };
-    suppliers_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Поставщик. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    suppliers_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Поставщик. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedSupplier"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedSupplier"];
-                "multipart/form-data": components["schemas"]["PatchedSupplier"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Supplier"];
-                };
-            };
-        };
-    };
-    units_of_measurement_list: {
-        parameters: {
-            query?: {
-                code?: string;
-                is_active?: boolean;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnitOfMeasurement"][];
-                };
-            };
-        };
-    };
-    units_of_measurement_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UnitOfMeasurement"];
-                "application/x-www-form-urlencoded": components["schemas"]["UnitOfMeasurement"];
-                "multipart/form-data": components["schemas"]["UnitOfMeasurement"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnitOfMeasurement"];
-                };
-            };
-        };
-    };
-    units_of_measurement_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Единица измерения (ОКРБ 008). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnitOfMeasurement"];
-                };
-            };
-        };
-    };
-    units_of_measurement_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Единица измерения (ОКРБ 008). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UnitOfMeasurement"];
-                "application/x-www-form-urlencoded": components["schemas"]["UnitOfMeasurement"];
-                "multipart/form-data": components["schemas"]["UnitOfMeasurement"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnitOfMeasurement"];
-                };
-            };
-        };
-    };
-    units_of_measurement_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Единица измерения (ОКРБ 008). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    units_of_measurement_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Единица измерения (ОКРБ 008). */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedUnitOfMeasurement"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedUnitOfMeasurement"];
-                "multipart/form-data": components["schemas"]["PatchedUnitOfMeasurement"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnitOfMeasurement"];
-                };
-            };
-        };
-    };
+        status?: "APPROVED" | "DRAFT" | "ON_REVIEW" | "REJECTED";
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedChangeRequestList"];
+        };
+      };
+    };
+  };
+  change_requests_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ChangeRequest"];
+        "application/x-www-form-urlencoded": components["schemas"]["ChangeRequest"];
+        "multipart/form-data": components["schemas"]["ChangeRequest"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ChangeRequest"];
+        };
+      };
+    };
+  };
+  change_requests_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Заявка на изменение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ChangeRequest"];
+        };
+      };
+    };
+  };
+  change_requests_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Заявка на изменение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ChangeRequest"];
+        "application/x-www-form-urlencoded": components["schemas"]["ChangeRequest"];
+        "multipart/form-data": components["schemas"]["ChangeRequest"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ChangeRequest"];
+        };
+      };
+    };
+  };
+  change_requests_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Заявка на изменение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  change_requests_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Заявка на изменение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedChangeRequest"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedChangeRequest"];
+        "multipart/form-data": components["schemas"]["PatchedChangeRequest"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ChangeRequest"];
+        };
+      };
+    };
+  };
+  change_requests_approve_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Заявка на изменение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ChangeRequest"];
+        "application/x-www-form-urlencoded": components["schemas"]["ChangeRequest"];
+        "multipart/form-data": components["schemas"]["ChangeRequest"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ChangeRequest"];
+        };
+      };
+    };
+  };
+  change_requests_forecast_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Заявка на изменение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ChangeRequest"];
+        };
+      };
+    };
+  };
+  change_requests_reject_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Заявка на изменение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ChangeRequest"];
+        "application/x-www-form-urlencoded": components["schemas"]["ChangeRequest"];
+        "multipart/form-data": components["schemas"]["ChangeRequest"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ChangeRequest"];
+        };
+      };
+    };
+  };
+  change_requests_submit_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Заявка на изменение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ChangeRequest"];
+        "application/x-www-form-urlencoded": components["schemas"]["ChangeRequest"];
+        "multipart/form-data": components["schemas"]["ChangeRequest"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ChangeRequest"];
+        };
+      };
+    };
+  };
+  change_requests_calibrate_department_limits_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ChangeRequest"];
+        "application/x-www-form-urlencoded": components["schemas"]["ChangeRequest"];
+        "multipart/form-data": components["schemas"]["ChangeRequest"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ChangeRequest"];
+        };
+      };
+    };
+  };
+  change_requests_redistribute_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ChangeRequest"];
+        "application/x-www-form-urlencoded": components["schemas"]["ChangeRequest"];
+        "multipart/form-data": components["schemas"]["ChangeRequest"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ChangeRequest"];
+        };
+      };
+    };
+  };
+  contract_quarterly_finance_list: {
+    parameters: {
+      query?: {
+        contract?: number;
+        contract_item?: number;
+        /** @description Number of results to return per page. */
+        limit?: number;
+        /** @description The initial index from which to return the results. */
+        offset?: number;
+        /**
+         * @description * `Q1` - I Квартал
+         *     * `Q2` - II Квартал
+         *     * `Q3` - III Квартал
+         *     * `Q4` - IV Квартал
+         */
+        quarter?: "Q1" | "Q2" | "Q3" | "Q4";
+        year?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedContractQuarterlyFinanceList"];
+        };
+      };
+    };
+  };
+  contract_quarterly_finance_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ContractQuarterlyFinance"];
+        "application/x-www-form-urlencoded": components["schemas"]["ContractQuarterlyFinance"];
+        "multipart/form-data": components["schemas"]["ContractQuarterlyFinance"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ContractQuarterlyFinance"];
+        };
+      };
+    };
+  };
+  contract_quarterly_finance_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Квартальное финансирование договора. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ContractQuarterlyFinance"];
+        };
+      };
+    };
+  };
+  contract_quarterly_finance_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Квартальное финансирование договора. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ContractQuarterlyFinance"];
+        "application/x-www-form-urlencoded": components["schemas"]["ContractQuarterlyFinance"];
+        "multipart/form-data": components["schemas"]["ContractQuarterlyFinance"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ContractQuarterlyFinance"];
+        };
+      };
+    };
+  };
+  contract_quarterly_finance_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Квартальное финансирование договора. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  contract_quarterly_finance_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Квартальное финансирование договора. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedContractQuarterlyFinance"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedContractQuarterlyFinance"];
+        "multipart/form-data": components["schemas"]["PatchedContractQuarterlyFinance"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ContractQuarterlyFinance"];
+        };
+      };
+    };
+  };
+  contracts_list: {
+    parameters: {
+      query?: {
+        /** @description Number of results to return per page. */
+        limit?: number;
+        /** @description The initial index from which to return the results. */
+        offset?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedContractList"];
+        };
+      };
+    };
+  };
+  contracts_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Contract"];
+        "application/x-www-form-urlencoded": components["schemas"]["Contract"];
+        "multipart/form-data": components["schemas"]["Contract"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Contract"];
+        };
+      };
+    };
+  };
+  contracts_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Договор. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Contract"];
+        };
+      };
+    };
+  };
+  contracts_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Договор. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Contract"];
+        "application/x-www-form-urlencoded": components["schemas"]["Contract"];
+        "multipart/form-data": components["schemas"]["Contract"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Contract"];
+        };
+      };
+    };
+  };
+  contracts_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Договор. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  contracts_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Договор. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedContract"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedContract"];
+        "multipart/form-data": components["schemas"]["PatchedContract"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Contract"];
+        };
+      };
+    };
+  };
+  department_article_limits_list: {
+    parameters: {
+      query?: {
+        change_request?: number;
+        department?: number;
+        economic_class?: number;
+        functional_class?: number;
+        /** @description Number of results to return per page. */
+        limit?: number;
+        /** @description The initial index from which to return the results. */
+        offset?: number;
+        /**
+         * @description * `ACTIVE` - Актуальный (Доступен для договоров)
+         *     * `DRAFT` - Черновик (изменения)
+         *     * `EXCLUSION` - Черновик (исключение)
+         *     * `DRAFT_ON_REVIEW` - На проверке у финансиста (изменение)
+         *     * `EXCLUSION_ON_REVIEW` - На проверке у финансиста (исключение)
+         *     * `DRAFT_APPROVED` - Одобрен финансистом (изменение)
+         *     * `EXCLUSION_APPROVED` - Одобрен финансистом (исключение)
+         *     * `DRAFT_REJECTED` - Отклонен финансистом (изменение)
+         *     * `EXCLUSION_REJECTED` - Отклонен финансистом (исключение)
+         *     * `UPLOAD` - Загружен на площадку
+         *     * `ARCHIVE` - В архиве
+         */
+        status?:
+          | "ACTIVE"
+          | "ARCHIVE"
+          | "DRAFT"
+          | "DRAFT_APPROVED"
+          | "DRAFT_ON_REVIEW"
+          | "DRAFT_REJECTED"
+          | "EXCLUSION"
+          | "EXCLUSION_APPROVED"
+          | "EXCLUSION_ON_REVIEW"
+          | "EXCLUSION_REJECTED"
+          | "UPLOAD";
+        year?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedDepartmentArticleLimitList"];
+        };
+      };
+    };
+  };
+  department_article_limits_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DepartmentArticleLimit"];
+        "application/x-www-form-urlencoded": components["schemas"]["DepartmentArticleLimit"];
+        "multipart/form-data": components["schemas"]["DepartmentArticleLimit"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DepartmentArticleLimit"];
+        };
+      };
+    };
+  };
+  department_article_limits_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Лимит подразделения по подстатье. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DepartmentArticleLimit"];
+        };
+      };
+    };
+  };
+  department_article_limits_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Лимит подразделения по подстатье. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DepartmentArticleLimit"];
+        "application/x-www-form-urlencoded": components["schemas"]["DepartmentArticleLimit"];
+        "multipart/form-data": components["schemas"]["DepartmentArticleLimit"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DepartmentArticleLimit"];
+        };
+      };
+    };
+  };
+  department_article_limits_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Лимит подразделения по подстатье. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  department_article_limits_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Лимит подразделения по подстатье. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedDepartmentArticleLimit"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedDepartmentArticleLimit"];
+        "multipart/form-data": components["schemas"]["PatchedDepartmentArticleLimit"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DepartmentArticleLimit"];
+        };
+      };
+    };
+  };
+  departments_list: {
+    parameters: {
+      query?: {
+        is_active?: boolean;
+        parent?: number;
+        /** @description A search term. */
+        search?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DepartmentTree"][];
+        };
+      };
+    };
+  };
+  departments_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DepartmentTree"];
+        "application/x-www-form-urlencoded": components["schemas"]["DepartmentTree"];
+        "multipart/form-data": components["schemas"]["DepartmentTree"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DepartmentTree"];
+        };
+      };
+    };
+  };
+  departments_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Подразделение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DepartmentTree"];
+        };
+      };
+    };
+  };
+  departments_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Подразделение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DepartmentTree"];
+        "application/x-www-form-urlencoded": components["schemas"]["DepartmentTree"];
+        "multipart/form-data": components["schemas"]["DepartmentTree"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DepartmentTree"];
+        };
+      };
+    };
+  };
+  departments_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Подразделение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  departments_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Подразделение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedDepartmentTree"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedDepartmentTree"];
+        "multipart/form-data": components["schemas"]["PatchedDepartmentTree"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DepartmentTree"];
+        };
+      };
+    };
+  };
+  economic_code_list: {
+    parameters: {
+      query?: {
+        is_active?: boolean;
+        /** @description A search term. */
+        search?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExternalEconomicCode"][];
+        };
+      };
+    };
+  };
+  economic_code_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ExternalEconomicCode"];
+        "application/x-www-form-urlencoded": components["schemas"]["ExternalEconomicCode"];
+        "multipart/form-data": components["schemas"]["ExternalEconomicCode"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExternalEconomicCode"];
+        };
+      };
+    };
+  };
+  economic_code_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код ЭКР (goszakupki.by). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExternalEconomicCode"];
+        };
+      };
+    };
+  };
+  economic_code_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код ЭКР (goszakupki.by). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ExternalEconomicCode"];
+        "application/x-www-form-urlencoded": components["schemas"]["ExternalEconomicCode"];
+        "multipart/form-data": components["schemas"]["ExternalEconomicCode"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExternalEconomicCode"];
+        };
+      };
+    };
+  };
+  economic_code_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код ЭКР (goszakupki.by). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  economic_code_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код ЭКР (goszakupki.by). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedExternalEconomicCode"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedExternalEconomicCode"];
+        "multipart/form-data": components["schemas"]["PatchedExternalEconomicCode"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExternalEconomicCode"];
+        };
+      };
+    };
+  };
+  functional_code_list: {
+    parameters: {
+      query?: {
+        is_active?: boolean;
+        /** @description A search term. */
+        search?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FunctionalCode"][];
+        };
+      };
+    };
+  };
+  functional_code_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FunctionalCode"];
+        "application/x-www-form-urlencoded": components["schemas"]["FunctionalCode"];
+        "multipart/form-data": components["schemas"]["FunctionalCode"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FunctionalCode"];
+        };
+      };
+    };
+  };
+  functional_code_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код функциональной классификации. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FunctionalCode"];
+        };
+      };
+    };
+  };
+  functional_code_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код функциональной классификации. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FunctionalCode"];
+        "application/x-www-form-urlencoded": components["schemas"]["FunctionalCode"];
+        "multipart/form-data": components["schemas"]["FunctionalCode"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FunctionalCode"];
+        };
+      };
+    };
+  };
+  functional_code_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код функциональной классификации. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  functional_code_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код функциональной классификации. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedFunctionalCode"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedFunctionalCode"];
+        "multipart/form-data": components["schemas"]["PatchedFunctionalCode"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FunctionalCode"];
+        };
+      };
+    };
+  };
+  gosakupki_get_gpz_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        purchase_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  gosakupki_get_purchases_all_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  gosakupki_get_purchases_items_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        purchase_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  goszakupki_delete_plan_items_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  goszakupki_push_plan_items_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  internal_economic_code_list: {
+    parameters: {
+      query?: {
+        is_active?: boolean;
+        parent?: number;
+        /** @description A search term. */
+        search?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["InternalEconomicClassifierTree"][];
+        };
+      };
+    };
+  };
+  internal_economic_code_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["InternalEconomicClassifierTree"];
+        "application/x-www-form-urlencoded": components["schemas"]["InternalEconomicClassifierTree"];
+        "multipart/form-data": components["schemas"]["InternalEconomicClassifierTree"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["InternalEconomicClassifierTree"];
+        };
+      };
+    };
+  };
+  internal_economic_code_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код ЭКР (внутренний ГКСЭ). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["InternalEconomicClassifierTree"];
+        };
+      };
+    };
+  };
+  internal_economic_code_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код ЭКР (внутренний ГКСЭ). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["InternalEconomicClassifierTree"];
+        "application/x-www-form-urlencoded": components["schemas"]["InternalEconomicClassifierTree"];
+        "multipart/form-data": components["schemas"]["InternalEconomicClassifierTree"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["InternalEconomicClassifierTree"];
+        };
+      };
+    };
+  };
+  internal_economic_code_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код ЭКР (внутренний ГКСЭ). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  internal_economic_code_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код ЭКР (внутренний ГКСЭ). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedInternalEconomicClassifierTree"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedInternalEconomicClassifierTree"];
+        "multipart/form-data": components["schemas"]["PatchedInternalEconomicClassifierTree"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["InternalEconomicClassifierTree"];
+        };
+      };
+    };
+  };
+  okrb_list: {
+    parameters: {
+      query?: {
+        is_active?: boolean;
+        /** @description A search term. */
+        search?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkrbProduct"][];
+        };
+      };
+    };
+  };
+  okrb_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["OkrbProduct"];
+        "application/x-www-form-urlencoded": components["schemas"]["OkrbProduct"];
+        "multipart/form-data": components["schemas"]["OkrbProduct"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkrbProduct"];
+        };
+      };
+    };
+  };
+  okrb_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код ОКРБ 007. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkrbProduct"];
+        };
+      };
+    };
+  };
+  okrb_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код ОКРБ 007. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["OkrbProduct"];
+        "application/x-www-form-urlencoded": components["schemas"]["OkrbProduct"];
+        "multipart/form-data": components["schemas"]["OkrbProduct"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkrbProduct"];
+        };
+      };
+    };
+  };
+  okrb_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код ОКРБ 007. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  okrb_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код ОКРБ 007. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedOkrbProduct"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedOkrbProduct"];
+        "multipart/form-data": components["schemas"]["PatchedOkrbProduct"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkrbProduct"];
+        };
+      };
+    };
+  };
+  payments_list: {
+    parameters: {
+      query?: {
+        contract?: number;
+        departments?: number[];
+        kind?: number;
+        /** @description Number of results to return per page. */
+        limit?: number;
+        /** @description The initial index from which to return the results. */
+        offset?: number;
+        payment_year?: number;
+        /**
+         * @description * `Q1` - I Квартал
+         *     * `Q2` - II Квартал
+         *     * `Q3` - III Квартал
+         *     * `Q4` - IV Квартал
+         */
+        quarter?: "Q1" | "Q2" | "Q3" | "Q4";
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedTreasuryPaymentList"];
+        };
+      };
+    };
+  };
+  payments_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["TreasuryPayment"];
+        "application/x-www-form-urlencoded": components["schemas"]["TreasuryPayment"];
+        "multipart/form-data": components["schemas"]["TreasuryPayment"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TreasuryPayment"];
+        };
+      };
+    };
+  };
+  payments_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Платежное поручение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TreasuryPayment"];
+        };
+      };
+    };
+  };
+  payments_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Платежное поручение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["TreasuryPayment"];
+        "application/x-www-form-urlencoded": components["schemas"]["TreasuryPayment"];
+        "multipart/form-data": components["schemas"]["TreasuryPayment"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TreasuryPayment"];
+        };
+      };
+    };
+  };
+  payments_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Платежное поручение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  payments_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Платежное поручение. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedTreasuryPayment"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedTreasuryPayment"];
+        "multipart/form-data": components["schemas"]["PatchedTreasuryPayment"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TreasuryPayment"];
+        };
+      };
+    };
+  };
+  plan_items_list: {
+    parameters: {
+      query?: {
+        /** @description Number of results to return per page. */
+        limit?: number;
+        /** @description The initial index from which to return the results. */
+        offset?: number;
+        /** @description A search term. */
+        search?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedPlanItemShortList"];
+        };
+      };
+    };
+  };
+  plan_items_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PlanItem"];
+        "application/x-www-form-urlencoded": components["schemas"]["PlanItem"];
+        "multipart/form-data": components["schemas"]["PlanItem"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlanItem"];
+        };
+      };
+    };
+  };
+  plan_items_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Пункт плана закупки (мастер-запись). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlanItemFull"];
+        };
+      };
+    };
+  };
+  plan_items_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Пункт плана закупки (мастер-запись). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PlanItem"];
+        "application/x-www-form-urlencoded": components["schemas"]["PlanItem"];
+        "multipart/form-data": components["schemas"]["PlanItem"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlanItem"];
+        };
+      };
+    };
+  };
+  plan_items_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Пункт плана закупки (мастер-запись). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  plan_items_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Пункт плана закупки (мастер-запись). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedPlanItem"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedPlanItem"];
+        "multipart/form-data": components["schemas"]["PatchedPlanItem"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlanItem"];
+        };
+      };
+    };
+  };
+  plan_items_details_list: {
+    parameters: {
+      query?: {
+        change_request?: number;
+        /** @description Number of results to return per page. */
+        limit?: number;
+        /** @description The initial index from which to return the results. */
+        offset?: number;
+        plan_item?: number;
+        /** @description A search term. */
+        search?: string;
+        /**
+         * @description * `ACTIVE` - Актуальный (Доступен для договоров)
+         *     * `DRAFT` - Черновик (изменения)
+         *     * `EXCLUSION` - Черновик (исключение)
+         *     * `DRAFT_ON_REVIEW` - На проверке у финансиста (изменение)
+         *     * `EXCLUSION_ON_REVIEW` - На проверке у финансиста (исключение)
+         *     * `DRAFT_APPROVED` - Одобрен финансистом (изменение)
+         *     * `EXCLUSION_APPROVED` - Одобрен финансистом (исключение)
+         *     * `DRAFT_REJECTED` - Отклонен финансистом (изменение)
+         *     * `EXCLUSION_REJECTED` - Отклонен финансистом (исключение)
+         *     * `UPLOAD` - Загружен на площадку
+         *     * `ARCHIVE` - В архиве
+         */
+        status?:
+          | "ACTIVE"
+          | "ARCHIVE"
+          | "DRAFT"
+          | "DRAFT_APPROVED"
+          | "DRAFT_ON_REVIEW"
+          | "DRAFT_REJECTED"
+          | "EXCLUSION"
+          | "EXCLUSION_APPROVED"
+          | "EXCLUSION_ON_REVIEW"
+          | "EXCLUSION_REJECTED"
+          | "UPLOAD";
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedPlanItemDetailList"];
+        };
+      };
+    };
+  };
+  plan_items_details_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PlanItemDetail"];
+        "application/x-www-form-urlencoded": components["schemas"]["PlanItemDetail"];
+        "multipart/form-data": components["schemas"]["PlanItemDetail"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlanItemDetail"];
+        };
+      };
+    };
+  };
+  plan_items_details_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Пункт плана закупки (детальная информация). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlanItemDetail"];
+        };
+      };
+    };
+  };
+  plan_items_details_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Пункт плана закупки (детальная информация). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PlanItemDetail"];
+        "application/x-www-form-urlencoded": components["schemas"]["PlanItemDetail"];
+        "multipart/form-data": components["schemas"]["PlanItemDetail"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlanItemDetail"];
+        };
+      };
+    };
+  };
+  plan_items_details_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Пункт плана закупки (детальная информация). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  plan_items_details_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Пункт плана закупки (детальная информация). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedPlanItemDetail"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedPlanItemDetail"];
+        "multipart/form-data": components["schemas"]["PatchedPlanItemDetail"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlanItemDetail"];
+        };
+      };
+    };
+  };
+  plan_shares_list: {
+    parameters: {
+      query?: {
+        budget_cost?: number;
+        change_request?: number;
+        department?: number;
+        /** @description Number of results to return per page. */
+        limit?: number;
+        /** @description The initial index from which to return the results. */
+        offset?: number;
+        /**
+         * @description * `ACTIVE` - Актуальный (Доступен для договоров)
+         *     * `DRAFT` - Черновик (изменения)
+         *     * `EXCLUSION` - Черновик (исключение)
+         *     * `DRAFT_ON_REVIEW` - На проверке у финансиста (изменение)
+         *     * `EXCLUSION_ON_REVIEW` - На проверке у финансиста (исключение)
+         *     * `DRAFT_APPROVED` - Одобрен финансистом (изменение)
+         *     * `EXCLUSION_APPROVED` - Одобрен финансистом (исключение)
+         *     * `DRAFT_REJECTED` - Отклонен финансистом (изменение)
+         *     * `EXCLUSION_REJECTED` - Отклонен финансистом (исключение)
+         *     * `UPLOAD` - Загружен на площадку
+         *     * `ARCHIVE` - В архиве
+         */
+        status?:
+          | "ACTIVE"
+          | "ARCHIVE"
+          | "DRAFT"
+          | "DRAFT_APPROVED"
+          | "DRAFT_ON_REVIEW"
+          | "DRAFT_REJECTED"
+          | "EXCLUSION"
+          | "EXCLUSION_APPROVED"
+          | "EXCLUSION_ON_REVIEW"
+          | "EXCLUSION_REJECTED"
+          | "UPLOAD";
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedPlanShareList"];
+        };
+      };
+    };
+  };
+  plan_shares_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PlanShare"];
+        "application/x-www-form-urlencoded": components["schemas"]["PlanShare"];
+        "multipart/form-data": components["schemas"]["PlanShare"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlanShare"];
+        };
+      };
+    };
+  };
+  plan_shares_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Внутреннее распределение по подразделениям. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlanShare"];
+        };
+      };
+    };
+  };
+  plan_shares_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Внутреннее распределение по подразделениям. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PlanShare"];
+        "application/x-www-form-urlencoded": components["schemas"]["PlanShare"];
+        "multipart/form-data": components["schemas"]["PlanShare"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlanShare"];
+        };
+      };
+    };
+  };
+  plan_shares_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Внутреннее распределение по подразделениям. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  plan_shares_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Внутреннее распределение по подразделениям. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedPlanShare"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedPlanShare"];
+        "multipart/form-data": components["schemas"]["PatchedPlanShare"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlanShare"];
+        };
+      };
+    };
+  };
+  procurement_methods_list: {
+    parameters: {
+      query?: {
+        is_active?: boolean;
+        parent?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProcurementMethodTree"][];
+        };
+      };
+    };
+  };
+  procurement_methods_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProcurementMethodTree"];
+        "application/x-www-form-urlencoded": components["schemas"]["ProcurementMethodTree"];
+        "multipart/form-data": components["schemas"]["ProcurementMethodTree"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProcurementMethodTree"];
+        };
+      };
+    };
+  };
+  procurement_methods_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Детализация процедуры закупки. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProcurementMethodTree"];
+        };
+      };
+    };
+  };
+  procurement_methods_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Детализация процедуры закупки. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProcurementMethodTree"];
+        "application/x-www-form-urlencoded": components["schemas"]["ProcurementMethodTree"];
+        "multipart/form-data": components["schemas"]["ProcurementMethodTree"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProcurementMethodTree"];
+        };
+      };
+    };
+  };
+  procurement_methods_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Детализация процедуры закупки. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  procurement_methods_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Детализация процедуры закупки. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedProcurementMethodTree"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedProcurementMethodTree"];
+        "multipart/form-data": components["schemas"]["PatchedProcurementMethodTree"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProcurementMethodTree"];
+        };
+      };
+    };
+  };
+  program_code_list: {
+    parameters: {
+      query?: {
+        is_active?: boolean;
+        /** @description A search term. */
+        search?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProgramCode"][];
+        };
+      };
+    };
+  };
+  program_code_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProgramCode"];
+        "application/x-www-form-urlencoded": components["schemas"]["ProgramCode"];
+        "multipart/form-data": components["schemas"]["ProgramCode"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProgramCode"];
+        };
+      };
+    };
+  };
+  program_code_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код программной классификации. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProgramCode"];
+        };
+      };
+    };
+  };
+  program_code_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код программной классификации. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProgramCode"];
+        "application/x-www-form-urlencoded": components["schemas"]["ProgramCode"];
+        "multipart/form-data": components["schemas"]["ProgramCode"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProgramCode"];
+        };
+      };
+    };
+  };
+  program_code_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код программной классификации. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  program_code_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Код программной классификации. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedProgramCode"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedProgramCode"];
+        "multipart/form-data": components["schemas"]["PatchedProgramCode"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProgramCode"];
+        };
+      };
+    };
+  };
+  purchases_list: {
+    parameters: {
+      query?: {
+        is_draft?: number;
+        purchase_id?: number;
+        year?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Purchases"][];
+        };
+      };
+    };
+  };
+  purchases_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["Purchases"];
+        "application/x-www-form-urlencoded": components["schemas"]["Purchases"];
+        "multipart/form-data": components["schemas"]["Purchases"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Purchases"];
+        };
+      };
+    };
+  };
+  purchases_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this План закупок ГКСЭ. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Purchases"];
+        };
+      };
+    };
+  };
+  purchases_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this План закупок ГКСЭ. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["Purchases"];
+        "application/x-www-form-urlencoded": components["schemas"]["Purchases"];
+        "multipart/form-data": components["schemas"]["Purchases"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Purchases"];
+        };
+      };
+    };
+  };
+  purchases_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this План закупок ГКСЭ. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  purchases_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this План закупок ГКСЭ. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedPurchases"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedPurchases"];
+        "multipart/form-data": components["schemas"]["PatchedPurchases"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Purchases"];
+        };
+      };
+    };
+  };
+  reports_budget_execution_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  reports_general_money_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  suppliers_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Supplier"][];
+        };
+      };
+    };
+  };
+  suppliers_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Supplier"];
+        "application/x-www-form-urlencoded": components["schemas"]["Supplier"];
+        "multipart/form-data": components["schemas"]["Supplier"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Supplier"];
+        };
+      };
+    };
+  };
+  suppliers_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Поставщик. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Supplier"];
+        };
+      };
+    };
+  };
+  suppliers_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Поставщик. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Supplier"];
+        "application/x-www-form-urlencoded": components["schemas"]["Supplier"];
+        "multipart/form-data": components["schemas"]["Supplier"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Supplier"];
+        };
+      };
+    };
+  };
+  suppliers_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Поставщик. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  suppliers_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Поставщик. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedSupplier"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedSupplier"];
+        "multipart/form-data": components["schemas"]["PatchedSupplier"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Supplier"];
+        };
+      };
+    };
+  };
+  units_of_measurement_list: {
+    parameters: {
+      query?: {
+        code?: string;
+        is_active?: boolean;
+        /** @description A search term. */
+        search?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UnitOfMeasurement"][];
+        };
+      };
+    };
+  };
+  units_of_measurement_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UnitOfMeasurement"];
+        "application/x-www-form-urlencoded": components["schemas"]["UnitOfMeasurement"];
+        "multipart/form-data": components["schemas"]["UnitOfMeasurement"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UnitOfMeasurement"];
+        };
+      };
+    };
+  };
+  units_of_measurement_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Единица измерения (ОКРБ 008). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UnitOfMeasurement"];
+        };
+      };
+    };
+  };
+  units_of_measurement_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Единица измерения (ОКРБ 008). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UnitOfMeasurement"];
+        "application/x-www-form-urlencoded": components["schemas"]["UnitOfMeasurement"];
+        "multipart/form-data": components["schemas"]["UnitOfMeasurement"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UnitOfMeasurement"];
+        };
+      };
+    };
+  };
+  units_of_measurement_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Единица измерения (ОКРБ 008). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  units_of_measurement_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Единица измерения (ОКРБ 008). */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedUnitOfMeasurement"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedUnitOfMeasurement"];
+        "multipart/form-data": components["schemas"]["PatchedUnitOfMeasurement"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UnitOfMeasurement"];
+        };
+      };
+    };
+  };
 }

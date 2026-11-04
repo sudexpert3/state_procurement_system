@@ -4,13 +4,13 @@ import { useState } from "react";
 
 import { PlusIcon } from "lucide-react";
 
+import { SectionCard } from "@/shared/components/section-card";
 import { Button } from "@/shared/components/ui/button";
 import { CardContent } from "@/shared/components/ui/card";
 import { formatByn, formatMoney } from "@/shared/lib/helpers/format-money";
 
 import { DepartmentsTable } from "../../components/departments-table";
 import { DetailField } from "../../components/detail-field";
-import { SectionCard } from "../../components/section-card";
 import { typeLabel } from "../../plan-meta";
 
 import { CostDepartmentDrawer } from "./cost-department-drawer";

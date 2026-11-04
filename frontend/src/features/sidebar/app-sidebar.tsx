@@ -1,11 +1,15 @@
 import * as React from "react";
 
 import {
+  BarChart3,
   BookOpen,
   CalendarRange,
+  FileCheck2,
+  FileText,
   GalleryVerticalEnd,
   SquareTerminal,
   UniversityIcon,
+  Wallet,
 } from "lucide-react";
 
 import { Separator } from "@/shared/components/ui/separator";
@@ -45,6 +49,26 @@ const data = {
       icon: <SquareTerminal />,
     },
     {
+      title: "Заявки на изменение",
+      url: ROUTES.CHANGE_REQUESTS,
+      icon: <FileCheck2 />,
+    },
+    {
+      title: "Договоры",
+      url: ROUTES.CONTRACTS,
+      icon: <FileText />,
+    },
+    {
+      title: "Платежи",
+      url: ROUTES.PAYMENTS,
+      icon: <Wallet />,
+    },
+    {
+      title: "Отчёты",
+      url: ROUTES.REPORTS,
+      icon: <BarChart3 />,
+    },
+    {
       title: "Справочники",
       url: "#",
       icon: <BookOpen />,
@@ -68,7 +92,7 @@ const data = {
         },
         {
           title: "Корректировка лимитов",
-          url: "#",
+          url: ROUTES.LIMIT_CALIBRATION,
         },
         {
           title: "Закупщики",

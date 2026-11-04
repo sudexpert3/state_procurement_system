@@ -1,13 +1,10 @@
 import type { PlanItemFull } from "@/shared/api/schema";
 
-import { cn } from "@siberiacancode/reactuse";
 import { useParams } from "react-router";
 
 import { rqClient } from "@/shared/api/instance";
-import { Badge } from "@/shared/components/ui/badge";
 import {
   Card,
-  CardAction,
   CardContent,
   CardHeader,
   CardTitle,
@@ -23,9 +20,9 @@ import { formatMoney } from "@/shared/lib/helpers/format-money";
 
 import { DetailField } from "./components/detail-field";
 import { PlanItemDetailSkeleton } from "./components/plan-item-detail-skeleton";
+import { ChangeRequestTab } from "./tabs/change-request-tab";
 import { InfoTab } from "./tabs/info-tab";
 import { PaymentsTab } from "./tabs/payments-tab";
-import { statusMeta } from "./plan-meta";
 
 const PlanItemDetailPage = () => {
   const { id } = useParams();
@@ -61,15 +58,6 @@ const PlanItemDetailPage = () => {
               <CardTitle className="text-lg font-semibold tracking-wide uppercase">
                 План закупки № {plan.num}
               </CardTitle>
-              <CardAction>
-                <Badge
-                  className={cn(
-                    "rounded-md p-3 text-base",
-                    statusMeta[plan?.status ?? "DRAFT"].className,
-                  )}>
-                  {statusMeta[plan?.status ?? "DRAFT"].label}
-                </Badge>
-              </CardAction>
             </CardHeader>
             <Separator />
             <CardContent className="grid grid-cols-2 gap-4 px-2 md:grid-cols-4">
@@ -102,6 +90,9 @@ const PlanItemDetailPage = () => {
             )} */}
               </TabsTrigger>
               <TabsTrigger value="payments">Платежи</TabsTrigger>
+              <TabsTrigger value="change-request">
+                Заявка на изменение
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="info">
@@ -118,6 +109,10 @@ const PlanItemDetailPage = () => {
 
             <TabsContent value="payments">
               <PaymentsTab />
+            </TabsContent>
+
+            <TabsContent value="change-request">
+              <ChangeRequestTab planItemId={plan.id} />
             </TabsContent>
           </Tabs>
         </div>

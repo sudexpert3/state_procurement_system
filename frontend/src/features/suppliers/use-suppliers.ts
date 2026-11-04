@@ -16,7 +16,7 @@ export const useSuppliers = () => {
     return result.filter(
       (item) =>
         item.name.toLowerCase().includes(q) ||
-        item.unp.toLowerCase().includes(q),
+        (item.unp?.toLowerCase().includes(q) ?? false),
     );
   }, [query.data, search]);
 

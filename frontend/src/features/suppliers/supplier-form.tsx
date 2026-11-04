@@ -48,7 +48,7 @@ export const SupplierForm = ({ open, item, onClose, onSuccess }: Props) => {
 
   const { handleSubmit, control } = useForm<FormValues>({
     resolver: zodResolver(supplierSchema),
-    values: item ? { name: item.name, unp: item.unp } : defaultValues,
+    values: item ? { name: item.name, unp: item.unp ?? "" } : defaultValues,
   });
 
   const handleSuccess = (message: string) => {
@@ -57,7 +57,7 @@ export const SupplierForm = ({ open, item, onClose, onSuccess }: Props) => {
     onSuccess();
   };
 
-  const submit = handleSubmit((values) => {
+  const submit = handleSubmit((values: FormValues) => {
     if (item) {
       updateMutation.mutate(
         { params: { path: { id: item.id } }, body: values },

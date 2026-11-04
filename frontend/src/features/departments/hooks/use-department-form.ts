@@ -44,7 +44,10 @@ export const useDepartmentForm = ({ item, onClose, onSuccess }: Params) => {
         );
       } else {
         createMutation.mutate(
-          { body: { id: 0, is_root: false, ...values } },
+          // sub_departments — readonly вычисляемое поле в ответе API, бэкенд его
+          // игнорирует на вход; generated-тип ошибочно требует его и при создании
+          // (drf-spectacular не умеет помечать рекурсивные readonly-поля optional).
+          { body: { id: 0, is_root: false, sub_departments: "", ...values } },
           {
             onSuccess: () => handleSuccess("Подразделение добавлено"),
             onError: (error) =>
