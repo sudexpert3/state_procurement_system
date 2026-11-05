@@ -53,7 +53,7 @@ const CodeOkrbPage = () => {
   );
 
   return (
-    <Card className="max-w-full gap-2 bg-transparent ring-0">
+    <Card className="max-w-full flex-1 gap-2 bg-transparent ring-0">
       <CardHeader>
         <CardTitle>Коды ОКРБ</CardTitle>
         <CardDescription>Справочник кодов ОКРБ</CardDescription>
@@ -64,12 +64,13 @@ const CodeOkrbPage = () => {
           </Button>
         </CardAction>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex min-h-0 flex-1 flex-col">
         <DataTable
           data={data}
           columns={columns}
           isLoading={isLoading}
           cellClassName=""
+          fillAvailableHeight
           actions={() => (
             <div className="py-4">
               <CodeOkrbToolbar

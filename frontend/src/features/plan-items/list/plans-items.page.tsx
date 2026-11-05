@@ -115,8 +115,8 @@ const PlansItemsPage = () => {
   };
 
   return (
-    <Card className="max-w-full gap-2 bg-transparent ring-0">
-      <CardHeader>
+    <Card className="max-w-full flex-1 gap-1 bg-transparent pt-2 pb-1 ring-0">
+      <CardHeader className="px-2">
         <div className="flex flex-wrap items-center gap-3">
           <CardTitle>Реестр закупок</CardTitle>
           <YearToggle
@@ -143,7 +143,7 @@ const PlansItemsPage = () => {
           <Button onClick={handleAddProcurement}>Добавить позицию плана</Button>
         </CardAction>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex min-h-0 flex-1 flex-col px-2">
         <DataTable
           data={data?.results ?? []}
           columns={columns}
@@ -152,9 +152,10 @@ const PlansItemsPage = () => {
           globalFilter={search}
           onGlobalFilterChange={setSearch}
           manualFiltering
+          fillAvailableHeight
           cellClassName="p-4 text-center"
           actions={(table) => (
-            <div className="py-4">
+            <div className="py-2">
               <TableActions table={table} />
             </div>
           )}

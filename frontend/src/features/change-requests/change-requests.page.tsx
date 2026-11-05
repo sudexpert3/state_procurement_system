@@ -55,7 +55,7 @@ const ChangeRequestsPage = () => {
   );
 
   return (
-    <Card className="max-w-full gap-2 bg-transparent ring-0">
+    <Card className="max-w-full flex-1 gap-2 bg-transparent ring-0">
       <CardHeader>
         <CardTitle>Заявки на изменение</CardTitle>
         <CardDescription>
@@ -68,12 +68,13 @@ const ChangeRequestsPage = () => {
           </Button>
         </CardAction>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex min-h-0 flex-1 flex-col">
         <DataTable
           data={data?.results ?? []}
           columns={columns}
           isLoading={isLoading}
           cellClassName=""
+          fillAvailableHeight
           actions={() => (
             <div className="py-4">
               <ChangeRequestsToolbar

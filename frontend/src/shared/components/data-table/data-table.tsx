@@ -4,10 +4,23 @@ import type {
   ExpandedState,
   OnChangeFn,
   PaginationState,
+  RowData,
   SortingState,
   Table as ReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
+
+// `header` в columns.tsx — это JSX (иногда с <br/> для переноса в две строки),
+// не строка, поэтому его нельзя переиспользовать как подпись в меню "Вид
+// колонок" (там нужен обычный текст в одну строку). `meta.label` — явная
+// текстовая подпись для таких мест; задаётся по желанию в columns.tsx, не
+// обязательна для каждой колонки.
+declare module "@tanstack/react-table" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TData/TValue обязательны для сигнатуры расширяемого интерфейса, хотя сами не используются
+  interface ColumnMeta<TData extends RowData, TValue> {
+    label?: string;
+  }
+}
 
 import { useState } from "react";
 
@@ -49,6 +62,15 @@ type DataTableProps<TData> = {
   manualFiltering?: boolean;
   cellClassName?: string;
   actions?: (table: ReactTable<TData>) => React.ReactNode;
+  /**
+   * Таблица растягивается на всю доступную высоту родителя (flexbox) вместо
+   * фиксированной max-h-[Nvh]. Нужно для страниц-списков верхнего уровня,
+   * где родитель сам — flex-колонка на всю высоту экрана (Card с flex-1
+   * min-h-0 внутри <main>). Для таблиц, вложенных в формы/вкладки без
+   * такого родителя, оставлять выключенным (по умолчанию) — иначе таблица
+   * схлопнется до нулевой высоты.
+   */
+  fillAvailableHeight?: boolean;
   pagination?:
     | false
     | {
@@ -72,6 +94,7 @@ export const DataTable = <TData,>({
   isLoading = false,
   pagination = { type: "default" },
   actions,
+  fillAvailableHeight = false,
   ...props
 }: DataTableProps<TData>) => {
   "use no memo";
@@ -145,15 +168,30 @@ export const DataTable = <TData,>({
   });
 
   return (
-    <div className="w-full">
+    <div
+      className={
+        fillAvailableHeight ? "flex min-h-0 w-full flex-1 flex-col" : "w-full"
+      }>
       {actions && <>{actions(table)}</>}
       {/*
         Горизонтальный и вертикальный скролл — на ОДНОМ контейнере (а не на
         отдельном внутреннем div, как в обычном <Table>) — иначе горизонтальный
         скроллбар "прилипает" к нижнему краю ВСЕЙ таблицы, а не к видимой
         области, и для длинных списков до него нужно долго скроллить вниз.
+
+        fillAvailableHeight=true: вместо фиксированного max-h-[Nvh] (который
+        не учитывает высоту чужого контента над и под таблицей на конкретной
+        странице и может "вытолкнуть" пагинацию за пределы экрана) контейнер
+        растягивается на всю доступную высоту родителя через flex-1 min-h-0
+        и сам решает, сколько строк показать без скролла — скроллбар всегда
+        остаётся в видимой области.
       */}
-      <div className="max-h-[70vh] overflow-auto rounded-md border bg-white">
+      <div
+        className={
+          fillAvailableHeight
+            ? "min-h-0 flex-1 overflow-auto rounded-md border bg-white"
+            : "max-h-[85vh] overflow-auto rounded-md border bg-white"
+        }>
         <table className="w-full caption-bottom text-sm">
           <TableHeader className="sticky top-0 z-10 bg-white">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -228,7 +266,7 @@ export const DataTable = <TData,>({
         </table>
       </div>
       {pagination !== false && (
-        <div className="mt-4">
+        <div className="mt-2 shrink-0">
           {pagination.render ? (
             pagination.render(table)
           ) : (

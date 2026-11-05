@@ -33,20 +33,21 @@ const ContractsPage = () => {
   const columns = useMemo(() => createColumns(setSelected), []);
 
   return (
-    <Card className="max-w-full gap-2 bg-transparent ring-0">
+    <Card className="max-w-full flex-1 gap-2 bg-transparent ring-0">
       <CardHeader>
         <CardTitle>Реестр договоров</CardTitle>
         <CardDescription>
           Казначейский контроль исполнения договоров ГКСЭ
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex min-h-0 flex-1 flex-col">
         <DataTable
           data={data?.results ?? []}
           columns={columns}
           isLoading={isLoading}
           cellClassName=""
           getRow={setSelected}
+          fillAvailableHeight
           pagination={{
             type: "default",
             manual: {

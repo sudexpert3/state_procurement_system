@@ -57,7 +57,7 @@ const InternalEconomicCodePage = () => {
   );
 
   return (
-    <Card className="max-w-full gap-2 bg-transparent ring-0">
+    <Card className="max-w-full flex-1 gap-2 bg-transparent ring-0">
       <CardHeader>
         <CardTitle>Внутренние коды ЭКР</CardTitle>
         <CardDescription>
@@ -71,13 +71,14 @@ const InternalEconomicCodePage = () => {
           </Button>
         </CardAction>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex min-h-0 flex-1 flex-col">
         <DataTable
           data={data}
           columns={columns}
           isLoading={isLoading}
           getSubRows={(row) => row.sub_codes}
           forceExpanded={search.trim().length > 0}
+          fillAvailableHeight
           actions={() => (
             <div className="py-4">
               <InternalEconomicCodeToolbar

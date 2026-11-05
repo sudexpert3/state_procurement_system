@@ -24,8 +24,13 @@ type Props<TData> = { table: Table<TData> };
 
 const getColumnLabel = (column: {
   id: string;
-  columnDef: { header?: unknown };
+  columnDef: { header?: unknown; meta?: { label?: string } };
 }) => {
+  // header в columns.tsx — это JSX (компонент-функция), не строка, поэтому
+  // берём явную текстовую подпись из meta.label; на id (англ. accessorKey)
+  // откатываемся только если для колонки её не задали.
+  if (column.columnDef.meta?.label) return column.columnDef.meta.label;
+
   const header = column.columnDef.header;
   return typeof header === "string" ? header : column.id;
 };

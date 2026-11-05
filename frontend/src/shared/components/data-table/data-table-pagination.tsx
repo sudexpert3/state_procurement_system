@@ -26,12 +26,12 @@ export const DataTablePagination = <TData,>({
   const { currentPage, pages } = useDataTablePagination({ table });
 
   return (
-    <div className="flex items-center justify-end space-x-2">
+    <div className="flex items-center justify-end space-x-1.5 text-sm">
       <span>Показывать по:</span>
       <Select
         value={String(table.getState().pagination.pageSize)}
         onValueChange={(e) => table.setPageSize(Number(e))}>
-        <SelectTrigger className="cursor-pointer">
+        <SelectTrigger size="sm" className="cursor-pointer">
           <SelectValue placeholder="10" />
         </SelectTrigger>
         <SelectContent className="min-w-full">
@@ -47,7 +47,7 @@ export const DataTablePagination = <TData,>({
       </Select>
       <Button
         variant="outline"
-        size="sm"
+        size="xs"
         className="cursor-pointer"
         onClick={() => table.firstPage()}
         disabled={!table.getCanPreviousPage()}>
@@ -55,7 +55,7 @@ export const DataTablePagination = <TData,>({
       </Button>
       <Button
         variant="outline"
-        size="sm"
+        size="xs"
         className="cursor-pointer"
         onClick={() => table.previousPage()}
         disabled={!table.getCanPreviousPage()}>
@@ -65,19 +65,19 @@ export const DataTablePagination = <TData,>({
         <Button
           key={page}
           variant={page === currentPage ? "default" : "outline"}
-          size="sm"
+          size="xs"
           onClick={(e) => {
             e.preventDefault();
             table.setPageIndex(Number(page) - 1);
           }}
-          className="w-8 cursor-pointer"
+          className="w-6 cursor-pointer"
           disabled={page === "..."}>
           {page}
         </Button>
       ))}
       <Button
         variant="outline"
-        size="sm"
+        size="xs"
         className="cursor-pointer"
         onClick={() => table.nextPage()}
         disabled={!table.getCanNextPage()}>
@@ -85,7 +85,7 @@ export const DataTablePagination = <TData,>({
       </Button>
       <Button
         variant="outline"
-        size="sm"
+        size="xs"
         className="cursor-pointer"
         onClick={() => table.lastPage()}
         disabled={!table.getCanNextPage()}>

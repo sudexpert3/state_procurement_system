@@ -54,7 +54,7 @@ const DepartmentsPage = () => {
   );
 
   return (
-    <Card className="max-w-full gap-2 bg-transparent ring-0">
+    <Card className="max-w-full flex-1 gap-2 bg-transparent ring-0">
       <CardHeader>
         <CardTitle>Подразделения</CardTitle>
         <CardDescription>
@@ -67,7 +67,7 @@ const DepartmentsPage = () => {
           </Button>
         </CardAction>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex min-h-0 flex-1 flex-col">
         <DataTable
           data={data}
           columns={columns}
@@ -75,6 +75,7 @@ const DepartmentsPage = () => {
           getSubRows={(row) => row.sub_departments}
           globalFilter={search}
           forceExpanded={search.trim().length > 0}
+          fillAvailableHeight
           actions={() => (
             <div className="py-4">
               <DepartmentsToolbar

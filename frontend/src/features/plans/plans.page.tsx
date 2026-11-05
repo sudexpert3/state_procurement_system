@@ -65,7 +65,7 @@ const PlansPage = () => {
   };
 
   return (
-    <Card className="max-w-full gap-2 bg-transparent ring-0">
+    <Card className="max-w-full flex-1 gap-2 bg-transparent ring-0">
       <CardHeader>
         <CardTitle>Годовые планы</CardTitle>
         <CardDescription className="text-[12px]">
@@ -80,13 +80,14 @@ const PlansPage = () => {
           </Button>
         </CardAction>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex min-h-0 flex-1 flex-col">
         <DataTable
           data={data ?? []}
           columns={columns}
           getRow={handleRowClick}
           isLoading={isLoading}
           cellClassName="p-4 text-center"
+          fillAvailableHeight
         />
       </CardContent>
     </Card>
