@@ -1,6 +1,6 @@
 import type { Purchase } from "@/shared/api/schema";
 
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
 import { Loader2Icon } from "lucide-react";
 import { useNavigate } from "react-router";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 import {
   useSyncAllPurchases,
-  useSyncPurchaseItems,
+  useSyncPurchaseItemsAction,
 } from "@/services/goszakupki";
 import { rqClient } from "@/shared/api/instance";
 import { queryClient } from "@/shared/api/query-client";
@@ -33,43 +33,28 @@ const PlansPage = () => {
   const { data, isLoading } = rqClient.useQuery("get", "/api/purchases/", {});
 
   const syncAllMutation = useSyncAllPurchases();
-  const syncItemsMutation = useSyncPurchaseItems();
+  const { sync: syncItems, syncingPurchaseId } = useSyncPurchaseItemsAction();
 
   const handleSyncAll = () => {
     syncAllMutation.mutate(undefined, {
       onSuccess: (stats) => {
-        toast.success(
-          `Синхронизация завершена: ${stats.details.imported_plan_item_count ?? 0} новых, ${stats.details.updated_plan_item_count ?? 0} обновлено`,
-        );
-        queryClient.invalidateQueries({ queryKey: ["get", "/api/purchases/"] });
+        if (stats.status === "success") {
+          toast.success(stats.message);
+          queryClient.invalidateQueries({
+            queryKey: ["get", "/api/purchases/"],
+          });
+        } else {
+          toast.info(stats.message);
+        }
       },
       onError: (error) =>
-        handleHttpError(error, "Не удалось синхронизировать с ЭТП", true),
+        handleHttpError(error, "Не удалось обновить список планов с ЭТП", true),
     });
   };
 
-  const handleSyncItems = useCallback(
-    (purchaseId: number) => {
-      syncItemsMutation.mutate(purchaseId, {
-        onSuccess: (stats) => {
-          toast.success(
-            `Позиции плана синхронизированы: ${stats.details.imported_plan_item_count ?? 0} новых, ${stats.details.updated_plan_item_count ?? 0} обновлено`,
-          );
-        },
-        onError: (error) =>
-          handleHttpError(
-            error,
-            "Не удалось синхронизировать позиции плана",
-            true,
-          ),
-      });
-    },
-    [syncItemsMutation],
-  );
-
   const columns = useMemo(
-    () => createColumns(handleSyncItems, syncItemsMutation.isPending),
-    [handleSyncItems, syncItemsMutation.isPending],
+    () => createColumns(syncItems, syncingPurchaseId),
+    [syncItems, syncingPurchaseId],
   );
 
   const handleRowClick = (row: Purchase) => {
@@ -91,7 +76,7 @@ const PlansPage = () => {
             {syncAllMutation.isPending && (
               <Loader2Icon size={16} className="animate-spin" />
             )}
-            Синхронизировать с ЭТП
+            Синхронизировать список планов закупок с ЭТП
           </Button>
         </CardAction>
       </CardHeader>

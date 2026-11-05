@@ -2,7 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import type { Purchase } from "@/shared/api/schema";
 
 import { cn } from "@siberiacancode/reactuse";
-import { RefreshCwIcon } from "lucide-react";
+import { Loader2Icon, RefreshCwIcon } from "lucide-react";
 
 import {
   DataTableCell,
@@ -13,25 +13,33 @@ import { formatDate } from "@/shared/lib/helpers/format-date";
 
 export const createColumns = (
   onSyncItems: (purchaseId: number) => void,
-  isSyncing: boolean,
+  syncingPurchaseId: number | null,
 ): ColumnDef<Purchase>[] => [
   {
     id: "sync",
     size: 50,
-    cell: ({ row }) => (
-      <DataTableCell>
-        <Button
-          variant="ghost"
-          size="icon"
-          disabled={!row.original.purchase_id || isSyncing}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (row.original.purchase_id) onSyncItems(row.original.purchase_id);
-          }}>
-          <RefreshCwIcon size={16} className="text-muted-foreground" />
-        </Button>
-      </DataTableCell>
-    ),
+    cell: ({ row }) => {
+      const isRowSyncing = syncingPurchaseId === row.original.purchase_id;
+      return (
+        <DataTableCell>
+          <Button
+            variant="ghost"
+            size="icon"
+            disabled={!row.original.purchase_id || syncingPurchaseId !== null}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (row.original.purchase_id)
+                onSyncItems(row.original.purchase_id);
+            }}>
+            {isRowSyncing ? (
+              <Loader2Icon size={16} className="animate-spin" />
+            ) : (
+              <RefreshCwIcon size={16} className="text-muted-foreground" />
+            )}
+          </Button>
+        </DataTableCell>
+      );
+    },
     enableSorting: false,
     enableHiding: false,
   },

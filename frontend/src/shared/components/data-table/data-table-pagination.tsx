@@ -35,7 +35,7 @@ export const DataTablePagination = <TData,>({
           <SelectValue placeholder="10" />
         </SelectTrigger>
         <SelectContent className="min-w-full">
-          {[10, 20, 30, 40].map((pageSize) => (
+          {[10, 20, 50, 100].map((pageSize) => (
             <SelectItem
               key={pageSize}
               value={pageSize.toString()}

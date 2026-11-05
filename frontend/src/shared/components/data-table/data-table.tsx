@@ -23,7 +23,6 @@ import {
 
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -148,9 +147,15 @@ export const DataTable = <TData,>({
   return (
     <div className="w-full">
       {actions && <>{actions(table)}</>}
-      <div className="rounded-md border bg-white">
-        <Table>
-          <TableHeader>
+      {/*
+        Горизонтальный и вертикальный скролл — на ОДНОМ контейнере (а не на
+        отдельном внутреннем div, как в обычном <Table>) — иначе горизонтальный
+        скроллбар "прилипает" к нижнему краю ВСЕЙ таблицы, а не к видимой
+        области, и для длинных списков до него нужно долго скроллить вниз.
+      */}
+      <div className="max-h-[70vh] overflow-auto rounded-md border bg-white">
+        <table className="w-full caption-bottom text-sm">
+          <TableHeader className="sticky top-0 z-10 bg-white">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -220,7 +225,7 @@ export const DataTable = <TData,>({
               </TableRow>
             )}
           </TableBody>
-        </Table>
+        </table>
       </div>
       {pagination !== false && (
         <div className="mt-4">

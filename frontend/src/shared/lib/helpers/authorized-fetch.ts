@@ -39,6 +39,16 @@ export const authorizedFetch = async <T>(
         typeof body.detail === "string"
       ) {
         message = body.detail;
+      } else if (
+        // /api/gosakupki/*, /api/goszakupki/* на ошибках отдают {"error": "..."}
+        // (см. views/get_data_from_goszakupki.py, views/plan_sync.py), а не
+        // message/detail, как остальной API.
+        body &&
+        typeof body === "object" &&
+        "error" in body &&
+        typeof body.error === "string"
+      ) {
+        message = body.error;
       }
     } catch {
       // тело ответа не JSON — оставляем статусную строку

@@ -29,7 +29,7 @@ export const router = createBrowserRouter([
       <Providers>
         <Suspense fallback={<div>Loading...</div>}>
           <App />
-          <Toaster />
+          <Toaster position="top-center" richColors />
         </Suspense>
       </Providers>
     ),

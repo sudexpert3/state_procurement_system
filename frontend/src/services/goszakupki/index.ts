@@ -3,5 +3,12 @@ export {
   usePushPlanItems,
   useSyncAllPurchases,
   useSyncPurchaseItems,
+  useSyncPurchaseItemsAction,
 } from "./api";
-export type { PushFailed, PushResult, PushSucceeded, SyncStats } from "./types";
+export type {
+  PushFailed,
+  PushResult,
+  PushSucceeded,
+  SyncAllResult,
+  SyncItemsResult,
+} from "./types";

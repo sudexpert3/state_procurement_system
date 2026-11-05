@@ -3,8 +3,10 @@ import type { PlanItemShort } from "@/shared/api/schema";
 import { useMemo } from "react";
 
 import { keepPreviousData } from "@tanstack/react-query";
+import { Loader2Icon, RefreshCwIcon } from "lucide-react";
 import { href, useNavigate, useSearchParams } from "react-router";
 
+import { useSyncPurchaseItemsAction } from "@/services/goszakupki";
 import { rqClient } from "@/shared/api/instance";
 import { DataTable } from "@/shared/components/data-table/data-table";
 import { useServerPagination } from "@/shared/components/data-table/hooks/use-server-pagination";
@@ -14,7 +16,6 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
@@ -22,11 +23,44 @@ import { ROUTES } from "@/shared/model/routes";
 
 import { createColumns } from "./columns";
 import { TableActions } from "./table-actions";
+import { YearToggle } from "./year-toggle";
 
 const PlansItemsPage = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const purchase = Number(searchParams.get("purchase")) || 8;
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Список годовых планов — источник и для переключателя годов, и для
+  // внешнего purchase_id (нужен эндпоинту синхронизации goszakupki.by,
+  // который принимает ID портала, а не Purchases.id — наш первичный ключ).
+  const { data: purchases } = rqClient.useQuery("get", "/api/purchases/", {});
+
+  const years = useMemo(
+    () =>
+      (purchases ?? [])
+        .filter((p): p is typeof p & { year: number } => p.year != null)
+        .sort((a, b) => b.year - a.year)
+        .map((p) => ({ year: p.year, purchaseId: p.id })),
+    [purchases],
+  );
+
+  const purchaseParam = searchParams.get("purchase");
+  // Пришли с конкретного плана ("Годовые планы") — берём его id из URL.
+  // Пришли откуда угодно ещё (прямой переход, другой раздел) — берём самый
+  // актуальный год (первый в списке, он отсортирован по убыванию).
+  const purchase = purchaseParam ? Number(purchaseParam) : years[0]?.purchaseId;
+
+  const purchaseRecord = purchases?.find((p) => p.id === purchase);
+  const { sync: syncItems, isPending: isSyncingItems } =
+    useSyncPurchaseItemsAction();
+
+  const handleSelectYear = (purchaseId: number) => {
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.set("purchase", String(purchaseId));
+      params.set("offset", "0");
+      return params;
+    });
+  };
 
   const { limit, offset, pagination, onPaginationChange } =
     useServerPagination();
@@ -51,8 +85,13 @@ const PlansItemsPage = () => {
         },
       },
     },
-    // При переходе между страницами показываем прошлые данные, пока грузятся новые
-    { placeholderData: keepPreviousData },
+    {
+      // При переходе между страницами показываем прошлые данные, пока грузятся новые
+      placeholderData: keepPreviousData,
+      // До того как подгрузится список планов (и, соответственно, актуальный
+      // год по умолчанию), запрос не имеет смысла — purchase ещё неизвестен.
+      enabled: purchase !== undefined,
+    },
   );
 
   // const year = data?.results[0]?.economic_details[0]?.year ?? "#";
@@ -78,10 +117,30 @@ const PlansItemsPage = () => {
   return (
     <Card className="max-w-full gap-2 bg-transparent ring-0">
       <CardHeader>
-        <CardTitle>Реестр закупок</CardTitle>
-        <CardDescription className="text-[12px]">{`Планы закупок на  год`}</CardDescription>
-        <CardAction>
-          <Button onClick={handleAddProcurement}>Добавить запись</Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <CardTitle>Реестр закупок</CardTitle>
+          <YearToggle
+            years={years}
+            activePurchaseId={purchase ?? null}
+            onSelect={handleSelectYear}
+          />
+        </div>
+        <CardAction className="flex gap-2">
+          <Button
+            variant="outline"
+            disabled={!purchaseRecord?.purchase_id || isSyncingItems}
+            onClick={() =>
+              purchaseRecord?.purchase_id &&
+              syncItems(purchaseRecord.purchase_id)
+            }>
+            {isSyncingItems ? (
+              <Loader2Icon size={16} className="animate-spin" />
+            ) : (
+              <RefreshCwIcon size={16} />
+            )}
+            Синхронизировать позиции с ЭТП
+          </Button>
+          <Button onClick={handleAddProcurement}>Добавить позицию плана</Button>
         </CardAction>
       </CardHeader>
       <CardContent>
