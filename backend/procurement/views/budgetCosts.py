@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django.db import transaction
@@ -14,15 +14,18 @@ class BudgetCostsViewSet(viewsets.ModelViewSet):
     Принимает сырые коды казначейства и автоматически увязывает их с иерархией ЭКР ГКСЭ.
     """
     queryset = BudgetCosts.objects.all().select_related(
-        'functional_class', 'program_class', 'economic_class',
+        'functional_class', 'program_class', 'economic_class', 'plan_item',
         'internal_economic_class', 'internal_economic_section', 'internal_economic_subsection',
         'internal_economic_kind', 'internal_economic_article'
     )
 
     serializer_class = BudgetCostsSerializer
     permission_classes = [AllowAny]  # Временный отладочный режим системы без авторизации
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['year', 'purchases_items_id', 'budget_code', 'status', 'change_request', 'plan_item']
+    # Поиск по номеру позиции плана (?search=2026-102377498-117) — запрошено фронтом для
+    # формы перераспределения лимита (doc/frontend_handoff.md, раздел 3.1).
+    search_fields = ['plan_item__num']
 
     def create(self, request, *args, **kwargs):
         """

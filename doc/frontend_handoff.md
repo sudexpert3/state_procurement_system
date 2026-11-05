@@ -7,6 +7,21 @@
 >
 > Дата: 2026-11-03. Актуальность: сверено с реальным кодом backend на эту дату, не с памятью.
 
+> **Обновление 2026-11-05.** Все 3 дырки, найденные фронтом при реализации разделов 2-9
+> (`frontend/docs/CurrentStatus.md`, "Новые хвосты бэка, обнаруженные ... 2026-11-04"),
+> закрыты:
+> 1. У кастомных actions `ChangeRequestViewSet` теперь честная OpenAPI-схема — `forecast`
+>    отдаёт `PolymorphicProxySerializer` (`oneOf`+`discriminator` по `kind`, 5 вариантов),
+>    `reject`/`redistribute`/`calibrate_department_limits` — правильные request-схемы.
+>    Ответ `forecast` теперь содержит поле `kind` (дискриминатор) — перегенерируйте типы.
+> 2. Новый `GET /api/budget_quarterly_limit/` (фильтры `status`/`budget_cost`/
+>    `budget_cost__year`/`plan_share`/`quarter`) + `/api/budget_costs/` теперь поддерживает
+>    `?search=<номер позиции плана>` и отдаёт `plan_item_num`.
+> 3. Новый `GET /api/kind_of_payment/` — справочник видов платежей для формы платежа.
+>
+> После `npm run generate-types` поищите `as unknown as ChangeRequest` на вызовах `forecast`
+> в `services/change-requests/` — теперь должны быть honest-типы без каста.
+
 ## 0. Как пользоваться этим документом
 
 1. Backend запущен на `localhost:8000` (или свой dev-порт) — обязательно перед `npm run generate-types`.
@@ -303,3 +318,48 @@ GET /api/change_requests/{id}/forecast/
 Backend уже всё перечисленное реализовал и покрыл тестами (45 тестов, `manage.py test procurement`) — но **ни разу не проверял через реальный UI**, только через `curl`/Swagger. Поэтому при подключении возможны мелкие расхождения (не указан какой-то фильтр, не хватает поля) — **сообщайте backend-агенту/пользователю, не придумывайте обходные пути молча**.
 
 Порядок — на ваше усмотрение, но пользователь просил: **разделы 1-6 (вся предыдущая работа) и раздел 7 (Общие деньги + калибровка) должны быть откатаны на фронте, прежде чем backend возьмётся за следующий отчёт**. Можно идти по степени готовности текущего фронта: разделы 4.2/4.3 (договоры) и 4.1 (платежи) ближе всего к завершению (моки уже есть, просто подключить реальный API); разделы 2/3/7 — полностью новый UI с нуля (workflow заявок).
+
+---
+
+## 9. Запрос от фронтенда к бэкенду (добавлено 2026-11-05, согласовано с пользователем)
+
+### 9.1. Количество договоров вместо просто "есть/нет" в `PlanItemShort.contracts`
+
+**Где используется:** `/plan-items` (Реестр закупок), столбец «Наличие договора». Сейчас там плашка Да/Нет.
+Хотим показывать количество: «Да (4)» вместо просто «Да».
+
+**Текущая реализация** (`procurement/serializers/planItem.py`, `PlanItemShortSerializer.get_contracts()`,
+строки 86-95):
+
+```python
+@extend_schema_field(serializers.BooleanField)
+def get_contracts(self, obj):
+    active_budgets = obj.budget_costs.filter(status=PlanItemStatus.ACTIVE)
+    plan_shares = PlanShare.objects.filter(
+        budget_cost__in=active_budgets,
+        status=PlanItemStatus.ACTIVE
+    )
+    contracts_queryset = ContractItem.objects.filter(plan_share__in=plan_shares).distinct()
+
+    return contracts_queryset.exists()
+```
+
+`contracts_queryset` — это `ContractItem` (строки договора), не сами `Contract`. Для «количества
+договоров» важно считать **уникальные `Contract`**, а не строки-позиции (у одного договора может
+быть несколько `ContractItem` на разные `plan_share`/подразделения этой же позиции плана — см.
+`CurrentStatus.md` backend, пример `2026-102377498-66`, 14 договоров на охрану от разных отделов).
+Т.е. нужно что-то вроде:
+
+```python
+contracts_queryset.values("contract").distinct().count()
+```
+
+**Просим:** добавить в `PlanItemShortSerializer` новое поле, например `contracts_count` (int) —
+число уникальных договоров, по формуле выше. Поле `contracts` (boolean) просьба **не убирать и не
+менять его смысл** — не проверяли, использует ли его что-то ещё помимо этого столбца, менять
+семантику существующего поля без необходимости не хотим. `contracts_count` — отдельное,
+дополнительное поле.
+
+После того как поле появится и вы перегенерируете/подтвердите схему — на фронте просто подставим
+`contracts_count` в текст плашки (`"Да (" + count + ")"` вместо `"Да"`) и обновим `frontend_handoff.md`/
+`CurrentStatus.md`, ничего большего не требуется.

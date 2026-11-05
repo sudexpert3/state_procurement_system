@@ -2,7 +2,7 @@
 
 > Единственный источник истины по статусу проекта. Обновлять после каждой реализованной фичи или значимой промежуточной задачи. Исходное ТЗ — `doc/task.docx`, его содержание отражено ниже и повторно перечитывать не требуется.
 
-Дата последнего обновления: **2026-11-03**.
+Дата последнего обновления: **2026-11-05**.
 
 ## 1. Коротко о проекте
 
@@ -427,15 +427,18 @@ Djoser подключён в `INSTALLED_APPS`, но роуты закоммен�
 - **Frontend теперь собирается в production-режиме** (`docker/frontend/Dockerfile`, multi-stage: `node:22-alpine` → `npm run build` → `nginx:alpine` отдаёт `dist/`). Файл лежит **вне `frontend/`** (запрет на запись туда не нарушен — Dockerfile только читает файлы внутри одноразового build-контейнера, явный список COPY вместо `COPY . .` — чтобы не затащить в образ `node_modules`/`dist` разработчика поверх уже установленных внутри контейнера, Windows/Linux native-бинарники иначе ломаются). Контекст сборки — корень репозитория, добавлен `.dockerignore` (тоже вне `frontend/`) для скорости сборки.
 - `nginx/nginx.conf` (edge) обновлён: `upstream frontend` теперь `frontend:80` (свой nginx с готовой статикой) вместо `frontend:5173` (Vite dev-сервер).
 - `VITE_API_URL` (base URL API) зашивается в сборку фронтенда на этапе build (Vite inlines `import.meta.env.*`): по умолчанию `/api/` (относительный путь, т.к. в prod фронтенд и API отдаёт один nginx с одного домена); для `backend-dev` (без edge-nginx) переопределяется через `FRONTEND_API_URL` в `.env`.
-- **Обнаружено и проверено отдельно (не блокирует Этап 6, вне моей зоны):** реальная prod-сборка фронтенда (`npm run build` = `tsc -b && vite build`) **падает на текущих TypeScript-ошибках в коде `frontend/`** — не связано с Docker-конфигом (`plans-items.page.tsx`, `use-department-form.ts`, `crud-service.ts` — отсутствует `axios` в зависимостях, `calendar.tsx`). По решению пользователя `npm run build` в Dockerfile оставлен как есть (без обхода тайпчека) — сборка заработает, когда фронтенд-разработчик исправит эти ошибки у себя.
+- **Обнаружено 2026-10-29, устранено фронтенд-агентом 2026-11-04, перепроверено здесь 2026-11-05 (см. Этап 8):** на момент внедрения Этапа 6 реальная prod-сборка фронтенда (`npm run build` = `tsc -b && vite build`) падала на TypeScript-ошибках в коде `frontend/`, не связанных с Docker-конфигом. Фронтенд-агент исправил все 13 ошибок (см. `frontend/docs/CurrentStatus.md`) — `docker compose --profile prod build frontend` теперь проходит полностью, без обхода тайпчека.
 - Конфигурация проверена: `docker compose --profile <X> config` для всех трёх профилей резолвится корректно (правильный набор сервисов, build-args, env, depends_on, volumes); `docker compose --profile prod build frontend` реально собирался (упал только на вышеупомянутом тайпчеке — т.е. Docker-механика пройдена до конца, `npm ci` + копирование + сборка работают).
 
 ### Этап 7 (отложено). Аутентификация, роли, личные кабинеты
 Возврат к этому этапу — по решению пользователя, когда основные бизнес-процессы (этапы 1-4) будут обкатаны в однопользовательском режиме. Тогда же — окно подачи заявок 1-10 числа месяца (ТЗ п.15) и разграничение прав по подразделениям.
 
-### Этап 8. Тесты и техдолг
-- Автотесты на критичную бизнес-логику: валидация лимитов `PlanShare`, перерасход `TreasuryPayment`, многолетнее резервирование.
-- Пересохранить `requirements.txt` в UTF-8, проверить сборку `backend/Dockerfile`.
+### Этап 8. Тесты и техдолг — техдолг закрыт, тесты продолжают копиться по ходу работы (2026-11-05)
+
+- Автотесты на критичную бизнес-логику — **не отдельная задача, а уже сложившаяся практика**: 45 тестов в `procurement/tests.py`, покрывающих `PlanShare`/`TreasuryPayment`/многолетнее резервирование и всё, что добавлялось по ходу Этапов 2-9 (см. выше).
+- **`backend/requirements.txt` пересохранён в UTF-8** (был UTF-16 LE с самого начала проекта) — содержимое побайтово то же (50 пакетов, тот же порядок), только кодировка; `file` подтверждает `ASCII text` после фикса.
+- **Полная пересборка prod-профиля Docker проверена заново** (`docker compose --profile prod build` — backend и frontend по отдельности и вместе): оба образа собираются чисто. Backend: `pip install -r requirements.txt` (уже с UTF-8) + `collectstatic` — без ошибок. Frontend: `npm run build` **теперь действительно проходит** (ранее документированный в Этапе 6 блокер — TS-ошибки — устранён фронтенд-агентом 2026-11-04, см. `frontend/docs/CurrentStatus.md`; факт подтверждён здесь реальной сборкой образа, а не со слов).
+- **Стек поднят целиком и проверен живым запросом** (`docker compose --profile prod up`): `backend` мигрировал без ошибок на уже существующей БД (postgres volume сохранён), gunicorn поднялся (3 воркера), `nginx` корректно отдаёт собранный фронтенд (`GET /` → 200, реальный `index.html` с хэшированными ассетами) И проксирует API (`GET /api/departments/?limit=1` → 200). Контейнеры `backend`/`frontend`/`nginx`, созданные для этой проверки, остановлены и удалены после теста; `db`/`adminer` (были запущены до этого прохода) не трогал.
 
 ### Этап 9. Отчётность — backend первого отчёта + механизм калибровки лимитов выполнены (2026-11-03)
 
@@ -477,6 +480,13 @@ Djoser подключён в `INSTALLED_APPS`, но роуты закоммен�
 4. `change_request` добавлен в список полей `BudgetCostsSerializer`/`PlanItemDetailSerializer` (раньше не отдавался, хотя поле есть на модели).
 
 Проверено: `manage.py check`, **45/45 тестов** (регрессий нет), живой `curl` — `/api/plan_shares/`, `/api/budget_costs/?status=ACTIVE`, `/api/plan_items_details/?status=ACTIVE` — все 200; POST на `/api/budget_costs/` с невалидным payload — чистый 400 (было бы 500 до фикса).
+
+**9.4. Фронтенд реализовал разделы 2-9 `frontend_handoff.md` (2026-11-04, см. `frontend/docs/CurrentStatus.md`) и нашёл 3 дополнительные дырки backend — все закрыты (2026-11-05):**
+1. **У `ChangeRequestViewSet` кастомные actions (`submit/approve/reject/forecast/redistribute/calibrate_department_limits`) были без `@extend_schema`** — drf-spectacular по умолчанию подставлял `serializer_class` вьюсета (`ChangeRequestSerializer`) и для тела запроса, и для ответа — для `reject`/`redistribute`/`calibrate_department_limits` это была прямая ЛОЖЬ в сгенерированной схеме (реальные тела запроса — `RejectSerializer`/`RedistributionCreateSerializer`/`DepartmentLimitCalibrationCreateSerializer`). Хуже того, `forecast` отдаёт ОДНУ ИЗ 5 РАЗНЫХ форм ответа в зависимости от `ChangeRequest.kind` — такого же не существовало вовсе ни в схеме, ни как отдельный Python-тип. **Исправлено**: добавлены явные `@extend_schema(request=..., responses=...)` на все 6 actions; для `forecast` — новый `serializers/changeRequestForecast.py` (5 Serializer-классов, по одному на `kind`) + `PolymorphicProxySerializer` с дискриминатором `kind` (`oneOf`/`discriminator` в итоговой OpenAPI-схеме — честный полиморфный тип, не "ChangeRequest"). `compute_forecast()` (`services/change_requests.py`) теперь добавляет `'kind': change_request.kind` в возвращаемый dict — без этого у дискриминатора не было бы значения для выбора варианта.
+2. **Не было read-эндпоинта для `BudgetQuarterlyLimit`** — форма «Перераспределить лимит» на фронте заставляла специалиста вводить ID `BudgetCosts`/`PlanShare` руками. Добавлен `BudgetQuarterlyLimitViewSet` (`/api/budget_quarterly_limit/`, фильтры `status`/`budget_cost`/`budget_cost__year`/`plan_share`/`quarter`/`change_request`, с денормализованными `year`/`economic_code`/`plan_item_num`/`department_name` для отображения без лишних джойнов на фронте). Попутно: `BudgetCostsSerializer` дополнен полем `plan_item_num` и `BudgetCostsViewSet` — поиском `?search=<номер позиции>` (`search_fields=['plan_item__num']`) — фронт прямо попросил способ найти `BudgetCosts.id` по номеру позиции плана, а не только по ID.
+3. **Не было справочника видов платежей (`KindOfPayment`)** — поле `kind` в форме платежа всегда оставалось `null`. Добавлен `KindOfPaymentViewSet` (`/api/kind_of_payment/`).
+
+Проверено: `manage.py check`, `manage.py spectacular` — схема генерируется полностью, `ChangeRequestForecast` в `components/schemas` содержит корректный `oneOf`+`discriminator` на 5 вариантов (проверено разбором сгенерированного YAML, не визуально); **45/45 тестов** (регрессий нет — ни один тест не делал `assertEqual` на весь dict прогноза, только на отдельные ключи, так что добавление `kind` ничего не сломало); живой `curl` на реальных данных — `/api/kind_of_payment/` отдаёт 9 реальных видов платежей, `/api/budget_quarterly_limit/` отдаёт 200 (пусто — в реальной БД пока нет данных этой модели, ожидаемо), `/api/change_requests/2/forecast/` на реальной одобренной заявке — в ответе появился `"kind": "BUDGET_LIMIT_CORRECTION"`.
 
 ## 5. Осознанно отложено
 

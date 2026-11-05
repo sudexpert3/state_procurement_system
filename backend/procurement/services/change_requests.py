@@ -443,16 +443,22 @@ def compute_forecast(change_request):
     уже принято/оплачено под позицией и осталось бы "осиротевшим" при исключении.
     Для LIMIT_REDISTRIBUTION/BUDGET_LIMIT_CORRECTION: старое/новое значение и дельта по
     каждой затронутой строке.
-    """
+
+    Форма ответа зависит от `kind` (5 разных форм) — добавляем сам `kind` в результат, чтобы
+    фронт/drf-spectacular могли выбрать нужную схему по дискриминатору (см.
+    views/changeRequest.py::forecast, PolymorphicProxySerializer)."""
     if change_request.kind == ChangeRequestKind.PLAN_ITEM_EXCLUSION:
-        return _forecast_exclusion(change_request)
-    if change_request.kind == ChangeRequestKind.LIMIT_REDISTRIBUTION:
-        return _forecast_redistribution(change_request)
-    if change_request.kind == ChangeRequestKind.BUDGET_LIMIT_CORRECTION:
-        return _forecast_article_allocations(change_request)
-    if change_request.kind == ChangeRequestKind.DEPARTMENT_LIMIT_CALIBRATION:
-        return _forecast_department_limits(change_request)
-    return _forecast_plan_item_change(change_request)
+        result = _forecast_exclusion(change_request)
+    elif change_request.kind == ChangeRequestKind.LIMIT_REDISTRIBUTION:
+        result = _forecast_redistribution(change_request)
+    elif change_request.kind == ChangeRequestKind.BUDGET_LIMIT_CORRECTION:
+        result = _forecast_article_allocations(change_request)
+    elif change_request.kind == ChangeRequestKind.DEPARTMENT_LIMIT_CALIBRATION:
+        result = _forecast_department_limits(change_request)
+    else:
+        result = _forecast_plan_item_change(change_request)
+    result['kind'] = change_request.kind
+    return result
 
 
 def _forecast_redistribution(change_request):

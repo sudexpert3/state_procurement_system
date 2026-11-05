@@ -308,6 +308,10 @@ class BudgetCostsForShortItemSerializer(serializers.ModelSerializer):
 # 3. ЧИСТЫЙ СЕРИАЛИЗАТОР
 # =====================================================================
 class BudgetCostsSerializer(serializers.ModelSerializer):
+    # Поиск/отображение по номеру позиции плана, а не только по ID (запрошено фронтом —
+    # форма перераспределения лимита иначе не может показать человекочитаемый выбор).
+    plan_item_num = serializers.CharField(source='plan_item.num', read_only=True, default=None)
+
     functional_class_detail = FunctionalCodeSerializer(source='functional_class', read_only=True)
     functional_class_code_api = serializers.CharField(source='functional_class.code_api', read_only=True)
 
@@ -336,7 +340,7 @@ class BudgetCostsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BudgetCosts
-        fields = ['id', 'plan_item', 'status', 'change_request', 'purchases_items_id', 'aggregated_cost', 'cost',
+        fields = ['id', 'plan_item', 'plan_item_num', 'status', 'change_request', 'purchases_items_id', 'aggregated_cost', 'cost',
                   # FUNCTIONAL_CODE:
                   'functional_class', 'functional_class_code_api', 'functional_class_detail',
                   'department_code',

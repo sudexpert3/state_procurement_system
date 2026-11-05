@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema, PolymorphicProxySerializer
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -11,8 +12,27 @@ from procurement.models import ChangeRequest, PlanItem
 from procurement.serializers import (
     ChangeRequestSerializer, ChangeRequestCreateSerializer, RejectSerializer,
     RedistributionCreateSerializer, DepartmentLimitCalibrationCreateSerializer,
+    PlanItemChangeForecastSerializer, PlanItemExclusionForecastSerializer,
+    RedistributionForecastSerializer, BudgetLimitCorrectionForecastSerializer,
+    DepartmentLimitCalibrationForecastSerializer,
 )
 from procurement.services import change_requests as cr_service
+
+# forecast() отдаёт одну из 5 разных форм ответа в зависимости от ChangeRequest.kind (см.
+# services/change_requests.py::compute_forecast docstring) — без этой аннотации
+# drf-spectacular молча подставлял бы serializer_class вьюсета (ChangeRequestSerializer),
+# что было прямой ложью в сгенерированной схеме/типах (найдено фронтендом 2026-11-04).
+_FORECAST_RESPONSE = PolymorphicProxySerializer(
+    component_name='ChangeRequestForecast',
+    resource_type_field_name='kind',
+    serializers={
+        ChangeRequestKind.PLAN_ITEM_CHANGE.value: PlanItemChangeForecastSerializer,
+        ChangeRequestKind.PLAN_ITEM_EXCLUSION.value: PlanItemExclusionForecastSerializer,
+        ChangeRequestKind.LIMIT_REDISTRIBUTION.value: RedistributionForecastSerializer,
+        ChangeRequestKind.BUDGET_LIMIT_CORRECTION.value: BudgetLimitCorrectionForecastSerializer,
+        ChangeRequestKind.DEPARTMENT_LIMIT_CALIBRATION.value: DepartmentLimitCalibrationForecastSerializer,
+    },
+)
 
 
 class ChangeRequestViewSet(viewsets.ModelViewSet):
@@ -48,6 +68,7 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
 
         return Response(ChangeRequestSerializer(change_request).data, status=status.HTTP_201_CREATED)
 
+    @extend_schema(request=RedistributionCreateSerializer, responses=ChangeRequestSerializer)
     @action(detail=False, methods=['post'])
     def redistribute(self, request):
         """Создать заявку на перераспределение лимита (kind=LIMIT_REDISTRIBUTION) —
@@ -63,6 +84,7 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
             return Response({'detail': _error_message(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(ChangeRequestSerializer(change_request).data, status=status.HTTP_201_CREATED)
 
+    @extend_schema(request=DepartmentLimitCalibrationCreateSerializer, responses=ChangeRequestSerializer)
     @action(detail=False, methods=['post'])
     def calibrate_department_limits(self, request):
         """Создать заявку на калибровку разбивки статьи Минфина на подстатьи/держателей
@@ -83,6 +105,7 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
             return Response({'detail': _error_message(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(ChangeRequestSerializer(change_request).data, status=status.HTTP_201_CREATED)
 
+    @extend_schema(request=None, responses=ChangeRequestSerializer)
     @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
         change_request = self.get_object()
@@ -92,6 +115,7 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
             return Response({'detail': _error_message(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(ChangeRequestSerializer(change_request).data)
 
+    @extend_schema(request=None, responses=ChangeRequestSerializer)
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         change_request = self.get_object()
@@ -101,6 +125,7 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
             return Response({'detail': _error_message(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(ChangeRequestSerializer(change_request).data)
 
+    @extend_schema(request=RejectSerializer, responses=ChangeRequestSerializer)
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         change_request = self.get_object()
@@ -112,6 +137,7 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
             return Response({'detail': _error_message(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(ChangeRequestSerializer(change_request).data)
 
+    @extend_schema(request=None, responses=_FORECAST_RESPONSE)
     @action(detail=True, methods=['get'])
     def forecast(self, request, pk=None):
         change_request = self.get_object()
