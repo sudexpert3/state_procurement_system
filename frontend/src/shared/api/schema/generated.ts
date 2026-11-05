@@ -61,6 +61,80 @@ export interface paths {
     patch: operations["budget_costs_partial_update"];
     trace?: never;
   };
+  "/api/budget_quarterly_limit/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Read/write доступ к квартальным лимитам (Этап 3.3) — до этого у фронта не было
+     *     способа найти текущие значения для формы «Перераспределить лимит»
+     *     (doc/frontend_handoff.md, раздел 3.1), кроме ввода ID BudgetCosts/PlanShare руками.
+     *     Запись напрямую (минуя ChangeRequest) по-прежнему не используется бизнес-процессом —
+     *     эндпоинт в основном для чтения, но ModelViewSet оставлен для единообразия с остальным API.
+     */
+    get: operations["budget_quarterly_limit_list"];
+    put?: never;
+    /**
+     * @description Read/write доступ к квартальным лимитам (Этап 3.3) — до этого у фронта не было
+     *     способа найти текущие значения для формы «Перераспределить лимит»
+     *     (doc/frontend_handoff.md, раздел 3.1), кроме ввода ID BudgetCosts/PlanShare руками.
+     *     Запись напрямую (минуя ChangeRequest) по-прежнему не используется бизнес-процессом —
+     *     эндпоинт в основном для чтения, но ModelViewSet оставлен для единообразия с остальным API.
+     */
+    post: operations["budget_quarterly_limit_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/budget_quarterly_limit/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Read/write доступ к квартальным лимитам (Этап 3.3) — до этого у фронта не было
+     *     способа найти текущие значения для формы «Перераспределить лимит»
+     *     (doc/frontend_handoff.md, раздел 3.1), кроме ввода ID BudgetCosts/PlanShare руками.
+     *     Запись напрямую (минуя ChangeRequest) по-прежнему не используется бизнес-процессом —
+     *     эндпоинт в основном для чтения, но ModelViewSet оставлен для единообразия с остальным API.
+     */
+    get: operations["budget_quarterly_limit_retrieve"];
+    /**
+     * @description Read/write доступ к квартальным лимитам (Этап 3.3) — до этого у фронта не было
+     *     способа найти текущие значения для формы «Перераспределить лимит»
+     *     (doc/frontend_handoff.md, раздел 3.1), кроме ввода ID BudgetCosts/PlanShare руками.
+     *     Запись напрямую (минуя ChangeRequest) по-прежнему не используется бизнес-процессом —
+     *     эндпоинт в основном для чтения, но ModelViewSet оставлен для единообразия с остальным API.
+     */
+    put: operations["budget_quarterly_limit_update"];
+    post?: never;
+    /**
+     * @description Read/write доступ к квартальным лимитам (Этап 3.3) — до этого у фронта не было
+     *     способа найти текущие значения для формы «Перераспределить лимит»
+     *     (doc/frontend_handoff.md, раздел 3.1), кроме ввода ID BudgetCosts/PlanShare руками.
+     *     Запись напрямую (минуя ChangeRequest) по-прежнему не используется бизнес-процессом —
+     *     эндпоинт в основном для чтения, но ModelViewSet оставлен для единообразия с остальным API.
+     */
+    delete: operations["budget_quarterly_limit_destroy"];
+    options?: never;
+    head?: never;
+    /**
+     * @description Read/write доступ к квартальным лимитам (Этап 3.3) — до этого у фронта не было
+     *     способа найти текущие значения для формы «Перераспределить лимит»
+     *     (doc/frontend_handoff.md, раздел 3.1), кроме ввода ID BudgetCosts/PlanShare руками.
+     *     Запись напрямую (минуя ChangeRequest) по-прежнему не используется бизнес-процессом —
+     *     эндпоинт в основном для чтения, но ModelViewSet оставлен для единообразия с остальным API.
+     */
+    patch: operations["budget_quarterly_limit_partial_update"];
+    trace?: never;
+  };
   "/api/buyers/": {
     parameters: {
       query?: never;
@@ -781,6 +855,62 @@ export interface paths {
     patch: operations["internal_economic_code_partial_update"];
     trace?: never;
   };
+  "/api/kind_of_payment/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Справочник видов платежей — нужен фронту для select'а при создании TreasuryPayment
+     *     (до этого эндпоинта не было вовсе, см. doc/frontend_handoff.md, раздел 4.1).
+     */
+    get: operations["kind_of_payment_list"];
+    put?: never;
+    /**
+     * @description Справочник видов платежей — нужен фронту для select'а при создании TreasuryPayment
+     *     (до этого эндпоинта не было вовсе, см. doc/frontend_handoff.md, раздел 4.1).
+     */
+    post: operations["kind_of_payment_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/kind_of_payment/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Справочник видов платежей — нужен фронту для select'а при создании TreasuryPayment
+     *     (до этого эндпоинта не было вовсе, см. doc/frontend_handoff.md, раздел 4.1).
+     */
+    get: operations["kind_of_payment_retrieve"];
+    /**
+     * @description Справочник видов платежей — нужен фронту для select'а при создании TreasuryPayment
+     *     (до этого эндпоинта не было вовсе, см. doc/frontend_handoff.md, раздел 4.1).
+     */
+    put: operations["kind_of_payment_update"];
+    post?: never;
+    /**
+     * @description Справочник видов платежей — нужен фронту для select'а при создании TreasuryPayment
+     *     (до этого эндпоинта не было вовсе, см. doc/frontend_handoff.md, раздел 4.1).
+     */
+    delete: operations["kind_of_payment_destroy"];
+    options?: never;
+    head?: never;
+    /**
+     * @description Справочник видов платежей — нужен фронту для select'а при создании TreasuryPayment
+     *     (до этого эндпоинта не было вовсе, см. doc/frontend_handoff.md, раздел 4.1).
+     */
+    patch: operations["kind_of_payment_partial_update"];
+    trace?: never;
+  };
   "/api/okrb/": {
     parameters: {
       query?: never;
@@ -1323,6 +1453,7 @@ export interface components {
       readonly id: number;
       /** Версия пункта плана */
       plan_item?: number | null;
+      readonly plan_item_num: string;
       /** Статус */
       status?: components["schemas"]["StatusBd6Enum"];
       /** Заявка на изменение */
@@ -1416,6 +1547,67 @@ export interface components {
       economic_code?: string | null;
       readonly internal_economic_class_detail: components["schemas"]["InternalEconomicClassifier"];
     };
+    BudgetLimitCorrectionForecast: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "BUDGET_LIMIT_CORRECTION";
+      lines: components["schemas"]["BudgetLimitCorrectionForecastLine"][];
+      /** Format: decimal */
+      net_delta: string;
+    };
+    /**
+     * @description * `BUDGET_LIMIT_CORRECTION` - BUDGET_LIMIT_CORRECTION
+     * @enum {string}
+     */
+    BudgetLimitCorrectionForecastKindEnum: "BUDGET_LIMIT_CORRECTION";
+    BudgetLimitCorrectionForecastLine: {
+      functional_code: string;
+      economic_code: string;
+      year: number;
+      quarter: string;
+      /** Format: decimal */
+      old_amount: string;
+      /** Format: decimal */
+      new_amount: string;
+      /** Format: decimal */
+      delta: string;
+    };
+    /**
+     * @description Read-эндпоинт для выбора существующих квартальных лимитов при перераспределении
+     *     (doc/frontend_handoff.md, раздел 3.1) — до этого у фронта не было способа найти
+     *     BudgetCosts/PlanShare по статье/году/подразделению иначе, кроме ввода ID руками.
+     */
+    BudgetQuarterlyLimit: {
+      readonly id: number;
+      /**
+       * Статус
+       * @default ACTIVE
+       */
+      status: components["schemas"]["StatusBd6Enum"];
+      /** Статья расходов (год) */
+      budget_cost: number;
+      readonly year: number;
+      readonly economic_code: string;
+      readonly plan_item_num: string;
+      /** Держатель лимита (подразделение) */
+      plan_share?: number | null;
+      readonly department_name: string;
+      /** Квартал */
+      quarter: components["schemas"]["QuarterF4aEnum"];
+      /**
+       * Сумма лимита на квартал (BYN)
+       * Format: decimal
+       */
+      amount?: string;
+      /** Заявка на изменение */
+      change_request?: number | null;
+      /** Format: date-time */
+      readonly created_at: string;
+      /** Format: date-time */
+      readonly changed_at: string;
+    };
     /** @description Сериализатор для справочника работников-закупщиков ГКСЭ */
     Buyer: {
       readonly id: number;
@@ -1432,7 +1624,7 @@ export interface components {
       plan_item?: number | null;
       readonly plan_item_num: string;
       /** Вид заявки */
-      kind: components["schemas"]["KindEnum"];
+      kind: components["schemas"]["ChangeRequestKindEnum"];
       readonly kind_display: string;
       /** Статус */
       readonly status: components["schemas"]["ChangeRequestStatusEnum"];
@@ -1459,6 +1651,26 @@ export interface components {
       /** Format: date-time */
       readonly changed_at: string;
     };
+    ChangeRequestForecast:
+      | components["schemas"]["PlanItemChangeForecast"]
+      | components["schemas"]["PlanItemExclusionForecast"]
+      | components["schemas"]["RedistributionForecast"]
+      | components["schemas"]["BudgetLimitCorrectionForecast"]
+      | components["schemas"]["DepartmentLimitCalibrationForecast"];
+    /**
+     * @description * `PLAN_ITEM_CHANGE` - Изменение позиции плана
+     *     * `PLAN_ITEM_EXCLUSION` - Исключение позиции плана
+     *     * `LIMIT_REDISTRIBUTION` - Перераспределение лимита
+     *     * `BUDGET_LIMIT_CORRECTION` - Корректировка лимита (Казначейство)
+     *     * `DEPARTMENT_LIMIT_CALIBRATION` - Калибровка лимитов по подразделениям
+     * @enum {string}
+     */
+    ChangeRequestKindEnum:
+      | "PLAN_ITEM_CHANGE"
+      | "PLAN_ITEM_EXCLUSION"
+      | "LIMIT_REDISTRIBUTION"
+      | "BUDGET_LIMIT_CORRECTION"
+      | "DEPARTMENT_LIMIT_CALIBRATION";
     /**
      * @description * `DRAFT` - Черновик
      *     * `ON_REVIEW` - На проверке
@@ -1550,7 +1762,7 @@ export interface components {
       /** Строка договора (подразделение) */
       contract_item?: number | null;
       /** Квартал */
-      quarter: components["schemas"]["QuarterEnum"];
+      quarter: components["schemas"]["QuarterF4aEnum"];
       /** Год */
       year?: number;
       /**
@@ -1626,6 +1838,69 @@ export interface components {
       /** Format: date-time */
       readonly changed_at: string;
     };
+    /**
+     * @description Вход для create_department_limit_calibration() — одна статья/год за раз (решение
+     *     пользователя 2026-11-03: калибровка всегда идёт по конкретной статье Минфина).
+     */
+    DepartmentLimitCalibrationCreate: {
+      functional_class: number;
+      economic_class: number;
+      year: number;
+      /** @default  */
+      reason: string;
+    };
+    DepartmentLimitCalibrationForecast: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "DEPARTMENT_LIMIT_CALIBRATION";
+      functional_code: string | null;
+      economic_code: string | null;
+      year: number | null;
+      /** Format: decimal */
+      article_total: string;
+      /** Format: decimal */
+      prior_years_obligations: string;
+      /** Format: decimal */
+      article_available: string;
+      /** Format: decimal */
+      subarticle_sum: string;
+      /** Format: decimal */
+      article_diff: string;
+      subarticle_lines: components["schemas"]["DepartmentLimitSubarticleLine"][];
+      department_lines: components["schemas"]["DepartmentLimitDepartmentLine"][];
+      subarticle_balance: components["schemas"]["DepartmentLimitSubarticleBalance"][];
+      is_balanced: boolean;
+    };
+    /**
+     * @description * `DEPARTMENT_LIMIT_CALIBRATION` - DEPARTMENT_LIMIT_CALIBRATION
+     * @enum {string}
+     */
+    DepartmentLimitCalibrationForecastKindEnum: "DEPARTMENT_LIMIT_CALIBRATION";
+    DepartmentLimitDepartmentLine: {
+      internal_economic_class_id: number;
+      internal_economic_class_code: string;
+      department: string;
+      /** Format: decimal */
+      amount: string;
+    };
+    DepartmentLimitSubarticleBalance: {
+      internal_economic_class_id: number;
+      internal_economic_class_code: string;
+      /** Format: decimal */
+      subarticle_total: string;
+      /** Format: decimal */
+      departments_sum: string;
+      /** Format: decimal */
+      diff: string;
+    };
+    DepartmentLimitSubarticleLine: {
+      internal_economic_class_id: number;
+      internal_economic_class_code: string;
+      /** Format: decimal */
+      amount: string;
+    };
     /** @description Рекурсивный сериализатор для автоматической сборки дерева подразделений ГКСЭ */
     DepartmentTree: {
       readonly id: number;
@@ -1682,20 +1957,6 @@ export interface components {
       is_active?: boolean;
       readonly sub_codes: string;
     };
-    /**
-     * @description * `PLAN_ITEM_CHANGE` - Изменение позиции плана
-     *     * `PLAN_ITEM_EXCLUSION` - Исключение позиции плана
-     *     * `LIMIT_REDISTRIBUTION` - Перераспределение лимита
-     *     * `BUDGET_LIMIT_CORRECTION` - Корректировка лимита (Казначейство)
-     *     * `DEPARTMENT_LIMIT_CALIBRATION` - Калибровка лимитов по подразделениям
-     * @enum {string}
-     */
-    KindEnum:
-      | "PLAN_ITEM_CHANGE"
-      | "PLAN_ITEM_EXCLUSION"
-      | "LIMIT_REDISTRIBUTION"
-      | "BUDGET_LIMIT_CORRECTION"
-      | "DEPARTMENT_LIMIT_CALIBRATION";
     /** @description Справочник видов платежей (обычный / возврат-восстановление кассового расхода) */
     KindOfPayment: {
       readonly id: number;
@@ -1727,6 +1988,21 @@ export interface components {
        */
       previous?: string | null;
       results: components["schemas"]["BudgetCosts"][];
+    };
+    PaginatedBudgetQuarterlyLimitList: {
+      /** @example 123 */
+      count: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=400&limit=100
+       */
+      next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=200&limit=100
+       */
+      previous?: string | null;
+      results: components["schemas"]["BudgetQuarterlyLimit"][];
     };
     PaginatedChangeRequestList: {
       /** @example 123 */
@@ -1852,6 +2128,7 @@ export interface components {
       readonly id?: number;
       /** Версия пункта плана */
       plan_item?: number | null;
+      readonly plan_item_num?: string;
       /** Статус */
       status?: components["schemas"]["StatusBd6Enum"];
       /** Заявка на изменение */
@@ -1910,6 +2187,40 @@ export interface components {
       readonly internal_economic_article_code?: string;
       readonly internal_economic_article_detail?: components["schemas"]["InternalEconomicClassifier"];
     };
+    /**
+     * @description Read-эндпоинт для выбора существующих квартальных лимитов при перераспределении
+     *     (doc/frontend_handoff.md, раздел 3.1) — до этого у фронта не было способа найти
+     *     BudgetCosts/PlanShare по статье/году/подразделению иначе, кроме ввода ID руками.
+     */
+    PatchedBudgetQuarterlyLimit: {
+      readonly id?: number;
+      /**
+       * Статус
+       * @default ACTIVE
+       */
+      status: components["schemas"]["StatusBd6Enum"];
+      /** Статья расходов (год) */
+      budget_cost?: number;
+      readonly year?: number;
+      readonly economic_code?: string;
+      readonly plan_item_num?: string;
+      /** Держатель лимита (подразделение) */
+      plan_share?: number | null;
+      readonly department_name?: string;
+      /** Квартал */
+      quarter?: components["schemas"]["QuarterF4aEnum"];
+      /**
+       * Сумма лимита на квартал (BYN)
+       * Format: decimal
+       */
+      amount?: string;
+      /** Заявка на изменение */
+      change_request?: number | null;
+      /** Format: date-time */
+      readonly created_at?: string;
+      /** Format: date-time */
+      readonly changed_at?: string;
+    };
     /** @description Сериализатор для справочника работников-закупщиков ГКСЭ */
     PatchedBuyer: {
       readonly id?: number;
@@ -1926,7 +2237,7 @@ export interface components {
       plan_item?: number | null;
       readonly plan_item_num?: string;
       /** Вид заявки */
-      kind?: components["schemas"]["KindEnum"];
+      kind?: components["schemas"]["ChangeRequestKindEnum"];
       readonly kind_display?: string;
       /** Статус */
       readonly status?: components["schemas"]["ChangeRequestStatusEnum"];
@@ -2016,7 +2327,7 @@ export interface components {
       /** Строка договора (подразделение) */
       contract_item?: number | null;
       /** Квартал */
-      quarter?: components["schemas"]["QuarterEnum"];
+      quarter?: components["schemas"]["QuarterF4aEnum"];
       /** Год */
       year?: number;
       /**
@@ -2112,6 +2423,14 @@ export interface components {
       /** Действующий код */
       is_active?: boolean;
       readonly sub_codes?: string;
+    };
+    /** @description Справочник видов платежей (обычный / возврат-восстановление кассового расхода) */
+    PatchedKindOfPayment: {
+      readonly id?: number;
+      /** Название типа платежа */
+      name?: string;
+      /** Уменьшает фактический расход (возврат / восстановление кассовых расходов) */
+      is_refund?: boolean;
     };
     PatchedOkrbProduct: {
       readonly id?: number;
@@ -2406,6 +2725,42 @@ export interface components {
       /** Format: date-time */
       readonly updated_at: string;
     };
+    PlanItemChangeForecast: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "PLAN_ITEM_CHANGE";
+      by_article: components["schemas"]["PlanItemChangeForecastArticleLine"][];
+      by_department: components["schemas"]["PlanItemChangeForecastDepartmentLine"][];
+    };
+    PlanItemChangeForecastArticleLine: {
+      year: number;
+      economic_code: string | null;
+      /** Format: decimal */
+      new_allocated: string;
+      /** Format: decimal */
+      committed_obligations: string;
+      is_over_budget: boolean;
+      /** Format: decimal */
+      shortfall: string;
+    };
+    PlanItemChangeForecastDepartmentLine: {
+      department: string;
+      year: number;
+      /** Format: decimal */
+      new_allocated: string;
+      /** Format: decimal */
+      committed_obligations: string;
+      is_over_budget: boolean;
+      /** Format: decimal */
+      shortfall: string;
+    };
+    /**
+     * @description * `PLAN_ITEM_CHANGE` - PLAN_ITEM_CHANGE
+     * @enum {string}
+     */
+    PlanItemChangeForecastKindEnum: "PLAN_ITEM_CHANGE";
     PlanItemDetail: {
       readonly id: number;
       plan_item: number;
@@ -2469,6 +2824,27 @@ export interface components {
       /** Закупщик */
       buyer?: number | null;
       readonly buyer_detail: components["schemas"]["Buyer"];
+    };
+    PlanItemExclusionForecast: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "PLAN_ITEM_EXCLUSION";
+      by_department: components["schemas"]["PlanItemExclusionForecastLine"][];
+    };
+    /**
+     * @description * `PLAN_ITEM_EXCLUSION` - PLAN_ITEM_EXCLUSION
+     * @enum {string}
+     */
+    PlanItemExclusionForecastKindEnum: "PLAN_ITEM_EXCLUSION";
+    PlanItemExclusionForecastLine: {
+      department: string;
+      year: number;
+      /** Format: decimal */
+      allocated: string;
+      /** Format: decimal */
+      committed_obligations: string;
     };
     /**
      * @description Cериализатор позиций ГПЗ для React-фронтенда.
@@ -2653,7 +3029,57 @@ export interface components {
      *     * `Q4` - IV Квартал
      * @enum {string}
      */
-    QuarterEnum: "Q1" | "Q2" | "Q3" | "Q4";
+    QuarterF4aEnum: "Q1" | "Q2" | "Q3" | "Q4";
+    RedistributionCreate: {
+      /** @default  */
+      reason: string;
+      lines: components["schemas"]["RedistributionLine"][];
+    };
+    RedistributionForecast: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "LIMIT_REDISTRIBUTION";
+      lines: components["schemas"]["RedistributionForecastLine"][];
+      /** Format: decimal */
+      net_delta: string;
+    };
+    /**
+     * @description * `LIMIT_REDISTRIBUTION` - LIMIT_REDISTRIBUTION
+     * @enum {string}
+     */
+    RedistributionForecastKindEnum: "LIMIT_REDISTRIBUTION";
+    RedistributionForecastLine: {
+      budget_cost_id: number;
+      economic_code: string | null;
+      department: string | null;
+      quarter: string;
+      /** Format: decimal */
+      old_amount: string;
+      /** Format: decimal */
+      new_amount: string;
+      /** Format: decimal */
+      delta: string;
+    };
+    RedistributionLine: {
+      budget_cost: number;
+      plan_share?: number | null;
+      quarter: components["schemas"]["RedistributionLineQuarterEnum"];
+      /** Format: decimal */
+      amount: string;
+    };
+    /**
+     * @description * `Q1` - Q1
+     *     * `Q2` - Q2
+     *     * `Q3` - Q3
+     *     * `Q4` - Q4
+     * @enum {string}
+     */
+    RedistributionLineQuarterEnum: "Q1" | "Q2" | "Q3" | "Q4";
+    Reject: {
+      rejection_reason: string;
+    };
     /**
      * @description * `ACTIVE` - Актуальный (Доступен для договоров)
      *     * `DRAFT` - Черновик (изменения)
@@ -2803,6 +3229,8 @@ export interface operations {
         offset?: number;
         plan_item?: number;
         purchases_items_id?: number;
+        /** @description A search term. */
+        search?: string;
         /**
          * @description * `ACTIVE` - Актуальный (Доступен для договоров)
          *     * `DRAFT` - Черновик (изменения)
@@ -2966,6 +3394,190 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["BudgetCosts"];
+        };
+      };
+    };
+  };
+  budget_quarterly_limit_list: {
+    parameters: {
+      query?: {
+        budget_cost?: number;
+        budget_cost__year?: number;
+        change_request?: number;
+        /** @description Number of results to return per page. */
+        limit?: number;
+        /** @description The initial index from which to return the results. */
+        offset?: number;
+        plan_share?: number;
+        /**
+         * @description * `Q1` - I Квартал
+         *     * `Q2` - II Квартал
+         *     * `Q3` - III Квартал
+         *     * `Q4` - IV Квартал
+         */
+        quarter?: "Q1" | "Q2" | "Q3" | "Q4";
+        /**
+         * @description * `ACTIVE` - Актуальный (Доступен для договоров)
+         *     * `DRAFT` - Черновик (изменения)
+         *     * `EXCLUSION` - Черновик (исключение)
+         *     * `DRAFT_ON_REVIEW` - На проверке у финансиста (изменение)
+         *     * `EXCLUSION_ON_REVIEW` - На проверке у финансиста (исключение)
+         *     * `DRAFT_APPROVED` - Одобрен финансистом (изменение)
+         *     * `EXCLUSION_APPROVED` - Одобрен финансистом (исключение)
+         *     * `DRAFT_REJECTED` - Отклонен финансистом (изменение)
+         *     * `EXCLUSION_REJECTED` - Отклонен финансистом (исключение)
+         *     * `UPLOAD` - Загружен на площадку
+         *     * `ARCHIVE` - В архиве
+         */
+        status?:
+          | "ACTIVE"
+          | "ARCHIVE"
+          | "DRAFT"
+          | "DRAFT_APPROVED"
+          | "DRAFT_ON_REVIEW"
+          | "DRAFT_REJECTED"
+          | "EXCLUSION"
+          | "EXCLUSION_APPROVED"
+          | "EXCLUSION_ON_REVIEW"
+          | "EXCLUSION_REJECTED"
+          | "UPLOAD";
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedBudgetQuarterlyLimitList"];
+        };
+      };
+    };
+  };
+  budget_quarterly_limit_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BudgetQuarterlyLimit"];
+        "application/x-www-form-urlencoded": components["schemas"]["BudgetQuarterlyLimit"];
+        "multipart/form-data": components["schemas"]["BudgetQuarterlyLimit"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BudgetQuarterlyLimit"];
+        };
+      };
+    };
+  };
+  budget_quarterly_limit_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Квартальное распределение лимита. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BudgetQuarterlyLimit"];
+        };
+      };
+    };
+  };
+  budget_quarterly_limit_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Квартальное распределение лимита. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BudgetQuarterlyLimit"];
+        "application/x-www-form-urlencoded": components["schemas"]["BudgetQuarterlyLimit"];
+        "multipart/form-data": components["schemas"]["BudgetQuarterlyLimit"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BudgetQuarterlyLimit"];
+        };
+      };
+    };
+  };
+  budget_quarterly_limit_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Квартальное распределение лимита. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  budget_quarterly_limit_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Квартальное распределение лимита. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedBudgetQuarterlyLimit"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedBudgetQuarterlyLimit"];
+        "multipart/form-data": components["schemas"]["PatchedBudgetQuarterlyLimit"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BudgetQuarterlyLimit"];
         };
       };
     };
@@ -3296,13 +3908,7 @@ export interface operations {
       };
       cookie?: never;
     };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ChangeRequest"];
-        "application/x-www-form-urlencoded": components["schemas"]["ChangeRequest"];
-        "multipart/form-data": components["schemas"]["ChangeRequest"];
-      };
-    };
+    requestBody?: never;
     responses: {
       200: {
         headers: {
@@ -3331,7 +3937,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ChangeRequest"];
+          "application/json": components["schemas"]["ChangeRequestForecast"];
         };
       };
     };
@@ -3348,9 +3954,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["ChangeRequest"];
-        "application/x-www-form-urlencoded": components["schemas"]["ChangeRequest"];
-        "multipart/form-data": components["schemas"]["ChangeRequest"];
+        "application/json": components["schemas"]["Reject"];
+        "application/x-www-form-urlencoded": components["schemas"]["Reject"];
+        "multipart/form-data": components["schemas"]["Reject"];
       };
     };
     responses: {
@@ -3374,13 +3980,7 @@ export interface operations {
       };
       cookie?: never;
     };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ChangeRequest"];
-        "application/x-www-form-urlencoded": components["schemas"]["ChangeRequest"];
-        "multipart/form-data": components["schemas"]["ChangeRequest"];
-      };
-    };
+    requestBody?: never;
     responses: {
       200: {
         headers: {
@@ -3401,9 +4001,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["ChangeRequest"];
-        "application/x-www-form-urlencoded": components["schemas"]["ChangeRequest"];
-        "multipart/form-data": components["schemas"]["ChangeRequest"];
+        "application/json": components["schemas"]["DepartmentLimitCalibrationCreate"];
+        "application/x-www-form-urlencoded": components["schemas"]["DepartmentLimitCalibrationCreate"];
+        "multipart/form-data": components["schemas"]["DepartmentLimitCalibrationCreate"];
       };
     };
     responses: {
@@ -3426,9 +4026,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["ChangeRequest"];
-        "application/x-www-form-urlencoded": components["schemas"]["ChangeRequest"];
-        "multipart/form-data": components["schemas"]["ChangeRequest"];
+        "application/json": components["schemas"]["RedistributionCreate"];
+        "application/x-www-form-urlencoded": components["schemas"]["RedistributionCreate"];
+        "multipart/form-data": components["schemas"]["RedistributionCreate"];
       };
     };
     responses: {
@@ -4606,6 +5206,149 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["InternalEconomicClassifierTree"];
+        };
+      };
+    };
+  };
+  kind_of_payment_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["KindOfPayment"][];
+        };
+      };
+    };
+  };
+  kind_of_payment_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["KindOfPayment"];
+        "application/x-www-form-urlencoded": components["schemas"]["KindOfPayment"];
+        "multipart/form-data": components["schemas"]["KindOfPayment"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["KindOfPayment"];
+        };
+      };
+    };
+  };
+  kind_of_payment_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Тип платежа. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["KindOfPayment"];
+        };
+      };
+    };
+  };
+  kind_of_payment_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Тип платежа. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["KindOfPayment"];
+        "application/x-www-form-urlencoded": components["schemas"]["KindOfPayment"];
+        "multipart/form-data": components["schemas"]["KindOfPayment"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["KindOfPayment"];
+        };
+      };
+    };
+  };
+  kind_of_payment_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Тип платежа. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  kind_of_payment_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Тип платежа. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedKindOfPayment"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedKindOfPayment"];
+        "multipart/form-data": components["schemas"]["PatchedKindOfPayment"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["KindOfPayment"];
         };
       };
     };

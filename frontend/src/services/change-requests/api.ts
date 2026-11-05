@@ -1,6 +1,6 @@
 import type {
+  CalibrateDepartmentLimitsPayload,
   ChangeRequest,
-  ChangeRequestForecast,
   ChangeRequestKind,
   ChangeRequestStatus,
   RedistributePayload,
@@ -46,21 +46,13 @@ export const usePlanItemChangeRequestsQuery = (planItemId: number) =>
     params: { query: { plan_item: planItemId, limit: 100 } },
   });
 
-export const useChangeRequestForecastQuery = (id: number | null) => {
-  const query = rqClient.useQuery(
+export const useChangeRequestForecastQuery = (id: number | null) =>
+  rqClient.useQuery(
     "get",
     "/api/change_requests/{id}/forecast/",
     { params: { path: { id: id ?? 0 } } },
     { enabled: id !== null },
   );
-
-  return {
-    ...query,
-    // Кастомное действие forecast не имеет своего serializer_class — drf-spectacular
-    // отдаёт тип ChangeRequest вместо реальной формы прогноза (см. ./types.ts).
-    data: query.data as unknown as ChangeRequestForecast | undefined,
-  };
-};
 
 export const useCreateChangeRequest = () => {
   const mutation = rqClient.useMutation("post", "/api/change_requests/");
@@ -76,9 +68,11 @@ export const useCreateChangeRequest = () => {
     ) =>
       mutation.mutate(
         {
-          // POST-сериализатор создания переиспользует полный ChangeRequestSerializer —
-          // read-only поля (id/kind_display/...) DRF игнорирует на вход, но без них
-          // объектный литерал не проходит структурную проверку типа. См. ./types.ts.
+          // Базовый ModelViewSet.create() (не кастомный @action, поэтому не затронут
+          // недавней типизацией forecast/submit/approve/...) переиспользует полный
+          // ChangeRequestSerializer — read-only поля (id/kind_display/...) DRF
+          // игнорирует на вход, но без них объектный литерал не проходит
+          // структурную проверку типа.
           body: {
             ...payload,
             id: 0,
@@ -110,35 +104,14 @@ export const useCalibrateDepartmentLimits = () => {
   return {
     ...mutation,
     calibrate: (
-      payload: {
-        functional_class: number;
-        economic_class: number;
-        year: number;
-        reason: string;
-      },
+      payload: CalibrateDepartmentLimitsPayload,
       options?: {
         onSuccess?: (created: ChangeRequest) => void;
         onError?: (error: unknown) => void;
       },
     ) =>
       mutation.mutate(
-        {
-          // См. комментарий в useCreateChangeRequest — тот же паттерн обхода
-          // ошибочного generated-типа у кастомного действия без serializer_class.
-          body: {
-            ...payload,
-            id: 0,
-            plan_item_num: "",
-            kind_display: "",
-            status: "DRAFT",
-            status_display: "",
-            rejection_reason: "",
-            submitted_at: null,
-            reviewed_at: null,
-            created_at: "",
-            changed_at: "",
-          } as unknown as ChangeRequest,
-        },
+        { body: payload },
         {
           onSuccess: (created) => options?.onSuccess?.(created),
           onError: options?.onError,
@@ -163,23 +136,7 @@ export const useCreateRedistribution = () => {
       },
     ) =>
       mutation.mutate(
-        {
-          // См. комментарий в useCreateChangeRequest — тот же паттерн обхода
-          // ошибочного generated-типа у кастомного действия без serializer_class.
-          body: {
-            ...payload,
-            id: 0,
-            plan_item_num: "",
-            kind_display: "",
-            status: "DRAFT",
-            status_display: "",
-            rejection_reason: "",
-            submitted_at: null,
-            reviewed_at: null,
-            created_at: "",
-            changed_at: "",
-          } as unknown as ChangeRequest,
-        },
+        { body: payload },
         {
           onSuccess: (created) => options?.onSuccess?.(created),
           onError: options?.onError,
@@ -201,12 +158,7 @@ export const useSubmitChangeRequest = () => {
       options?: { onSuccess?: () => void; onError?: (error: unknown) => void },
     ) =>
       mutation.mutate(
-        {
-          params: { path: { id } },
-          // submit/approve не принимают тело — требование типа body: ChangeRequest
-          // отсюда же (см. комментарий в ./types.ts).
-          body: {} as unknown as ChangeRequest,
-        },
+        { params: { path: { id } } },
         {
           onSuccess: () => {
             invalidateChangeRequests();
@@ -231,7 +183,7 @@ export const useApproveChangeRequest = () => {
       options?: { onSuccess?: () => void; onError?: (error: unknown) => void },
     ) =>
       mutation.mutate(
-        { params: { path: { id } }, body: {} as unknown as ChangeRequest },
+        { params: { path: { id } } },
         {
           onSuccess: () => {
             invalidateChangeRequests();
@@ -257,10 +209,7 @@ export const useRejectChangeRequest = () => {
       options?: { onSuccess?: () => void; onError?: (error: unknown) => void },
     ) =>
       mutation.mutate(
-        {
-          params: { path: { id } },
-          body: payload as unknown as ChangeRequest,
-        },
+        { params: { path: { id } }, body: payload },
         {
           onSuccess: () => {
             invalidateChangeRequests();

@@ -183,7 +183,7 @@ const DepartmentLimitCalibrationForecast = ({
         Остаток статьи:{" "}
         <span
           className={
-            data.article_diff < 0
+            Number(data.article_diff) < 0
               ? "text-destructive font-medium"
               : "font-medium"
           }>
@@ -215,7 +215,9 @@ const DepartmentLimitCalibrationForecast = ({
               <TableCell>{formatByn(line.subarticle_total)}</TableCell>
               <TableCell>{formatByn(line.departments_sum)}</TableCell>
               <TableCell
-                className={line.diff < 0 ? "text-destructive" : undefined}>
+                className={
+                  Number(line.diff) < 0 ? "text-destructive" : undefined
+                }>
                 {formatByn(line.diff)}
               </TableCell>
             </TableRow>
