@@ -47,7 +47,13 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => {
           />
           <DetailField
             label="Исполнитель"
-            value={plan.buyer_detail?.[0]?.shot_name ?? "Нет исполнителя"}
+            // В OpenAPI-схеме buyer_detail типизирован как массив (Buyer[]),
+            // но реально бэкенд всегда отдаёт один объект Buyer — см.
+            // CurrentStatus.md, раздел "хвосты бэка".
+            value={
+              (plan.buyer_detail as unknown as { shot_name?: string } | null)
+                ?.shot_name ?? "Нет исполнителя"
+            }
           />
           <DetailField label="Общее количество" value={plan.val_amount} />
           <DetailField label="Ед. измерения" value={plan.val_unit} />
