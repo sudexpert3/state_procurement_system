@@ -1,6 +1,6 @@
 #name: state_procurement_system
 
-# Три независимых профиля деплоя (Compose profiles). Явно выбирать профилем
+# Четыре независимых профиля деплоя (Compose profiles). Явно выбирать профилем
 # нужно всегда — без флага --profile ни один сервис не поднимется.
 #
 #   docker compose --profile prod up -d --build
@@ -19,6 +19,10 @@
 #       Frontend запускается локально (npm run dev), подключаясь к API на
 #       localhost:8000.
 #
+#   docker compose --profile db-only up -d --build
+#       Только db + adminer — и backend, и frontend запускаются локально
+#       (IDE/venv + npm run dev), подключаясь к БД на localhost:5460.
+#
 # nginx поднимается только в prod — в dev-профилях сервисы доступны по своим
 # портам напрямую, обратный проксирующий слой не нужен.
 
@@ -26,7 +30,7 @@ services:
   db:
     image: postgres:15
     container_name: db
-    profiles: ["prod", "backend-dev", "frontend-dev"]
+    profiles: ["prod", "backend-dev", "frontend-dev", "db-only"]
     networks:
       - sps_app_net
     expose:
@@ -49,7 +53,7 @@ services:
   adminer:
     image: adminer
     container_name: adminer_sps
-    profiles: ["prod", "backend-dev", "frontend-dev"]
+    profiles: ["prod", "backend-dev", "frontend-dev", "db-only"]
     networks:
       - sps_app_net
     ports:

@@ -5,6 +5,9 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from core.choices import PlanItemStatus
 from procurement.models import FunctionalCode, ProgramCode, BudgetCosts, ExternalEconomicCode, PlanShare
+from procurement.services.code_normalization import (
+    normalize_functional_code, normalize_economic_code, normalize_program_code,
+)
 
 from .internalEconomicClassifier import InternalEconomicClassifierSerializer
 from .externalEconomicCode import ExternalEconomicCodeSerializer
@@ -17,9 +20,10 @@ from .planShare import PlanShareForBudgetCustSerializer
 # =====================================================================
 class BudgetCostsImportSerializer(serializers.ModelSerializer):
     """Используется для POST/каскадного импорта 'сырых' финансовых данных из ИС Тендеры"""
-    # functional_class: "03_12_00 § 039" - это справочник для functional_code: "3 12 0 39"
-    # economic_class "1.10.10.99 Прочие текущие расходы" - это справочник для economic_code: "1 10 10 99"
-    # program_class: "99 00"  - это справочник для program_code: "99 0"
+    # functional_code/economic_code/program_code от goszakupki.by нормализуются до канонической
+    # формы с ведущими нулями в to_internal_value() (см. procurement/services/code_normalization.py)
+    # ПЕРЕД связыванием со справочником в validate() — иначе "сжатый" и канонический варианты
+    # одного и того же кода плодили бы в справочнике два разных объекта.
 
     class Meta:
         model = BudgetCosts
@@ -52,8 +56,17 @@ class BudgetCostsImportSerializer(serializers.ModelSerializer):
             return super().to_internal_value(data)
 
         raw_data = data.copy()
+        # 2026-11-06, попутно найдено тестом на нормализацию кодов (см. CodeNormalizationTestCase):
+        # `else`-ветка безусловно лезла в raw_data[field] — если поле физически отсутствовало
+        # в payload (не просто null, а ключа не было вовсе), падало KeyError. На живой синхронизации
+        # с goszakupki.by не проявлялось (там словарь строится из полного ответа API по
+        # doc/api.yaml, ключ всегда присутствует хотя бы как null), но это по факту случайность
+        # формы входных данных, не гарантия контракта — пропускаем действительно отсутствующие поля,
+        # оставляя их отсутствующими (DRF применит дефолт модели), а не выдумываем для них значение.
         for field in ['functional_code', 'department_code', 'economic_code', 'program_code', 'budget_code_name', 'unk']:
-            if field in raw_data and (raw_data[field] is None or str(raw_data[field]).strip() == ""):
+            if field not in raw_data:
+                continue
+            if raw_data[field] is None or str(raw_data[field]).strip() == "":
                 raw_data[field] = None
             else:
                 raw_data[field] = str(raw_data[field]).strip()
@@ -63,25 +76,20 @@ class BudgetCostsImportSerializer(serializers.ModelSerializer):
             if decimal_field in raw_data and isinstance(raw_data[decimal_field], str):
                 raw_data[decimal_field] = raw_data[decimal_field].replace(',', '.').strip()
 
-        if raw_data['functional_code']:
-            if raw_data['functional_code'] == "3 12 0 39":
-                raw_data['functional_code'] = "03 12 00 039"
+        # 2026-11-06 (см. CurrentStatus.md Этап 4.6, жалоба фронтенда на дублирующиеся
+        # коды в справочниках): раньше здесь был жёсткий список точных строк-замен —
+        # ловил только уже встреченные вручную варианты, любой новый невиданный "сжатый"
+        # вариант (без ведущих нулей в группе) создавал бы ещё один дубль справочника.
+        # Заменено на общее правило по ширине групп (procurement/services/code_normalization.py) —
+        # работает для любого кода нужного формата, а не только для тех, что уже видели.
+        if raw_data.get('functional_code'):
+            raw_data['functional_code'] = normalize_functional_code(raw_data['functional_code'])
 
-        if raw_data['economic_code']:
-            if raw_data['economic_code'] == "1 10 3 99":
-                raw_data['economic_code'] = "1 10 03 99"
-            elif raw_data['economic_code'] == "1 10 4 0":
-                raw_data['economic_code'] = "1 10 04 00"
-            elif raw_data['economic_code'] == "1 10 5 0":
-                raw_data['economic_code'] = "1 10 05 00"
-            elif raw_data['economic_code'] == "1 10 6 0":
-                raw_data['economic_code'] = "1 10 06 00"
-            elif raw_data['economic_code'] == "1 10 7 99":
-                raw_data['economic_code'] = "1 10 07 99"
+        if raw_data.get('economic_code'):
+            raw_data['economic_code'] = normalize_economic_code(raw_data['economic_code'])
 
-        if raw_data['program_code']:
-            if raw_data['program_code'] == "99 0":
-                raw_data['program_code'] = "099 00"
+        if raw_data.get('program_code'):
+            raw_data['program_code'] = normalize_program_code(raw_data['program_code'])
 
         return super().to_internal_value(raw_data)
 
@@ -263,11 +271,16 @@ class BudgetCostsForItemSerializer(serializers.ModelSerializer):
     def get_cost_detail(self, obj):
         fund_cost, inner_cost = Decimal('0.00'), Decimal('0.00')
 
-        if obj.plan_item:
-            detail = obj.plan_item.details.filter(status=PlanItemStatus.ACTIVE).first()
-            if detail:
-                fund_cost = detail.fund_cost
-                inner_cost = detail.inner_cost
+        # 2026-11-06 (см. CurrentStatus.md Этап 4.6): все строки бюджета одной позиции
+        # относятся к одной и той же активной детали — родительский PlanItemFullSerializer
+        # передаёт её через context одним запросом на всю позицию, а не на каждую строку.
+        detail = self.context.get('plan_item_detail', serializers.empty)
+        if detail is serializers.empty:
+            detail = obj.plan_item.details.filter(status=PlanItemStatus.ACTIVE).first() if obj.plan_item else None
+
+        if detail:
+            fund_cost = detail.fund_cost
+            inner_cost = detail.inner_cost
 
         budget_cost = Decimal(str(obj.cost)) if obj.cost else Decimal('0.00')
         total_cost = budget_cost + fund_cost + inner_cost
@@ -294,12 +307,16 @@ class BudgetCostsForShortItemSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(serializers.DecimalField(max_digits=15, decimal_places=2))
     def get_full_cost(self, obj):
-        if obj.plan_item:
-            detail = obj.plan_item.details.filter(status=PlanItemStatus.ACTIVE).first()
-            portal_cost = (detail.fund_cost + detail.inner_cost) if detail else Decimal('0.00')
-        else:
-            portal_cost = Decimal('0.00')
+        # 2026-11-06 (см. CurrentStatus.md Этап 4.6): раньше здесь был главный источник
+        # N+1 в `/api/plan_items/` — на КАЖДУЮ строку бюджета переспрашивали БД за
+        # `obj.plan_item` (хотя этот PlanItem уже целиком в памяти у родителя) и его
+        # `details`. Родительский сериализатор (PlanItemShortSerializer.get_economic_details)
+        # передаёт уже известную активную деталь через context одним запросом на позицию.
+        detail = self.context.get('plan_item_detail', serializers.empty)
+        if detail is serializers.empty:
+            detail = obj.plan_item.details.filter(status=PlanItemStatus.ACTIVE).first() if obj.plan_item else None
 
+        portal_cost = (detail.fund_cost + detail.inner_cost) if detail else Decimal('0.00')
         budget_cost = Decimal(str(obj.cost)) if obj.cost else Decimal('0.00')
 
         return portal_cost + budget_cost

@@ -80,19 +80,35 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(serializers.ListField(child=BudgetCostsForShortItemSerializer()))
     def get_economic_details(self, obj):
-        active_budgets = obj.budget_costs.filter(status=PlanItemStatus.ACTIVE)
-        return BudgetCostsForShortItemSerializer(active_budgets, many=True, context=self.context).data
+        # 2026-11-06 (см. views/planItem.py): берём уже отфильтрованный и
+        # select_related-нутый префетч вместо повторного запроса к БД на каждую
+        # позицию плана. detail передаём через context — он один и тот же для
+        # всех строк бюджета ЭТОЙ позиции, повторный запрос внутри
+        # BudgetCostsForShortItemSerializer.get_full_cost() больше не нужен.
+        active_budgets = getattr(obj, 'active_budget_costs_prefetched', None)
+        if active_budgets is None:
+            active_budgets = obj.budget_costs.filter(status=PlanItemStatus.ACTIVE).select_related(
+                'internal_economic_class'
+            )
+        detail = self._get_active_detail(obj)
+        context = {**self.context, 'plan_item_detail': detail}
+        return BudgetCostsForShortItemSerializer(active_budgets, many=True, context=context).data
 
     @extend_schema_field(serializers.BooleanField)
     def get_contracts(self, obj):
+        # 2026-11-06: в списке (action=list) поле уже посчитано одним SQL-подзапросом
+        # (annotate has_contracts в get_queryset) — не делаем отдельный .exists() на
+        # каждую позицию. Фоллбэк — для случаев без аннотации (retrieve/прочее).
+        has_contracts = getattr(obj, 'has_contracts', None)
+        if has_contracts is not None:
+            return has_contracts
+
         active_budgets = obj.budget_costs.filter(status=PlanItemStatus.ACTIVE)
         plan_shares = PlanShare.objects.filter(
             budget_cost__in=active_budgets,
             status=PlanItemStatus.ACTIVE
         )
-        contracts_queryset = ContractItem.objects.filter(plan_share__in=plan_shares).distinct()
-
-        return contracts_queryset.exists()
+        return ContractItem.objects.filter(plan_share__in=plan_shares).exists()
 
 
 class PlanItemFullSerializer(serializers.ModelSerializer):
@@ -196,7 +212,14 @@ class PlanItemFullSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(serializers.ListField(child=BudgetCostsForItemSerializer()))
     def get_economic_details(self, obj):
-        active_budgets = obj.budget_costs.filter(status=PlanItemStatus.ACTIVE)
-        return BudgetCostsForItemSerializer(active_budgets, many=True, context=self.context).data
+        # Та же оптимизация, что в PlanItemShortSerializer (см. CurrentStatus.md Этап 4.6) —
+        # здесь объект один (карточка позиции), но нет смысла заново запрашивать details
+        # на каждую строку бюджета, когда они все про одну и ту же активную деталь позиции.
+        active_budgets = obj.budget_costs.filter(status=PlanItemStatus.ACTIVE).select_related(
+            'internal_economic_class', 'functional_class', 'economic_class', 'program_class'
+        )
+        detail = self._get_active_detail(obj)
+        context = {**self.context, 'plan_item_detail': detail}
+        return BudgetCostsForItemSerializer(active_budgets, many=True, context=context).data
 
 

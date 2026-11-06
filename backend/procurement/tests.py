@@ -2,7 +2,9 @@ from decimal import Decimal
 from unittest.mock import patch
 
 from django.core.exceptions import ValidationError
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 
 from core.choices import ChangeRequestKind, ChangeRequestStatus, PlanItemStatus, QuarterTypes
 from procurement.models import (
@@ -12,6 +14,10 @@ from procurement.models import (
 )
 from procurement.serializers.treasuryPayment import TreasuryPaymentSerializer
 from procurement.serializers.contractQuarterlyFinance import ContractQuarterlyFinanceSerializer
+from procurement.serializers.budgetCosts import BudgetCostsImportSerializer
+from procurement.services.code_normalization import (
+    normalize_functional_code, normalize_economic_code, normalize_program_code,
+)
 from procurement.services import change_requests as cr_service
 from procurement.services.budget_execution_report import compute_budget_execution_report
 from procurement.services.multi_year_reservation import compute_reserved_amount, compute_available_for_distribution
@@ -1045,3 +1051,222 @@ class GeneralMoneyReportTestCase(TestCase):
         rows = compute_general_money_report(year=2026)
         row = rows[0]
         self.assertEqual(row['paid_actual'], Decimal('25000.00'))  # 20000 + 5000
+
+
+class PlanItemCodeFilterTestCase(TestCase):
+    """Серверная фильтрация /api/plan_items/ по functional_code/economic_code/
+    internal_economic_code (запрошено фронтендом 2026-11-06, см. CurrentStatus.md Этап 4.5) —
+    раньше эти query-параметры молча игнорировались, фронт был вынужден грузить весь
+    реестр года и фильтровать на клиенте."""
+
+    def setUp(self):
+        self.purchases = Purchases.objects.create(year=2026)
+        self.iec_a = InternalEconomicClassifier.objects.create(code='1101008173', name='Статья А')
+        self.iec_b = InternalEconomicClassifier.objects.create(code='1101008999', name='Статья Б')
+
+        self.item_a = PlanItem.objects.create(plan_purchase=self.purchases, num='2026-TEST-F-1', is_public=True)
+        PlanItemDetail.objects.create(
+            plan_item=self.item_a, status=PlanItemStatus.ACTIVE, num='2026-TEST-F-1',
+            title='Позиция A', okrb='00.00.00.000', val_amount=Decimal('1'),
+        )
+        BudgetCosts.objects.create(
+            plan_item=self.item_a, status=PlanItemStatus.ACTIVE, purchases_items_id=101,
+            cost=Decimal('1000.00'), year=2026, functional_code='03 12 00 039',
+            economic_code='1 10 10 99', internal_economic_class=self.iec_a,
+        )
+
+        self.item_b = PlanItem.objects.create(plan_purchase=self.purchases, num='2026-TEST-F-2', is_public=True)
+        PlanItemDetail.objects.create(
+            plan_item=self.item_b, status=PlanItemStatus.ACTIVE, num='2026-TEST-F-2',
+            title='Позиция Б', okrb='00.00.00.000', val_amount=Decimal('1'),
+        )
+        BudgetCosts.objects.create(
+            plan_item=self.item_b, status=PlanItemStatus.ACTIVE, purchases_items_id=102,
+            cost=Decimal('2000.00'), year=2026, functional_code='03 12 00 042',
+            economic_code='2 40 01 00', internal_economic_class=self.iec_b,
+        )
+
+        # Вторая, уже архивная строка бюджета позиции A с ДРУГИМ кодом — не должна попадать
+        # в фильтр (проверяет, что фильтр учитывает только ACTIVE, как и остальной API).
+        BudgetCosts.objects.create(
+            plan_item=self.item_a, status=PlanItemStatus.ARCHIVE, purchases_items_id=101,
+            cost=Decimal('900.00'), year=2025, functional_code='03 12 00 042',
+            economic_code='2 40 01 00', internal_economic_class=self.iec_b,
+        )
+
+    def _ids(self, **query):
+        query.setdefault('purchase', self.purchases.id)
+        response = self.client.get('/api/plan_items/', query)
+        self.assertEqual(response.status_code, 200)
+        return {row['id'] for row in response.json()['results']}
+
+    def test_filter_by_functional_code(self):
+        self.assertEqual(self._ids(functional_code='03 12 00 039'), {self.item_a.id})
+
+    def test_filter_by_economic_code(self):
+        self.assertEqual(self._ids(economic_code='2 40 01 00'), {self.item_b.id})
+
+    def test_filter_by_internal_economic_code(self):
+        self.assertEqual(self._ids(internal_economic_code='1101008173'), {self.item_a.id})
+
+    def test_no_filter_returns_both(self):
+        self.assertEqual(self._ids(), {self.item_a.id, self.item_b.id})
+
+    def test_filter_does_not_match_against_archived_budget_cost(self):
+        # Архивная строка позиции A имеет functional_code='03 12 00 042' (как у B),
+        # но находится в статусе ARCHIVE — не должна давать A в выдаче по этому коду.
+        self.assertEqual(self._ids(functional_code='03 12 00 042'), {self.item_b.id})
+
+    def test_combined_filters_do_not_duplicate_rows(self):
+        ids = self._ids(functional_code='03 12 00 039', economic_code='1 10 10 99')
+        self.assertEqual(ids, {self.item_a.id})
+
+
+class PlanItemListQueryCountTestCase(TestCase):
+    """Регрессионный тест на N+1 в `/api/plan_items/` (найдено и исправлено 2026-11-06,
+    жалоба фронтенда на медленные ответы — см. CurrentStatus.md Этап 4.6):
+    `PlanItemShortSerializer.get_economic_details()`/`get_contracts()` и
+    `BudgetCostsForShortItemSerializer.get_full_cost()` переспрашивали БД на каждую
+    позицию плана и на каждую её строку бюджета вместо уже готового префетча/аннотации.
+    Доказываем количество SQL-запросов на страницу НЕ растёт с числом позиций/строк
+    бюджета — O(1) от размера страницы, а не O(N)."""
+
+    def _build_plan_items(self, count):
+        purchases = Purchases.objects.create(year=2027)
+        iec = InternalEconomicClassifier.objects.create(code=f'99{count}0000000', name='Тестовая статья')
+        supplier = Supplier.objects.create(name=f'Тестовый поставщик N+1 ({count})')
+        department = Department.objects.create(full_name=f'Отдел N+1 ({count})', short_name=f'НQ{count}')
+        for i in range(count):
+            item = PlanItem.objects.create(plan_purchase=purchases, num=f'2027-TEST-NQ-{count}-{i}', is_public=True)
+            PlanItemDetail.objects.create(
+                plan_item=item, status=PlanItemStatus.ACTIVE, num=item.num,
+                title=f'Позиция {i}', okrb='00.00.00.000', val_amount=Decimal('2'),
+            )
+            # 2 строки бюджета на позицию (val_amount=2 выше — по 1 единице на строку,
+            # иначе PlanShare.save() упал бы на превышении количества по позиции) — именно
+            # множественность budget_costs на одну позицию раньше умножала число лишних
+            # запросов внутри списка.
+            for j in range(2):
+                bc = BudgetCosts.objects.create(
+                    plan_item=item, status=PlanItemStatus.ACTIVE, purchases_items_id=1000 * i + j,
+                    cost=Decimal('100.00'), year=2027, internal_economic_class=iec,
+                )
+                ps = PlanShare.objects.create(
+                    status=PlanItemStatus.ACTIVE, budget_cost=bc, department=department,
+                    shared_amount=Decimal('1'), shared_cost=Decimal('100.00'),
+                )
+                if j == 0:
+                    contract = Contract.objects.create(
+                        number=f'T-NQ-{count}-{i}-{j}', supplier=supplier, total_cost=Decimal('100.00'),
+                        planned_delivery_date='2027-12-31',
+                    )
+                    ContractItem.objects.create(
+                        contract=contract, plan_share=ps, year=2027,
+                        contract_amount=Decimal('1'), contract_cost=Decimal('100.00'),
+                    )
+        return purchases
+
+    def test_query_count_does_not_scale_with_row_count(self):
+        purchases_small = self._build_plan_items(2)
+        purchases_large = self._build_plan_items(8)
+
+        with CaptureQueriesContext(connection) as small:
+            response_small = self.client.get('/api/plan_items/', {'purchase': purchases_small.id, 'limit': 50})
+        self.assertEqual(response_small.status_code, 200)
+        self.assertEqual(response_small.json()['count'], 2)
+
+        with CaptureQueriesContext(connection) as large:
+            response_large = self.client.get('/api/plan_items/', {'purchase': purchases_large.id, 'limit': 50})
+        self.assertEqual(response_large.status_code, 200)
+        self.assertEqual(response_large.json()['count'], 8)
+
+        # Главная проверка: 4х больше позиций (и, соответственно, строк бюджета/договоров)
+        # не должно давать 4х больше запросов — число запросов на страницу константно.
+        self.assertEqual(
+            len(small.captured_queries), len(large.captured_queries),
+            msg=f"Число SQL-запросов растёт с размером страницы (N+1): "
+                f"{len(small.captured_queries)} для 2 позиций vs {len(large.captured_queries)} для 8 — "
+                f"запросы:\n" + "\n".join(q['sql'][:200] for q in large.captured_queries),
+        )
+
+        # Заодно проверяем сами данные корректны после рефакторинга: has_contracts
+        # через annotate совпадает с бизнес-смыслом (j==0 строка бюджета — с договором).
+        item = next(r for r in response_large.json()['results'] if r['num'].endswith('-0'))
+        self.assertTrue(item['contracts'])
+
+
+class CodeNormalizationTestCase(TestCase):
+    """Нормализация кодов goszakupki.by (найдено 2026-11-06 — жалоба фронтенда на
+    дублирующиеся коды в справочниках, пример пользователя "1 10 01 05" vs "1 10 1 5",
+    см. CurrentStatus.md Этап 4.6). Проверяем саму функцию и то, что сериализатор импорта
+    через неё реально сопоставляет "сжатый" код с уже существующим каноническим объектом
+    справочника, а не плодит дубль."""
+
+    def test_normalize_functional_code(self):
+        self.assertEqual(normalize_functional_code('3 12 0 39'), '03 12 00 039')
+        self.assertEqual(normalize_functional_code('03 12 00 039'), '03 12 00 039')  # уже канонический — не трогаем
+        self.assertEqual(normalize_functional_code('3 12 0 852'), '03 12 00 852')  # новый код без канонической пары
+
+    def test_normalize_economic_code(self):
+        # Ровно пример пользователя из постановки задачи.
+        self.assertEqual(normalize_economic_code('1 10 1 5'), '1 10 01 05')
+        self.assertEqual(normalize_economic_code('1 10 01 05'), '1 10 01 05')
+        self.assertEqual(normalize_economic_code('2 40 1 0'), '2 40 01 00')
+
+    def test_normalize_program_code(self):
+        self.assertEqual(normalize_program_code('99 0'), '099 00')
+        self.assertEqual(normalize_program_code('099 00'), '099 00')
+
+    def test_normalize_unexpected_shape_returns_as_is(self):
+        # Неожиданное число групп — не выдумываем структуру, возвращаем как есть
+        # (несовпадение проявится как несопоставленный код в отчёте, не как искажение).
+        self.assertEqual(normalize_functional_code('03 12 00'), '03 12 00')
+        self.assertEqual(normalize_functional_code(''), '')
+        self.assertEqual(normalize_functional_code(None), None)
+
+    def test_import_serializer_maps_compact_code_to_existing_canonical_reference(self):
+        """Интеграционный сценарий: в справочнике уже есть канонический FunctionalCode/
+        ExternalEconomicCode, а goszakupki.by в этот раз присылает тот же код в сжатом виде —
+        сериализатор импорта не должен создавать второй (дублирующий) объект справочника."""
+        from procurement.models import FunctionalCode, ExternalEconomicCode
+
+        canonical_func = FunctionalCode.objects.create(code_api='03 12 00 039', description='§039')
+        canonical_econ = ExternalEconomicCode.objects.create(code_api='1 10 01 05', description='Статья 1.10.01.05')
+        purchases = Purchases.objects.create(year=2027)
+        plan_item = PlanItem.objects.create(plan_purchase=purchases, num='2027-TEST-NORM-1', is_public=True)
+
+        # Форма payload — как реально строит procurement/services/goszakupki_sync.py из
+        # ответа API (все поля присутствуют, даже если значение null) — не минимальный
+        # произвольный dict, иначе можно случайно не покрыть реальный путь данных.
+        serializer = BudgetCostsImportSerializer(data={
+            'plan_item': plan_item.id, 'purchases_items_id': 999,
+            'functional_code': '3 12 0 39', 'economic_code': '1 10 1 5',
+            'department_code': '', 'program_code': '', 'budget_code_name': 'Тестовый бюджет', 'unk': '',
+        })
+        serializer.is_valid(raise_exception=True)
+        bc = serializer.save()
+
+        self.assertEqual(bc.functional_code, '03 12 00 039')
+        self.assertEqual(bc.economic_code, '1 10 01 05')
+        self.assertEqual(bc.functional_class_id, canonical_func.id)
+        self.assertEqual(bc.economic_class_id, canonical_econ.id)
+        # Главное: не появилось НИКАКОГО нового объекта справочника под сжатую форму.
+        self.assertEqual(FunctionalCode.objects.count(), 1)
+        self.assertEqual(ExternalEconomicCode.objects.count(), 1)
+
+    def test_import_serializer_tolerates_missing_optional_keys(self):
+        """Попутно найденный баг (не падал на реальной синхронизации только потому, что там
+        словарь всегда полный) — `to_internal_value` падал KeyError, если ключ физически
+        отсутствовал в payload (не null, а именно отсутствовал). Теперь — не падает."""
+        purchases = Purchases.objects.create(year=2027)
+        plan_item = PlanItem.objects.create(plan_purchase=purchases, num='2027-TEST-NORM-2', is_public=True)
+
+        serializer = BudgetCostsImportSerializer(data={
+            'plan_item': plan_item.id, 'purchases_items_id': 998,
+            'functional_code': '03 12 00 039',
+            # department_code/economic_code/program_code/budget_code_name/unk отсутствуют вовсе
+        })
+        serializer.is_valid(raise_exception=True)
+        bc = serializer.save()
+        self.assertEqual(bc.functional_code, '03 12 00 039')
+        self.assertIsNone(bc.economic_code)
