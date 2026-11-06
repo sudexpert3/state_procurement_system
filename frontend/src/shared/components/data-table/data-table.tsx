@@ -42,6 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
+import { useLocalStorageState } from "@/shared/lib/react/use-local-storage-state";
 
 import { DataTablePagination } from "./data-table-pagination";
 
@@ -58,6 +59,10 @@ type DataTableProps<TData> = {
   globalFilter?: string;
   /** Поднять ввод поиска наружу: без него поиск живёт во внутреннем стейте таблицы */
   onGlobalFilterChange?: (value: string) => void;
+  /** Внешние колоночные фильтры (например, серверные — значения уходят в query-параметры) */
+  columnFilters?: ColumnFiltersState;
+  /** Поднять колоночные фильтры наружу: без него живут во внутреннем стейте таблицы */
+  onColumnFiltersChange?: OnChangeFn<ColumnFiltersState>;
   /** Серверный поиск/фильтрация: строки уже отфильтрованы бэкендом, повторно не фильтровать */
   manualFiltering?: boolean;
   cellClassName?: string;
@@ -71,6 +76,13 @@ type DataTableProps<TData> = {
    * схлопнется до нулевой высоты.
    */
   fillAvailableHeight?: boolean;
+  /**
+   * Ключ для сохранения видимости колонок в localStorage — переживает
+   * переход на другую страницу и обратно (без этого меню "Вид колонок"
+   * сбрасывалось при каждом размонтировании таблицы). Без ключа — обычный
+   * useState, ничего не сохраняется.
+   */
+  persistenceKey?: string;
   pagination?:
     | false
     | {
@@ -95,18 +107,25 @@ export const DataTable = <TData,>({
   pagination = { type: "default" },
   actions,
   fillAvailableHeight = false,
+  persistenceKey,
   ...props
 }: DataTableProps<TData>) => {
   "use no memo";
 
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [innerColumnFilters, setInnerColumnFilters] =
+    useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] =
+    useLocalStorageState<VisibilityState>(
+      persistenceKey ? `data-table:${persistenceKey}:column-visibility` : null,
+      {},
+    );
   const [rowSelection, setRowSelection] = useState({});
   const [innerGlobalFilter, setInnerGlobalFilter] = useState<string>("");
   const [expanded, setExpanded] = useState<ExpandedState>({});
 
   const globalFilter = props.globalFilter ?? innerGlobalFilter;
+  const columnFilters = props.columnFilters ?? innerColumnFilters;
 
   const manualPagination = pagination === false ? undefined : pagination.manual;
 
@@ -114,7 +133,14 @@ export const DataTable = <TData,>({
     data: props.data,
     columns: props.columns,
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    onColumnFiltersChange: (updater) => {
+      const next =
+        typeof updater === "function"
+          ? (updater(columnFilters) as ColumnFiltersState)
+          : (updater as ColumnFiltersState);
+
+      (props.onColumnFiltersChange ?? setInnerColumnFilters)(next);
+    },
     getCoreRowModel: getCoreRowModel(),
     // Клиентская нарезка строк — только когда пагинация не серверная
     ...(pagination &&

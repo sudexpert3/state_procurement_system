@@ -47,7 +47,14 @@ function TooltipContent({
           className,
         )}
         {...props}>
-        {children}
+        {/*
+          children оборачиваем в span с min-w-0: без него голый текстовый
+          узел — анонимный flex-item с min-width:auto, который по спецификации
+          CSS отказывается сжиматься ниже своей "естественной" ширины даже
+          при заданном max-w-xs на контейнере — первая строка вылезала за
+          чёрный фон тултипа вместо переноса.
+        */}
+        <span className="min-w-0 break-words">{children}</span>
         <TooltipPrimitive.Arrow className="bg-foreground fill-foreground z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]" />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>

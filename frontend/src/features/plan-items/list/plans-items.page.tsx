@@ -1,6 +1,7 @@
+import type { ColumnFiltersState, OnChangeFn } from "@tanstack/react-table";
 import type { PlanItemShort } from "@/shared/api/schema";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { keepPreviousData } from "@tanstack/react-query";
 import { Loader2Icon, RefreshCwIcon } from "lucide-react";
@@ -9,6 +10,7 @@ import { href, useNavigate, useSearchParams } from "react-router";
 import { useSyncPurchaseItemsAction } from "@/services/goszakupki";
 import { rqClient } from "@/shared/api/instance";
 import { DataTable } from "@/shared/components/data-table/data-table";
+import { DataTablePagination } from "@/shared/components/data-table/data-table-pagination";
 import { useServerPagination } from "@/shared/components/data-table/hooks/use-server-pagination";
 import { useServerSearch } from "@/shared/components/data-table/hooks/use-server-search";
 import { Button } from "@/shared/components/ui/button";
@@ -19,11 +21,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
+import { useLocalStorageState } from "@/shared/lib/react/use-local-storage-state";
 import { ROUTES } from "@/shared/model/routes";
 
 import { createColumns } from "./columns";
+import { RegistryFilters } from "./registry-filters";
+import { RegistryMoneySummary } from "./registry-money-summary";
 import { TableActions } from "./table-actions";
 import { YearToggle } from "./year-toggle";
+
+// Сумма по "Из них: год — ..." считается отдельным запросом без среза по
+// странице (большой limit) — бэкенд быстро отвечает на маленькие
+// постраничные запросы (~60-80мс), но на большие выборки стабильно уходит
+// ~2 сек независимо от повторных вызовов (см. CurrentStatus.md), поэтому
+// сумма сознательно не блокирует отрисовку самого списка — обновляется с
+// задержкой, список — сразу.
+const FULL_YEAR_LIMIT = 10000;
 
 const PlansItemsPage = () => {
   const navigate = useNavigate();
@@ -43,17 +56,62 @@ const PlansItemsPage = () => {
     [purchases],
   );
 
+  // Последний выбранный вручную год переживает переход на другую страницу и
+  // обратно — без этого при возврате год всегда сбрасывался на самый
+  // актуальный (см. ниже), даже если пользователь явно листал к старому.
+  const [storedPurchaseId, setStoredPurchaseId] = useLocalStorageState<
+    number | null
+  >("plan-items-list:purchase", null);
+
   const purchaseParam = searchParams.get("purchase");
   // Пришли с конкретного плана ("Годовые планы") — берём его id из URL.
-  // Пришли откуда угодно ещё (прямой переход, другой раздел) — берём самый
-  // актуальный год (первый в списке, он отсортирован по убыванию).
-  const purchase = purchaseParam ? Number(purchaseParam) : years[0]?.purchaseId;
+  // Иначе — последний выбранный вручную год, а если его ещё не было — самый
+  // актуальный (первый в списке, он отсортирован по убыванию).
+  const purchase = purchaseParam
+    ? Number(purchaseParam)
+    : (storedPurchaseId ?? years[0]?.purchaseId);
 
   const purchaseRecord = purchases?.find((p) => p.id === purchase);
   const { sync: syncItems, isPending: isSyncingItems } =
     useSyncPurchaseItemsAction();
 
+  // Колоночные фильтры (функц./эконом./внутренний ЭКР код) живут здесь, а не
+  // внутри DataTable — их значения нужны снаружи, чтобы передать на бэкенд
+  // как query-параметры (RegistryFilters только пишет/читает через
+  // table.getColumn(id), см. registry-filters.tsx).
+  const [columnFilters, setColumnFiltersState] = useState<ColumnFiltersState>(
+    [],
+  );
+
+  const getColumnFilterValue = (id: string) =>
+    columnFilters.find((filter) => filter.id === id)?.value as
+      | string
+      | undefined;
+
+  const functionalCode = getColumnFilterValue("functional_code");
+  const economicCode = getColumnFilterValue("economic_code");
+  const internalEconomicCode = getColumnFilterValue("internal_economic_code");
+
+  const handleColumnFiltersChange: OnChangeFn<ColumnFiltersState> = (
+    updater,
+  ) => {
+    setColumnFiltersState((prev) =>
+      typeof updater === "function" ? updater(prev) : updater,
+    );
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.set("offset", "0");
+      return params;
+    });
+  };
+
   const handleSelectYear = (purchaseId: number) => {
+    setStoredPurchaseId(purchaseId);
+    // Выбранные коды привязаны к конкретному году — в другом году они почти
+    // наверняка не встретятся (список значений в комбобоксах при этом не
+    // зависит от года, см. registry-filters.tsx), поэтому сбрасываем, чтобы
+    // не показывать молча пустой реестр из-за "залипшего" фильтра.
+    setColumnFiltersState([]);
     setSearchParams((prev) => {
       const params = new URLSearchParams(prev);
       params.set("purchase", String(purchaseId));
@@ -79,9 +137,10 @@ const PlansItemsPage = () => {
           limit,
           offset,
           purchase,
-          // TODO: поиск на бэке реализован плохо — переделать, когда доработают
-          // эндпоинт (какие поля ищутся, частичное совпадение, регистр)
           search: debouncedSearch || undefined,
+          functional_code: functionalCode,
+          economic_code: economicCode,
+          internal_economic_code: internalEconomicCode,
         },
       },
     },
@@ -94,21 +153,31 @@ const PlansItemsPage = () => {
     },
   );
 
-  // const year = data?.results[0]?.economic_details[0]?.year ?? "#";
+  // Тот же набор условий, но без пагинации — только для суммы снизу
+  // (DataTablePagination/RegistryMoneySummary). Специально без
+  // placeholderData: пока считается новая сумма, старая не должна молча
+  // выдаваться за актуальную — RegistryMoneySummary покажет "считается...".
+  const { data: fullFilteredData, isLoading: isSumLoading } = rqClient.useQuery(
+    "get",
+    "/api/plan_items/",
+    {
+      params: {
+        query: {
+          limit: FULL_YEAR_LIMIT,
+          purchase,
+          search: debouncedSearch || undefined,
+          functional_code: functionalCode,
+          economic_code: economicCode,
+          internal_economic_code: internalEconomicCode,
+        },
+      },
+    },
+    { enabled: purchase !== undefined },
+  );
 
   const columns = useMemo(() => {
     return createColumns();
   }, []);
-
-  // const { data } = rqClient.useQuery("get", "/gpz/");
-  // console.log(data);
-  // const getAuth = async () => {
-  //   const res = await fetchClient.GET("/gpz", {});
-  //   console.log("result", res);
-  // };
-  // useEffect(() => {
-  //   getAuth();
-  // }, []);
 
   const handleAddProcurement = () => {
     navigate(ROUTES.PLAN_ITEM_ADD);
@@ -151,12 +220,16 @@ const PlansItemsPage = () => {
           isLoading={isLoading}
           globalFilter={search}
           onGlobalFilterChange={setSearch}
+          columnFilters={columnFilters}
+          onColumnFiltersChange={handleColumnFiltersChange}
           manualFiltering
           fillAvailableHeight
+          persistenceKey="plan-items-list"
           cellClassName="p-4 text-center"
           actions={(table) => (
-            <div className="py-2">
+            <div className="flex flex-wrap items-center gap-2 py-2">
               <TableActions table={table} />
+              <RegistryFilters table={table} />
             </div>
           )}
           pagination={{
@@ -167,6 +240,17 @@ const PlansItemsPage = () => {
               rowCount: data?.count ?? 0,
               onChange: onPaginationChange,
             },
+            render: (table) => (
+              <DataTablePagination
+                table={table}
+                summary={
+                  <RegistryMoneySummary
+                    items={fullFilteredData?.results}
+                    isLoading={isSumLoading}
+                  />
+                }
+              />
+            ),
           }}
         />
       </CardContent>

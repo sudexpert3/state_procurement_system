@@ -7,6 +7,11 @@ import {
   DataTableColumnHeader,
 } from "@/shared/components/data-table/data-table-cell";
 import { Badge } from "@/shared/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
 import { formatMoney } from "@/shared/lib/helpers/format-money";
 
 export const createColumns = (): ColumnDef<PlanItemShort>[] => [
@@ -19,26 +24,47 @@ export const createColumns = (): ColumnDef<PlanItemShort>[] => [
     ),
     meta: { label: "Номер пункта" },
     size: 30,
-    cell: ({ row }) => (
-      <DataTableCell className="text-left font-medium wrap-break-word whitespace-normal">
-        {row.getValue("num")}
-      </DataTableCell>
-    ),
+    cell: ({ row }) => {
+      // Публикуется на goszakupki.by (is_public) — то же деление, что и кнопка
+      // "Отправить на goszakupki.by" в заявках на изменение: публикуемые
+      // позиции видны на портале, непубликуемые — нет.
+      const isPublic = row.original.is_public;
+
+      return (
+        <DataTableCell className="text-left wrap-break-word whitespace-normal">
+          <Badge
+            variant="outline"
+            className={
+              isPublic
+                ? "border-green-200 bg-green-100 font-medium text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300"
+                : "border-blue-200 bg-blue-100 font-medium text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300"
+            }>
+            {row.getValue("num")}
+          </Badge>
+        </DataTableCell>
+      );
+    },
   },
   {
     accessorKey: "title",
     header: () => (
       <DataTableColumnHeader className="text-left wrap-break-word whitespace-normal">
-        Наименование товара
+        Наименование
       </DataTableColumnHeader>
     ),
-    meta: { label: "Наименование товара" },
+    meta: { label: "Наименование" },
     size: 400,
     cell: ({ row }) => (
       <DataTableCell className="text-left wrap-break-word whitespace-normal">
         {row.getValue("title")}
       </DataTableCell>
     ),
+  },
+  {
+    accessorKey: "okrb",
+    header: () => <DataTableColumnHeader>Код ОКРБ</DataTableColumnHeader>,
+    meta: { label: "Код ОКРБ" },
+    size: 100,
   },
   {
     accessorKey: "val_amount",
@@ -153,11 +179,27 @@ export const createColumns = (): ColumnDef<PlanItemShort>[] => [
       <DataTableColumnHeader>Наименование ЭКР внутренний</DataTableColumnHeader>
     ),
     meta: { label: "Наименование ЭКР внутренний" },
-    cell: ({ getValue }) => (
-      <DataTableCellList
-        className="mx-auto max-w-[218px] wrap-break-word whitespace-normal"
-        items={getValue<(string | number)[]>()}
-      />
+    // Обрезаем в одну строку + tooltip с полным текстом, а не переносим
+    // (как раньше): "Код ЭКР внутренний" и этот столбец — параллельные
+    // списки без общей вложенной таблицы (см. комментарий выше), выравнивание
+    // между ними держится на допущении "каждый элемент — ровно одна строка".
+    // Перенос длинного названия на несколько строк это допущение ломал — код
+    // и название у одной и той же строки financing расходились по вертикали.
+    cell: ({ row }) => (
+      <DataTableCell className="mx-auto flex max-w-[218px] flex-col gap-2">
+        {row.original.economic_details.map((d) => {
+          const name = d.internal_economic_class_detail?.name ?? "—";
+
+          return (
+            <Tooltip key={d.id}>
+              <TooltipTrigger asChild>
+                <span className="block truncate text-left">{name}</span>
+              </TooltipTrigger>
+              <TooltipContent>{name}</TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </DataTableCell>
     ),
   },
   {

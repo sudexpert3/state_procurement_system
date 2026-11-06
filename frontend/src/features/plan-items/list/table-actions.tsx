@@ -18,7 +18,7 @@ export const TableActions = <TData,>({ table }: TableActionsProps<TData>) => {
 
   return (
     <div className="flex items-center gap-2 px-0">
-      <InputGroup className="max-w-sm bg-white">
+      <InputGroup className="w-[21rem] bg-white">
         <InputGroupAddon>
           <SearchIcon />
         </InputGroupAddon>
