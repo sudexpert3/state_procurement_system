@@ -77,23 +77,48 @@ const PlanItemDetailPage = () => {
             </CardContent>
           </Card>
 
-          <Tabs defaultValue="info" className="w-full">
-            <TabsList>
-              <TabsTrigger value="info">Информация</TabsTrigger>
-              <TabsTrigger value="planning">Планирование</TabsTrigger>
-              <TabsTrigger value="contracts">
-                Договоры
-                {/* {plan2.contracts.length > 0 && (
+          <Tabs defaultValue="info" className="w-full gap-4">
+            {/* Та же акцентная схема (variant="line" + chart-4), что и в
+                табах создания позиции (form-tabs-navigation.tsx) — разделы
+                карточки раньше терялись на фоне страницы (bg-accent их почти
+                не отличал от bg-background), активная вкладка была различима
+                только по еле заметному оттенку текста. */}
+            <Card className="gap-0 p-0 ring-0">
+              <TabsList
+                variant="line"
+                className="bg-accent w-full justify-start border-b group-data-horizontal/tabs:h-11">
+                <TabsTrigger
+                  value="info"
+                  className="data-active:text-chart-4 after:bg-chart-4 hover:text-chart-4 text-[15px] font-medium transition-colors">
+                  Информация
+                </TabsTrigger>
+                <TabsTrigger
+                  value="planning"
+                  className="data-active:text-chart-4 after:bg-chart-4 hover:text-chart-4 text-[15px] font-medium transition-colors">
+                  Планирование
+                </TabsTrigger>
+                <TabsTrigger
+                  value="contracts"
+                  className="data-active:text-chart-4 after:bg-chart-4 hover:text-chart-4 text-[15px] font-medium transition-colors">
+                  Договоры
+                  {/* {plan2.contracts.length > 0 && (
               <Badge variant="secondary" className="ml-1.5">
                 {plan2.contracts.length}
               </Badge>
             )} */}
-              </TabsTrigger>
-              <TabsTrigger value="payments">Платежи</TabsTrigger>
-              <TabsTrigger value="change-request">
-                Заявка на изменение
-              </TabsTrigger>
-            </TabsList>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="payments"
+                  className="data-active:text-chart-4 after:bg-chart-4 hover:text-chart-4 text-[15px] font-medium transition-colors">
+                  Платежи
+                </TabsTrigger>
+                <TabsTrigger
+                  value="change-request"
+                  className="data-active:text-chart-4 after:bg-chart-4 hover:text-chart-4 text-[15px] font-medium transition-colors">
+                  Заявка на изменение
+                </TabsTrigger>
+              </TabsList>
+            </Card>
 
             <TabsContent value="info">
               <InfoTab plan={plan} />

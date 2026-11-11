@@ -13,7 +13,7 @@ export const DetailField = ({
 }) => (
   <div className={cn("flex flex-col gap-1", className)}>
     <span className="text-muted-foreground text-xs">{label}</span>
-    <span className="text-sm font-medium wrap-break-word">
+    <span className="text-base font-medium wrap-break-word">
       {value === undefined || value === null || value === "" ? "—" : value}
     </span>
   </div>

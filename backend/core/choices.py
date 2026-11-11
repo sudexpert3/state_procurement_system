@@ -117,8 +117,20 @@ class QuarterTypes(models.TextChoices):
 #     CODE_19_01 = "19 01", "19 01"
 
 
-# class UserRoleType(models.TextChoices):
-#     ADMIN_MAIN = 'ADMIN_MAIN', 'Главный администратор'
+class UserRoleType(models.TextChoices):
+    ADMIN_MAIN = 'ADMIN_MAIN', 'Главный администратор'
+    # ПОлный доступ: создание, редактирование, удаление любых данных.
+    # Создание и управление пользователями
+
+    PURCHASING_SPECIALIST = 'PURCHASING_SPECIALIST', 'Закупщик'
+    # Возможность подавать заявки на изменения позиций, которые ему определены для закупки. Остальные позиции плана только просмотр.
+    # Не доступны для просмотра: отчеты. Просмотр записей, связанных только с порученными к закупке позициями плана: договоры, платежки.
+    FINANCIER = 'FINANCIER', 'Финансист'
+
+
+
+
+
 #     ADMIN_LOCAL = 'ADMIN_LOCAL', 'Локальный администратор'
 #     HEAD = 'HEAD', 'Главный руководитель'
 #     MANAGER = 'MANAGER', 'Руководитель подразделения'
