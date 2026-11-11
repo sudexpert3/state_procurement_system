@@ -11,8 +11,12 @@
 #       Для backend-разработчика: db + adminer + frontend (чужая разработка,
 #       только разворачиваем как есть, не редактируем). Backend запускается
 #       локально (IDE/venv), подключаясь к БД на localhost:5460.
-#       Если фронтенду нужен другой адрес backend-а, чем http://localhost:8000/api/
-#       (значение VITE_API_URL из .env) — пересобрать с FRONTEND_API_URL=...
+#       Собранный фронтенд в этом профиле — отдельный сервис `frontend-backend-dev`
+#       (НЕ `frontend` — то имя зарезервировано за prod, на него ссылается nginx.conf),
+#       со своим build-arg VITE_API_URL=http://localhost:8000 по умолчанию (backend —
+#       отдельный процесс на хосте, разные origin, нужен ПОЛНЫЙ адрес БЕЗ "/api/" на
+#       конце — openapi-fetch сам добавляет "/api/..." к путям из схемы). Переопределить
+#       нестандартный адрес backend-а — через FRONTEND_API_URL=... перед командой.
 #
 #   docker compose --profile frontend-dev up -d --build
 #       Для frontend-разработчика: db + adminer + backend (контейнер).
@@ -90,14 +94,39 @@ services:
       sh -c "python manage.py migrate --noinput &&
       gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3"
 
+  # prod и backend-dev нужен один и тот же собранный фронтенд, но с разным VITE_API_URL
+  # (разные origin backend-а) — поэтому это ДВА разных сервиса с разными build-args,
+  # а не один общий с переменной окружения (так и получался конфликт 2026-11-11: одно
+  # значение .env одновременно ломало то prod, то backend-dev). Имя `frontend` оставлено
+  # за prod-версией — на него по имени сервиса ссылается nginx.conf (upstream frontend).
   frontend:
     build:
       context: .
       dockerfile: docker/frontend/Dockerfile
       args:
-        VITE_API_URL: ${FRONTEND_API_URL:-/api/}
+        # Пустая строка — осознанно: фронт+API на одном домене через nginx, относительные
+        # пути "/api/..." из OpenAPI-схемы (openapi-fetch) работают без базового URL.
+        VITE_API_URL: ""
     container_name: frontend_sps
-    profiles: ["prod", "backend-dev"]
+    profiles: ["prod"]
+    networks:
+      - sps_app_net
+    ports:
+      - "8090:80"
+    restart: always
+
+  frontend-backend-dev:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+      args:
+        # backend — отдельный процесс на хосте (localhost:8000), разные origin —
+        # нужен полный адрес БЕЗ "/api/" на конце (openapi-fetch сам добавляет
+        # "/api/..." к путям из схемы). Переопределить нестандартный адрес —
+        # FRONTEND_API_URL=... перед командой запуска.
+        VITE_API_URL: ${FRONTEND_API_URL:-http://localhost:8000}
+    container_name: frontend_sps_backend_dev
+    profiles: ["backend-dev"]
     networks:
       - sps_app_net
     ports:
