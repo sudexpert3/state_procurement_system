@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { formatByn } from "@/shared/lib/helpers/format-money";
+import { cn } from "@/shared/lib/utils";
 
 const columns: ColumnDef<CostDepartment>[] = [
   {
@@ -68,12 +69,14 @@ export const DepartmentsTable = ({
   title,
   data,
   actions,
+  className,
 }: {
   title: string;
   data: CostDepartment[];
   actions?: ReactNode;
+  className?: string;
 }) => (
-  <Card className="col-span-full mt-2 gap-2 p-0 pb-1 ring-0">
+  <Card className={cn("col-span-full mt-2 gap-2 p-3 ring-0", className)}>
     <CardHeader className="px-0">
       <CardTitle className="text-base font-semibold tracking-wide uppercase">
         {title}

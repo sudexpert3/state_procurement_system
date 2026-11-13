@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PlusIcon } from "lucide-react";
 
 import { SectionCard } from "@/shared/components/section-card";
+import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { CardContent } from "@/shared/components/ui/card";
 import { formatByn, formatMoney } from "@/shared/lib/helpers/format-money";
@@ -71,69 +72,96 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => {
             </p>
           </CardContent>
         ) : (
-          plan.economic_details.map((year) => {
-            return (
-              <CardContent
-                key={year.id}
-                className="grid grid-cols-2 gap-4 px-2 md:grid-cols-3">
-                <DetailField label="Год финансирования" value={year.year} />
-                <DetailField
-                  label="Сумма финансирования года, BYN"
-                  value={formatByn(year.cost_detail.total_cost)}
-                />
-                <DetailField
-                  label="Функциональная классификация"
-                  value={year.functional_class_detail.description}
-                />
-                <DetailField
-                  label="Экономическая классификация"
-                  value={year.economic_class_detail.description}
-                />
-                <DetailField
-                  label="Экономическая классификация внутренняя"
-                  value={`${year?.internal_economic_class_detail?.code} - ${year?.internal_economic_class_detail?.name}`}
-                />
-                <DetailField
-                  label="Программная классификация"
-                  value={year.program_class_detail.description}
-                />
-                <DetailField
-                  label="Ведомственная классификация"
-                  value={year.department_code}
-                />
-                <DetailField label="УНК заказчика" value={year.unk} />
-                <DetailField label="Код ТК" value={year.tk_id} />
-                <DetailField label="Код бюджета" value={year.budget_code} />
-                <DetailField
-                  label="Наименование кода бюджета"
-                  value={year.budget_code_name}
-                />
-                <DetailField
-                  label="Оплата со счетов казначейства, BYN"
-                  value={formatByn(year.cost_detail.budget_cost)}
-                />
-                <DetailField
-                  label="Оплата со счетов заказчика, BYN"
-                  value={formatByn(year.cost_detail.fund_cost)}
-                />
-                <DetailField
-                  label="Собственные средства, BYN"
-                  value={formatByn(year.cost_detail.inner_cost)}
-                />
-                <DepartmentsTable
-                  title="Сведения о финансировании подразделений"
-                  data={year.cost_departments}
-                  actions={
-                    <Button
-                      onClick={() => setSelectedEconomicDetailId(year.id)}>
-                      <PlusIcon size={16} />
-                      Добавить подразделение
-                    </Button>
-                  }
-                />
-              </CardContent>
-            );
-          })
+          <CardContent className="flex flex-col gap-4 px-2">
+            {plan.economic_details.map((year) => {
+              // Позиция плана может финансироваться несколькими записями
+              // сразу — не только за разные годы (plan-items/3004), но и в
+              // одном году за разными экономическими классификаторами
+              // (plan-items/3022). Раньше записи шли подряд без разделения —
+              // визуально сливались в одну простыню полей. Теперь каждая
+              // запись — отдельная плитка с рамкой и своим заголовком
+              // (год + код экономической классификации), чтобы сразу было
+              // видно, где кончается одна запись и начинается другая.
+              const economicCode = year.economic_class_detail?.code_api;
+
+              return (
+                <div
+                  key={year.id}
+                  className="bg-muted/30 rounded-lg border p-3">
+                  <div className="mb-3 flex items-center gap-3">
+                    <Badge
+                      variant="outline"
+                      className="border-blue-200 bg-blue-100 px-3 py-1 text-base font-bold text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300">
+                      {year.year} год
+                    </Badge>
+                    {economicCode && (
+                      <span className="text-base font-bold text-blue-700 dark:text-blue-300">
+                        {economicCode}
+                      </span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                    <DetailField label="Год финансирования" value={year.year} />
+                    <DetailField
+                      label="Сумма финансирования года, BYN"
+                      value={formatByn(year.cost_detail.total_cost)}
+                    />
+                    <DetailField
+                      label="Функциональная классификация"
+                      value={year.functional_class_detail.description}
+                    />
+                    <DetailField
+                      label="Экономическая классификация"
+                      value={year.economic_class_detail.description}
+                    />
+                    <DetailField
+                      label="Экономическая классификация внутренняя"
+                      value={`${year?.internal_economic_class_detail?.code} - ${year?.internal_economic_class_detail?.name}`}
+                    />
+                    <DetailField
+                      label="Программная классификация"
+                      value={year.program_class_detail.description}
+                    />
+                    <DetailField
+                      label="Ведомственная классификация"
+                      value={year.department_code}
+                    />
+                    <DetailField label="УНК заказчика" value={year.unk} />
+                    <DetailField label="Код ТК" value={year.tk_id} />
+                    <DetailField label="Код бюджета" value={year.budget_code} />
+                    <DetailField
+                      label="Наименование кода бюджета"
+                      value={year.budget_code_name}
+                    />
+                    <DetailField
+                      label="Оплата со счетов казначейства, BYN"
+                      value={formatByn(year.cost_detail.budget_cost)}
+                    />
+                    <DetailField
+                      label="Оплата со счетов заказчика, BYN"
+                      value={formatByn(year.cost_detail.fund_cost)}
+                    />
+                    <DetailField
+                      label="Собственные средства, BYN"
+                      value={formatByn(year.cost_detail.inner_cost)}
+                    />
+                    <DepartmentsTable
+                      title="Сведения о финансировании подразделений"
+                      data={year.cost_departments}
+                      className="bg-background border-2 shadow-sm"
+                      actions={
+                        <Button
+                          onClick={() => setSelectedEconomicDetailId(year.id)}>
+                          <PlusIcon size={16} />
+                          Добавить подразделение
+                        </Button>
+                      }
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
         )}
       </SectionCard>
       <CostDepartmentDrawer
