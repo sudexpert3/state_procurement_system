@@ -26,11 +26,13 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
     aggregated_cost = serializers.SerializerMethodField()
     economic_details = serializers.SerializerMethodField()
     contracts = serializers.SerializerMethodField()
+    contracts_count = serializers.SerializerMethodField()
 
     class Meta:
         model = PlanItem
         fields = [
-            'id', 'num', 'title', 'okrb', 'val_unit', 'val_amount', 'aggregated_cost', 'economic_details', 'contracts',
+            'id', 'num', 'title', 'okrb', 'val_unit', 'val_amount', 'aggregated_cost', 'economic_details',
+            'contracts', 'contracts_count',
             'is_public', 'is_active', 'created_at', 'updated_at',
         ]
 
@@ -109,6 +111,24 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
             status=PlanItemStatus.ACTIVE
         )
         return ContractItem.objects.filter(plan_share__in=plan_shares).exists()
+
+    @extend_schema_field(serializers.IntegerField())
+    def get_contracts_count(self, obj):
+        # Запрос фронтенда (frontend_handoff.md, раздел 9.1) — число УНИКАЛЬНЫХ договоров,
+        # а не строк ContractItem (у одного договора может быть несколько ContractItem на
+        # разные подразделения/строки одной позиции — см. CurrentStatus.md, пример
+        # 2026-102377498-66, 14 договоров на охрану от разных отделов). Поле `contracts`
+        # (boolean) оставлено как есть — contracts_count отдельное, дополнительное поле.
+        contracts_count = getattr(obj, 'contracts_count', None)
+        if contracts_count is not None:
+            return contracts_count
+
+        active_budgets = obj.budget_costs.filter(status=PlanItemStatus.ACTIVE)
+        plan_shares = PlanShare.objects.filter(
+            budget_cost__in=active_budgets,
+            status=PlanItemStatus.ACTIVE
+        )
+        return ContractItem.objects.filter(plan_share__in=plan_shares).values('contract').distinct().count()
 
 
 class PlanItemFullSerializer(serializers.ModelSerializer):

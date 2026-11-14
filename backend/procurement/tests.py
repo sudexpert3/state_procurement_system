@@ -6,12 +6,15 @@ from django.db import connection
 from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
 
-from core.choices import ChangeRequestKind, ChangeRequestStatus, PlanItemStatus, QuarterTypes
+from core.choices import (
+    ChangeRequestKind, ChangeRequestStatus, PlanItemStatus, ProcurementItemTypes, QuarterTypes,
+)
 from procurement.models import (
     PlanItem, PlanItemDetail, BudgetCosts, PlanShare, Department, Contract, ContractItem,
     Supplier, Purchases, ChangeRequest, BudgetQuarterlyLimit, InternalEconomicClassifier,
     TreasuryPayment, KindOfPayment, ContractQuarterlyFinance,
 )
+from procurement.serializers.planShare import PlanShareSerializer
 from procurement.serializers.treasuryPayment import TreasuryPaymentSerializer
 from procurement.serializers.contractQuarterlyFinance import ContractQuarterlyFinanceSerializer
 from procurement.serializers.budgetCosts import BudgetCostsImportSerializer
@@ -1270,3 +1273,192 @@ class CodeNormalizationTestCase(TestCase):
         bc = serializer.save()
         self.assertEqual(bc.functional_code, '03 12 00 039')
         self.assertIsNone(bc.economic_code)
+
+
+class PlanShareValidationTestCase(TestCase):
+    """Запрос фронтенда 2026-11-14 (frontend/docs/CurrentStatus.md): распределение лимита по
+    подразделениям (/api/plan_shares/) должно (1) реально проверять превышение количества/суммы
+    и (2) возвращать чистый 400 через сериализатор, а не необработанный 500 из модели.
+
+    Найденный по пути корневой баг: проверка количества (shared_amount) была пропущена для
+    ЛЮБОЙ услуги (type=job) целиком, хотя задумывалась только для услуг, физически растянутых
+    на несколько лет (см. комментарий в PlanShare.clean()) — на реальных данных
+    (/plan-items/2898, val_amount=153) это позволяло набить подразделениям сумму сверх
+    выделенного количества без единой ошибки."""
+
+    def setUp(self):
+        self.purchases = Purchases.objects.create(year=2026)
+        self.dept_a = Department.objects.create(full_name='Управление А', short_name='УА')
+        self.dept_b = Department.objects.create(full_name='Управление Б', short_name='УБ')
+
+    def _make_item(self, num, item_type, val_amount, fund_cost=Decimal('0'), inner_cost=Decimal('0')):
+        plan_item = PlanItem.objects.create(plan_purchase=self.purchases, num=num, is_public=True)
+        PlanItemDetail.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, num=num, title='Тестовая позиция',
+            okrb='00.00.00.000', type=item_type, val_amount=val_amount,
+            fund_cost=fund_cost, inner_cost=inner_cost,
+        )
+        return plan_item
+
+    def test_quantity_overflow_rejected_for_single_year_job(self):
+        """Воспроизводит реальный кейс /plan-items/2898: услуга (type=job) в рамках ОДНОГО
+        года — проверка количества должна работать как для товара, а не быть пропущена."""
+        plan_item = self._make_item('2026-TEST-PS-1', ProcurementItemTypes.job, Decimal('153'))
+        budget_cost = BudgetCosts.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=1,
+            cost=Decimal('72600.00'), year=2026,
+        )
+        PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=budget_cost, department=self.dept_a,
+            shared_amount=Decimal('100'), shared_cost=Decimal('47450.98'),
+        )
+        with self.assertRaises(ValidationError):
+            PlanShare.objects.create(
+                status=PlanItemStatus.ACTIVE, budget_cost=budget_cost, department=self.dept_b,
+                shared_amount=Decimal('100'), shared_cost=Decimal('25149.02'),
+            )
+
+    def test_quantity_overflow_still_allowed_for_genuine_multi_year_job_split(self):
+        """Регрессия на исходный сценарий (Проход 6, позиции 166/952): многолетняя услуга с
+        формальным количеством "1" на каждый год — сквозная по годам проверка не должна
+        ложно срабатывать, когда у позиции реально несколько РАЗНЫХ лет бюджета."""
+        plan_item = self._make_item('2026-TEST-PS-2', ProcurementItemTypes.job, Decimal('1'))
+        bc_2026 = BudgetCosts.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=2,
+            cost=Decimal('1000.00'), year=2026,
+        )
+        bc_2027 = BudgetCosts.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=3,
+            cost=Decimal('1000.00'), year=2027,
+        )
+        PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=bc_2026, department=self.dept_a,
+            shared_amount=Decimal('1'), shared_cost=Decimal('1000.00'),
+        )
+        # "1" на 2026 + "1" на 2027 формально суммируется в "2" > val_amount=1 — не должно падать.
+        share_2027 = PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=bc_2027, department=self.dept_a,
+            shared_amount=Decimal('1'), shared_cost=Decimal('1000.00'),
+        )
+        self.assertEqual(share_2027.shared_amount, Decimal('1'))
+
+    def test_quantity_overflow_rejected_by_serializer_as_clean_400(self):
+        """Превышение количества через /api/plan_shares/ (PATCH существующей строки) должно
+        вернуть понятную ошибку поля, а не упасть необработанным исключением модели."""
+        plan_item = self._make_item('2026-TEST-PS-3', ProcurementItemTypes.product, Decimal('10'))
+        budget_cost = BudgetCosts.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=4,
+            cost=Decimal('1000.00'), year=2026,
+        )
+        share = PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=budget_cost, department=self.dept_a,
+            shared_amount=Decimal('5'), shared_cost=Decimal('500.00'),
+        )
+        serializer = PlanShareSerializer(share, data={'shared_amount': '20'}, partial=True)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('shared_amount', serializer.errors)
+
+    def test_cost_overflow_rejected_by_serializer_as_clean_400(self):
+        """То же самое для суммы (shared_cost) — найденный пользователем баг: превышение
+        суммы падало в HTTP 500 вместо понятной ошибки валидации поля."""
+        plan_item = self._make_item('2026-TEST-PS-4', ProcurementItemTypes.product, Decimal('10'))
+        budget_cost = BudgetCosts.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=5,
+            cost=Decimal('1000.00'), year=2026,
+        )
+        share = PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=budget_cost, department=self.dept_a,
+            shared_amount=Decimal('5'), shared_cost=Decimal('500.00'),
+        )
+        serializer = PlanShareSerializer(share, data={'shared_cost': '1500.00'}, partial=True)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('shared_cost', serializer.errors)
+
+    def test_valid_distribution_within_limits_accepted_by_serializer(self):
+        plan_item = self._make_item('2026-TEST-PS-5', ProcurementItemTypes.product, Decimal('10'))
+        budget_cost = BudgetCosts.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=6,
+            cost=Decimal('1000.00'), year=2026,
+        )
+        serializer = PlanShareSerializer(data={
+            'status': PlanItemStatus.ACTIVE, 'budget_cost': budget_cost.pk, 'department': self.dept_a.pk,
+            'shared_amount': '5', 'shared_cost': '500.00',
+        })
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        share = serializer.save()
+        self.assertEqual(share.shared_amount, Decimal('5'))
+
+
+class PlanItemContractsCountTestCase(TestCase):
+    """Запрос фронтенда (doc/frontend_handoff.md, раздел 9.1, 2026-11-05): `contracts_count` —
+    число УНИКАЛЬНЫХ договоров у позиции, а не строк `ContractItem` (у одного договора может
+    быть несколько строк на разные подразделения/части позиции — см. CurrentStatus.md, пример
+    `2026-102377498-66`, 14 договоров на охрану от разных отделов). Поле `contracts` (boolean)
+    не меняется — проверяем, что обе формы отдаются одновременно."""
+
+    def setUp(self):
+        self.purchases = Purchases.objects.create(year=2027)
+        department_a = Department.objects.create(full_name='Упр. А (CC)', short_name='УА-CC')
+        department_b = Department.objects.create(full_name='Упр. Б (CC)', short_name='УБ-CC')
+        self.plan_item = PlanItem.objects.create(plan_purchase=self.purchases, num='2027-TEST-CC-1', is_public=True)
+        PlanItemDetail.objects.create(
+            plan_item=self.plan_item, status=PlanItemStatus.ACTIVE, num=self.plan_item.num,
+            title='Тестовая позиция CC', okrb='00.00.00.000', val_amount=Decimal('10'),
+        )
+        budget_cost = BudgetCosts.objects.create(
+            plan_item=self.plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=1,
+            cost=Decimal('1000.00'), year=2027,
+        )
+        self.share_a = PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=budget_cost, department=department_a,
+            shared_amount=Decimal('5'), shared_cost=Decimal('500.00'),
+        )
+        self.share_b = PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=budget_cost, department=department_b,
+            shared_amount=Decimal('5'), shared_cost=Decimal('500.00'),
+        )
+        self.supplier = Supplier.objects.create(name='Тестовый поставщик CC')
+
+    def _get_item(self):
+        response = self.client.get('/api/plan_items/', {'purchase': self.purchases.id, 'limit': 50})
+        self.assertEqual(response.status_code, 200)
+        return next(r for r in response.json()['results'] if r['id'] == self.plan_item.id)
+
+    def test_no_contracts(self):
+        item = self._get_item()
+        self.assertFalse(item['contracts'])
+        self.assertEqual(item['contracts_count'], 0)
+
+    def test_two_contract_items_on_same_contract_counts_once(self):
+        contract = Contract.objects.create(
+            number='CC-1', supplier=self.supplier, total_cost=Decimal('1000.00'),
+            planned_delivery_date='2027-12-31',
+        )
+        ContractItem.objects.create(
+            contract=contract, plan_share=self.share_a, contract_amount=Decimal('5'), contract_cost=Decimal('500.00'),
+        )
+        ContractItem.objects.create(
+            contract=contract, plan_share=self.share_b, contract_amount=Decimal('5'), contract_cost=Decimal('500.00'),
+        )
+
+        item = self._get_item()
+        self.assertTrue(item['contracts'])
+        self.assertEqual(item['contracts_count'], 1)  # не 2 — один договор, две строки
+
+    def test_two_different_contracts_counts_two(self):
+        contract1 = Contract.objects.create(
+            number='CC-2', supplier=self.supplier, total_cost=Decimal('500.00'), planned_delivery_date='2027-12-31',
+        )
+        contract2 = Contract.objects.create(
+            number='CC-3', supplier=self.supplier, total_cost=Decimal('500.00'), planned_delivery_date='2027-12-31',
+        )
+        ContractItem.objects.create(
+            contract=contract1, plan_share=self.share_a, contract_amount=Decimal('5'), contract_cost=Decimal('500.00'),
+        )
+        ContractItem.objects.create(
+            contract=contract2, plan_share=self.share_b, contract_amount=Decimal('5'), contract_cost=Decimal('500.00'),
+        )
+
+        item = self._get_item()
+        self.assertTrue(item['contracts'])
+        self.assertEqual(item['contracts_count'], 2)

@@ -44,13 +44,13 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    # 'djoser',
     'django_filters',
     'django_extensions',
     'drf_spectacular',
 
     # модули
     'procurement.apps.ProcurementConfig',
+    'authentication.apps.AuthenticationConfig',
 ]
 
 MIDDLEWARE = [
@@ -125,9 +125,13 @@ AUTH_PASSWORD_VALIDATORS = [
 # Настройки DRF и JWT
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
+    # AllowAny остаётся дефолтом для уже существующих ~20 вьюсетов (решение пользователя
+    # 2026-11-14 — ролевые ограничения на них навешиваются отдельным следующим шагом).
+    # Новые эндпоинты (управление пользователями и т.п.) задают permission_classes явно.
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
     ),
@@ -146,22 +150,15 @@ REST_FRAMEWORK = {
 
 }
 
-# Конфигурация Djoser и JWT
-# SIMPLE_JWT = {
-#     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-#     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-#     'AUTH_HEADER_TYPES': ('Bearer',),
-# }
-#
-# DJOSER = {
-#     'LOGIN_FIELD': 'username',
-#     'USER_CREATE_PASSWORD_RETYPE': True,
-#     'SERIALIZERS': {
-#         'user_create': 'authentication.serializers.CustomUserCreateSerializer',
-#         'user': 'authentication.serializers.CustomUserSerializer',
-#         'current_user': 'authentication.serializers.CustomUserSerializer',
-#     }
-# }
+# Конфигурация JWT (Этап 7, 2026-11-14). Djoser сознательно не подключаем — он заточен
+# под самостоятельную регистрацию/сброс пароля по email, а у нас закрытая система:
+# аккаунты создаёт только роль ADMIN_MAIN через /api/users/ (см. authentication/views.py).
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'ROTATE_REFRESH_TOKENS': True,
+}
 
 
 # Настройки CORS (разрешаем запросы от Vite)

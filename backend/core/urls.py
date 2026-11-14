@@ -32,6 +32,8 @@ from procurement.views import (PurchasesViewSet,
                                KindOfPaymentViewSet, BudgetQuarterlyLimitViewSet,
                                )
 from procurement.views import (get_purchases_view, get_purchases_items, get_data_gpz)
+from authentication.views import UserViewSet, MeAPIView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
@@ -58,6 +60,7 @@ router.register(r'departments', DepartmentViewSet, basename='departments')
 router.register(r'change_requests', ChangeRequestViewSet, basename='change_requests')
 router.register(r'department_article_limits', DepartmentArticleLimitViewSet, basename='department_article_limits')
 router.register(r'budget_quarterly_limit', BudgetQuarterlyLimitViewSet, basename='budget_quarterly_limit')
+router.register(r'users', UserViewSet, basename='users')
 
 
 # router.register(r'api_purchases', PurchasesViewSet, basename='api_purchases')
@@ -65,9 +68,10 @@ router.register(r'budget_quarterly_limit', BudgetQuarterlyLimitViewSet, basename
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # Временно комментируем Djoser
-    # path('api/auth/', include('djoser.urls')),
-    # path('api/auth/', include('djoser.urls.jwt')),
+    # Аутентификация (Этап 7, 2026-11-14) — simplejwt, без Djoser (см. core/settings.py).
+    path('api/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/auth/me/', MeAPIView.as_view(), name='auth-me'),
 
     # Скачивание схемы в формате YAML (из неё будем делать типы)
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
 
 from .models import (BudgetCosts, Buyer, Contract, ContractItem, Supplier, ContractQuarterlyFinance, \
                      Department, InternalEconomicClassifier, ExternalEconomicCode, FunctionalCode, OkrbProduct, \
@@ -7,29 +6,6 @@ from .models import (BudgetCosts, Buyer, Contract, ContractItem, Supplier, Contr
                      TreasuryPayment, KindOfPayment, UnitOfMeasurement, Purchases, ChangeRequest,
                      BudgetQuarterlyLimit, ArticleQuarterlyAllocation)
 
-
-# @admin.register(CustomUser)
-# class CustomUserAdmin(UserAdmin):
-#     """Настройка отображения пользователей ведомства в Django-админке"""
-#     model = CustomUser
-#
-#     # Списки полей, отображаемые в таблице реестра пользователей
-#     list_display = ['username', 'email', 'role', 'organization', 'department', 'is_staff', 'is_active']
-#     list_filter = ['role', 'is_staff', 'is_active', 'organization', 'department']
-#
-#     # Добавляем наши ведомственные поля в формы редактирования пользователя
-#     fieldsets = UserAdmin.fieldsets + (
-#         ('Ведомственные данные ГКСЭ', {
-#             'fields': ('role', 'organization', 'department', 'phone')
-#         }),
-#     )
-#
-#     # Добавляем поля в форму создания нового пользователя
-#     add_fieldsets = UserAdmin.add_fieldsets + (
-#         ('Ведомственные данные ГКСЭ', {
-#             'fields': ('role', 'organization', 'department', 'phone')
-#         }),
-#     )
 
 @admin.register(Purchases)
 class PurchasesAdmin(admin.ModelAdmin):

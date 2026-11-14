@@ -32,7 +32,7 @@ class PlanShare(models.Model):
     def __str__(self):
         return f"{self.department.short_name} ({self.budget_cost.year} г.) — кол-во: {self.shared_amount}, сумм: {self.shared_cost} BYN"
 
-    def save(self, *args, **kwargs):
+    def clean(self):
         # Бизнес-ограничения на распределение лимита (ниже) имеют смысл только для
         # ДЕЙСТВУЮЩИХ записей. Черновики заявки на изменение (Этап 2) клонируют ACTIVE-строки
         # в статус DRAFT ДО того, как старые ACTIVE-строки архивируются — без этой проверки
@@ -40,39 +40,59 @@ class PlanShare(models.Model):
         # падал бы с "превышением". Когда черновик реально становится ACTIVE (одобрение,
         # procurement.services.change_requests.approve), к этому моменту старые строки уже
         # archived — проверка сработает корректно на финальном состоянии.
+        #
+        # Ошибки — словарём {поле: текст}, а не одной строкой: DRF не перехватывает
+        # django.core.exceptions.ValidationError, брошенный из save()/full_clean() — без
+        # серверной проверки до сохранения PATCH/POST /api/plan_shares/ с превышением лимита
+        # падал голым 500 (найдено пользователем 2026-11-14, см. CurrentStatus.md).
+        # PlanShareSerializer.validate() прогоняет этот clean() на preview-копии ДО сохранения
+        # и конвертирует его в чистый 400 — тот же паттерн, что у TreasuryPaymentSerializer.
+        super().clean()
         if self.status == PlanItemStatus.ACTIVE and self.shared_amount:
             plan_item = self.budget_cost.plan_item if self.budget_cost else None
             if plan_item:
                 detail = plan_item.details.filter(status=PlanItemStatus.ACTIVE).first()
 
-                # Для услуг (type=job) "количество" — почти всегда формальная единица (обычно "1"),
-                # обозначающая саму закупку в целом, а не физически делимую величину. Когда одна
-                # многолетняя услуга оплачивается несколькими договорами/годами (см. реестр rd26,
-                # позиции 166/952 — суммарная стоимость совпадает с планом, а "1 услуга в 2026" +
-                # "1 услуга в 2027" формально суммируется в "2", хотя услуга одна), сквозной по годам
-                # контроль количества даёт ложное превышение. Для товаров (type=product) проверка
-                # остаётся обязательной — она ловит реальные ошибки распределения (напр. попытка
-                # закупить 10 единиц при выделенных 9.18).
-                if detail and detail.type != ProcurementItemTypes.job:
-                    total_allowed_amount = detail.val_amount
+                if detail:
                     active_budgets = plan_item.budget_costs.filter(status=PlanItemStatus.ACTIVE)
 
-                    shares_queryset = PlanShare.objects.filter(
-                        budget_cost__in=active_budgets,
-                        status=PlanItemStatus.ACTIVE
+                    # Для услуг (type=job), реально распределённых НА НЕСКОЛЬКО ЛЕТ разными
+                    # строками бюджета, "количество" — почти всегда формальная единица (обычно
+                    # "1" на каждый год), а не физически делимая величина. Многолетняя услуга,
+                    # оплачиваемая несколькими договорами/годами (см. реестр rd26, позиции
+                    # 166/952 — суммарная стоимость совпадает с планом, а "1 услуга в 2026" +
+                    # "1 услуга в 2027" формально суммируется в "2", хотя услуга одна), иначе
+                    # давала бы ложное превышение при сквозном по годам контроле количества.
+                    # Для товаров (type=product), а также для услуг В РАМКАХ ОДНОГО ГОДА
+                    # (несколько подразделений делят одну и ту же годовую строку бюджета)
+                    # проверка остаётся обязательной — она ловит реальные ошибки распределения
+                    # (найдено пользователем 2026-11-14: /plan-items/2898, val_amount=153,
+                    # распределение по подразделениям можно было набить сверх этого без единой
+                    # ошибки, потому что проверка раньше пропускалась для ЛЮБОЙ услуги целиком).
+                    distinct_years = set(active_budgets.values_list('year', flat=True))
+                    is_multi_year_job_split = (
+                        detail.type == ProcurementItemTypes.job and len(distinct_years) > 1
                     )
-                    if self.pk:
-                        shares_queryset = shares_queryset.exclude(pk=self.pk)
 
-                    already_saved_amount = shares_queryset.aggregate(total=Sum('shared_amount'))['total'] or 0
+                    if not is_multi_year_job_split:
+                        total_allowed_amount = detail.val_amount
 
-                    if total_allowed_amount < (already_saved_amount + self.shared_amount):
-                        raise ValidationError(
-                            f"Превышение общего количества по пункту плана! "
-                            f"Выделено на весь период закупки: {total_allowed_amount}. "
-                            f"Уже распределено (за все года): {already_saved_amount}. "
-                            f"Попытка добавить в {self.budget_cost.year} году: {self.shared_amount}."
+                        shares_queryset = PlanShare.objects.filter(
+                            budget_cost__in=active_budgets,
+                            status=PlanItemStatus.ACTIVE
                         )
+                        if self.pk:
+                            shares_queryset = shares_queryset.exclude(pk=self.pk)
+
+                        already_saved_amount = shares_queryset.aggregate(total=Sum('shared_amount'))['total'] or 0
+
+                        if total_allowed_amount < (already_saved_amount + self.shared_amount):
+                            raise ValidationError({'shared_amount': (
+                                f"Превышение общего количества по пункту плана! "
+                                f"Выделено на весь период закупки: {total_allowed_amount}. "
+                                f"Уже распределено (за все года): {already_saved_amount}. "
+                                f"Попытка добавить в {self.budget_cost.year} году: {self.shared_amount}."
+                            )})
 
         if self.status == PlanItemStatus.ACTIVE and self.shared_cost:
             b_cost = self.budget_cost
@@ -98,11 +118,12 @@ class PlanShare(models.Model):
 
                 if total_cost < (already_saved_cost + self.shared_cost):
                     reserved_note = f" (из них {reserved} BYN уже зарезервировано многолетними договорами)" if reserved else ""
-                    raise ValidationError(message=f"Превышение суммы в {self.budget_cost.year} году! "
-                                                  f" Доступно для распределения: {total_cost} BYN{reserved_note}."
-                                                  f" Уже распределено: {already_saved_cost} BYN. "
-                                                  f" Попытка добавить: {self.shared_cost} BYN.",
-                                          )
+                    raise ValidationError({'shared_cost': (
+                        f"Превышение суммы в {self.budget_cost.year} году! "
+                        f"Доступно для распределения: {total_cost} BYN{reserved_note}. "
+                        f"Уже распределено: {already_saved_cost} BYN. "
+                        f"Попытка добавить: {self.shared_cost} BYN."
+                    )})
 
         if self.status == PlanItemStatus.ACTIVE and self.shared_fund_cost:
             detail = self.budget_cost.plan_item.details.filter(status=PlanItemStatus.ACTIVE).first()
@@ -119,11 +140,12 @@ class PlanShare(models.Model):
                 already_saved_fund_cost = shares_queryset.aggregate(total=Sum('shared_fund_cost'))['total'] or 0
 
                 if total_fund_cost < (already_saved_fund_cost + self.shared_fund_cost):
-                    raise ValidationError(message=f"Превышение количества в {self.budget_cost.year} году! "
-                                                  f" Выделено всего: {total_fund_cost}"
-                                                  f" Уже распределено: {already_saved_fund_cost}. "
-                                                  f" Попытка добавить: {self.shared_fund_cost}.",
-                                          )
+                    raise ValidationError({'shared_fund_cost': (
+                        f"Превышение суммы (внебюджетные фонды) в {self.budget_cost.year} году! "
+                        f"Выделено всего: {total_fund_cost}. "
+                        f"Уже распределено: {already_saved_fund_cost}. "
+                        f"Попытка добавить: {self.shared_fund_cost}."
+                    )})
 
         if self.status == PlanItemStatus.ACTIVE and self.shared_inner_cost:
             detail = self.budget_cost.plan_item.details.filter(status=PlanItemStatus.ACTIVE).first()
@@ -140,12 +162,13 @@ class PlanShare(models.Model):
                 already_saved_inner_cost = shares_queryset.aggregate(total=Sum('shared_inner_cost'))['total'] or 0
 
                 if total_inner_cost < (already_saved_inner_cost + self.shared_inner_cost):
-                    raise ValidationError(message=f"Превышение количества в {self.budget_cost.year} году! "
-                                                  f" Выделено всего: {total_inner_cost}"
-                                                  f" Уже распределено: {already_saved_inner_cost}. "
-                                                  f" Попытка добавить: {self.shared_inner_cost}.",
-                                          )
+                    raise ValidationError({'shared_inner_cost': (
+                        f"Превышение суммы (собственные средства) в {self.budget_cost.year} году! "
+                        f"Выделено всего: {total_inner_cost}. "
+                        f"Уже распределено: {already_saved_inner_cost}. "
+                        f"Попытка добавить: {self.shared_inner_cost}."
+                    )})
 
-
-
+    def save(self, *args, **kwargs):
+        self.full_clean()
         super().save(*args, **kwargs)

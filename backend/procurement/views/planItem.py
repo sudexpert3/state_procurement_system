@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.functions import Coalesce
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters
 from rest_framework.permissions import AllowAny
@@ -53,7 +54,29 @@ class PlanItemViewSet(viewsets.ModelViewSet):
                     plan_share__budget_cost__status=PlanItemStatus.ACTIVE,
                     plan_share__budget_cost__plan_item=models.OuterRef('pk'),
                 )
-            )
+            ),
+            # Запрос фронтенда (frontend_handoff.md, раздел 9.1, 2026-11-05): число
+            # уникальных договоров вместо просто "есть/нет" (у одной позиции может быть
+            # несколько ContractItem на один Contract — разные подразделения/строки одного
+            # договора, см. CurrentStatus.md пример 2026-102377498-66, 14 договоров). Считаем
+            # через коррелированный подзапрос с GROUP BY + COUNT(DISTINCT contract) — обычный
+            # annotate(Count(..., distinct=True)) вместе с другими join'ами в этом же queryset
+            # (напр. SearchFilter по details__title/details__okrb) рисковал бы задвоить счёт
+            # из-за fan-out по нескольким join'ам; подзапрос полностью изолирован от основного
+            # запроса, как и has_contracts выше (тот же приём, Exists вместо join-фильтра).
+            contracts_count=Coalesce(
+                models.Subquery(
+                    ContractItem.objects.filter(
+                        plan_share__status=PlanItemStatus.ACTIVE,
+                        plan_share__budget_cost__status=PlanItemStatus.ACTIVE,
+                        plan_share__budget_cost__plan_item=models.OuterRef('pk'),
+                    ).order_by().values('plan_share__budget_cost__plan_item').annotate(
+                        count=models.Count('contract', distinct=True)
+                    ).values('count'),
+                    output_field=models.IntegerField(),
+                ),
+                0,
+            ),
         )
 
         if not self.request:
