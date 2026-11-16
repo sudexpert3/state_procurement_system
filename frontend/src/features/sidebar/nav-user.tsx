@@ -26,10 +26,19 @@ export function NavUser() {
   const navigate = useNavigate();
   const { data: currentUser } = useCurrentUser();
 
+  // Подпись пользователя — фамилия + инициал имени ("Иванов И."), если
+  // фамилия заполнена; иначе логин (не у всех учётных записей есть ФИО).
+  const signature = currentUser?.last_name
+    ? `${currentUser.last_name}${currentUser.first_name ? ` ${currentUser.first_name.charAt(0).toUpperCase()}.` : ""}`
+    : currentUser?.username;
+
   const user = {
-    name: currentUser?.username ?? "…",
+    name: signature ?? "…",
     role: currentUser?.role_display ?? "",
-    initial: currentUser?.username?.[0]?.toUpperCase() ?? "?",
+    initial:
+      (
+        currentUser?.last_name?.[0] ?? currentUser?.username?.[0]
+      )?.toUpperCase() ?? "?",
   };
 
   const logout = () => {

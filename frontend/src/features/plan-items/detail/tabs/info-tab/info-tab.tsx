@@ -1,4 +1,4 @@
-import type { CostDepartment, PlanItemFull } from "@/shared/api/schema";
+import type { Buyer, CostDepartment, PlanItemFull } from "@/shared/api/schema";
 
 import { useCallback, useState } from "react";
 
@@ -19,6 +19,8 @@ import { DetailField } from "../../components/detail-field";
 import { typeLabel } from "../../plan-meta";
 
 import { CostDepartmentDrawer } from "./cost-department-drawer";
+import { EditableBuyerField } from "./editable-buyer-field";
+import { EditableInternalEconomicClassField } from "./editable-internal-economic-class-field";
 
 const getTypeLabel = (type: string) =>
   type in typeLabel ? typeLabel[type as keyof typeof typeLabel] : type;
@@ -28,6 +30,31 @@ type DrawerState = { economicDetailId: number; item: CostDepartment | null };
 export const InfoTab = ({ plan }: { plan: PlanItemFull }) => {
   const [drawerState, setDrawerState] = useState<DrawerState | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  // Прямое редактирование (минуя заявку на изменение) исполнителя и
+  // внутренней классификации ЭКР — доступно только этим двум ролям, см.
+  // core/choices.py (описание прав FINANCIER) и CurrentStatus.md.
+  //
+  // ⚠️ 2026-11-16: ВРЕМЕННО ОТКЛЮЧЕНО. PATCH /api/plan_items_details/{id}/
+  // (смена buyer) при сохранении на бэкенде принудительно сбрасывает
+  // status записи с ACTIVE на DRAFT — подтверждено дважды: и через обычный
+  // PATCH, и через Django admin (т.е. это save() модели, а не сериализатор).
+  // Из-за этого /api/plan_items/{id}/ перестаёт находить активную версию и
+  // отдаёт null по всем полям (воспроизведено на /plan-items/2898, данные
+  // восстановлены вручную). Включать обратно только после фикса на бэке —
+  // см. CurrentStatus.md (корневой), раздел с этим багом.
+  const canEditDirectly = false;
+
+  // Для PATCH /api/plan_items_details/{id}/ нужен id активной версии
+  // PlanItemDetail — PlanItemFull.id (из /api/plan_items/{id}/) это id
+  // корневого неизменяемого PlanItem, другая сущность.
+  const activeDetailQuery = rqClient.useQuery(
+    "get",
+    "/api/plan_items_details/",
+    { params: { query: { plan_item: plan.id, status: "ACTIVE" } } },
+    { enabled: canEditDirectly },
+  );
+  const activeDetailId = activeDetailQuery.data?.results[0]?.id ?? null;
 
   const selectedEconomicDetail = plan.economic_details.find(
     (detail) => detail.id === drawerState?.economicDetailId,
@@ -85,15 +112,14 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => {
             label="Тип (работа/услуга/товар)"
             value={getTypeLabel(plan.type)}
           />
-          <DetailField
-            label="Исполнитель"
+          <EditableBuyerField
+            detailId={activeDetailId}
             // В OpenAPI-схеме buyer_detail типизирован как массив (Buyer[]),
             // но реально бэкенд всегда отдаёт один объект Buyer — см.
             // CurrentStatus.md, раздел "хвосты бэка".
-            value={
-              (plan.buyer_detail as unknown as { shot_name?: string } | null)
-                ?.shot_name ?? "Нет исполнителя"
-            }
+            currentBuyer={plan.buyer_detail as unknown as Buyer | null}
+            canEdit={canEditDirectly}
+            onSuccess={invalidate}
           />
           <DetailField label="Общее количество" value={plan.val_amount} />
           <DetailField label="Ед. измерения" value={plan.val_unit} />
@@ -153,9 +179,11 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => {
                       label="Экономическая классификация"
                       value={year.economic_class_detail.description}
                     />
-                    <DetailField
-                      label="Экономическая классификация внутренняя"
-                      value={`${year?.internal_economic_class_detail?.code} - ${year?.internal_economic_class_detail?.name}`}
+                    <EditableInternalEconomicClassField
+                      budgetCostId={year.id}
+                      currentClass={year.internal_economic_class_detail ?? null}
+                      canEdit={canEditDirectly}
+                      onSuccess={invalidate}
                     />
                     <DetailField
                       label="Программная классификация"
