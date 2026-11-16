@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { useCurrentUser } from "@/services/auth";
 import { rqClient } from "@/shared/api/instance";
 import { queryClient } from "@/shared/api/query-client";
 import { SectionCard } from "@/shared/components/section-card";
@@ -35,15 +36,13 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => {
   // внутренней классификации ЭКР — доступно только этим двум ролям, см.
   // core/choices.py (описание прав FINANCIER) и CurrentStatus.md.
   //
-  // ⚠️ 2026-11-16: ВРЕМЕННО ОТКЛЮЧЕНО. PATCH /api/plan_items_details/{id}/
-  // (смена buyer) при сохранении на бэкенде принудительно сбрасывает
-  // status записи с ACTIVE на DRAFT — подтверждено дважды: и через обычный
-  // PATCH, и через Django admin (т.е. это save() модели, а не сериализатор).
-  // Из-за этого /api/plan_items/{id}/ перестаёт находить активную версию и
-  // отдаёт null по всем полям (воспроизведено на /plan-items/2898, данные
-  // восстановлены вручную). Включать обратно только после фикса на бэке —
-  // см. CurrentStatus.md (корневой), раздел с этим багом.
-  const canEditDirectly = false;
+  // Было временно отключено 2026-11-16 из-за бага бэкенда (PATCH без поля
+  // `status` сбрасывал ACTIVE → DRAFT в PlanItemDetailSerializer.update()/
+  // BudgetCostsSerializer.update()) — бэкенд исправил и восстановил
+  // повреждённые записи (см. CurrentStatus.md, корневой), включено обратно.
+  const { data: currentUser } = useCurrentUser();
+  const canEditDirectly =
+    currentUser?.role === "ADMIN_MAIN" || currentUser?.role === "FINANCIER";
 
   // Для PATCH /api/plan_items_details/{id}/ нужен id активной версии
   // PlanItemDetail — PlanItemFull.id (из /api/plan_items/{id}/) это id

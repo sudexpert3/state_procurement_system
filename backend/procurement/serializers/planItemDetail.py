@@ -24,19 +24,35 @@ class PlanItemDetailSerializer(serializers.ModelSerializer):
         }
 
     def update(self, instance, validated_data):
-        status = validated_data.pop('status', None)
+        # КРИТИЧНЫЙ БАГ (найден агентом-фронтендом, 2026-11-16): раньше ЛЮБОЙ PATCH —
+        # даже не затрагивающий status вовсе (напр. {"buyer": 4}) — принудительно сбрасывал
+        # status в DRAFT, потому что `status is None` (поле не передано) тоже попадало в
+        # условие "ставим DRAFT". Это ломало прямое редактирование полей ACTIVE-записи
+        # (buyer/internal_economic_class — разрешено роли FINANCIER без ChangeRequest, см.
+        # core/choices.py), а заодно не давало вручную исправить уже сломанную запись через
+        # PATCH {"status": "ACTIVE"} — та же ветка перехватывала и его. Воспроизведено на
+        # PlanItemDetail.id=2898, см. CurrentStatus.md.
+        #
+        # Сохранён единственный осмысленный защитный смысл исходного кода: активация
+        # записи напрямую через голый PATCH действительно опасна — она не архивирует старую
+        # ACTIVE-версию (в отличие от services/change_requests.py::approve()) и может
+        # оставить у позиции плана ДВЕ одновременно ACTIVE записи (DB-уровневого ограничения
+        # на это нет — история таких задвоений подробно описана в CurrentStatus.md). Поэтому
+        # явный переход В ACTIVE из ЛЮБОГО другого статуса по-прежнему запрещён — но теперь
+        # явной ошибкой 400, а не тихой подменой на DRAFT; все остальные случаи (status не
+        # передан, либо передан, но совпадает с текущим, либо меняется на любой НЕ-ACTIVE
+        # статус) обрабатываются как обычное частичное обновление.
+        requested_status = validated_data.get('status')
+        if (
+            requested_status == PlanItemStatus.ACTIVE
+            and instance.status != PlanItemStatus.ACTIVE
+        ):
+            raise serializers.ValidationError({
+                'status': 'Активировать позицию напрямую нельзя — используйте одобрение заявки на изменение '
+                          '(ChangeRequest.approve), иначе у позиции может оказаться две ACTIVE-записи одновременно.'
+            })
 
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-
-        if status is None or status == PlanItemStatus.ACTIVE:
-            instance.status = PlanItemStatus.DRAFT
-        else:
-            instance.status = status
-
-        instance.save()
-
-        return instance
+        return super().update(instance, validated_data)
 
 
 class PlanItemDetailImportSerializer(serializers.ModelSerializer):

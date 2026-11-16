@@ -390,16 +390,21 @@ class BudgetCostsSerializer(serializers.ModelSerializer):
 
 
     def update(self, instance, validated_data):
-        status = validated_data.pop('status', None)
+        # Тот же баг и тот же фикс, что в PlanItemDetailSerializer.update() (см. его docstring/
+        # комментарий, CurrentStatus.md, Этап 7, 2026-11-16) — копипаста ошибки между двумя
+        # сериализаторами. Воспроизведено здесь же живым curl при проверке фикса
+        # PlanItemDetail: PATCH {"internal_economic_class": <то же значение>} на ACTIVE-запись
+        # BudgetCosts.id=2915 (без единого упоминания status) тихо откатывал её в DRAFT — ломало
+        # то самое прямое редактирование поля `internal_economic_class`, которое роль FINANCIER
+        # должна делать без ChangeRequest (см. core/choices.py).
+        requested_status = validated_data.get('status')
+        if (
+            requested_status == PlanItemStatus.ACTIVE
+            and instance.status != PlanItemStatus.ACTIVE
+        ):
+            raise serializers.ValidationError({
+                'status': 'Активировать запись напрямую нельзя — используйте одобрение заявки на изменение '
+                          '(ChangeRequest.approve), иначе у позиции может оказаться две ACTIVE-записи одновременно.'
+            })
 
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-
-        if status is None or status == PlanItemStatus.ACTIVE:
-            instance.status = PlanItemStatus.DRAFT
-        else:
-            instance.status = status
-
-        instance.save()
-
-        return instance
+        return super().update(instance, validated_data)

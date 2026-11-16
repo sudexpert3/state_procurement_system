@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import connection
 from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
+from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from core.choices import (
     ChangeRequestKind, ChangeRequestStatus, PlanItemStatus, ProcurementItemTypes, QuarterTypes,
@@ -12,12 +13,13 @@ from core.choices import (
 from procurement.models import (
     PlanItem, PlanItemDetail, BudgetCosts, PlanShare, Department, Contract, ContractItem,
     Supplier, Purchases, ChangeRequest, BudgetQuarterlyLimit, InternalEconomicClassifier,
-    TreasuryPayment, KindOfPayment, ContractQuarterlyFinance,
+    TreasuryPayment, KindOfPayment, ContractQuarterlyFinance, Buyer,
 )
 from procurement.serializers.planShare import PlanShareSerializer
+from procurement.serializers.planItemDetail import PlanItemDetailSerializer
 from procurement.serializers.treasuryPayment import TreasuryPaymentSerializer
 from procurement.serializers.contractQuarterlyFinance import ContractQuarterlyFinanceSerializer
-from procurement.serializers.budgetCosts import BudgetCostsImportSerializer
+from procurement.serializers.budgetCosts import BudgetCostsImportSerializer, BudgetCostsSerializer
 from procurement.services.code_normalization import (
     normalize_functional_code, normalize_economic_code, normalize_program_code,
 )
@@ -1462,3 +1464,92 @@ class PlanItemContractsCountTestCase(TestCase):
         item = self._get_item()
         self.assertTrue(item['contracts'])
         self.assertEqual(item['contracts_count'], 2)
+
+
+class PlanItemDetailDirectEditTestCase(TestCase):
+    """КРИТИЧНЫЙ БАГ (найден агентом-фронтендом, 2026-11-16): PlanItemDetailSerializer.update()
+    принудительно сбрасывал status в DRAFT при ЛЮБОМ PATCH, даже не затрагивающем status вовсе
+    (напр. {"buyer": ...}) — ломало прямое редактирование полей ACTIVE-записи, разрешённое роли
+    FINANCIER (buyer/internal_economic_class, см. core/choices.py) без ChangeRequest. Воспроизведено
+    на реальных данных, PlanItemDetail.id=2898 — см. CurrentStatus.md."""
+
+    def setUp(self):
+        purchases = Purchases.objects.create(year=2027)
+        plan_item = PlanItem.objects.create(plan_purchase=purchases, num='2027-TEST-PID-1', is_public=True)
+        self.buyer_a = Buyer.objects.create(shot_name='Иванов И.И. (PID)', full_name='Иванов Иван Иванович (PID)')
+        self.buyer_b = Buyer.objects.create(shot_name='Петров П.П. (PID)', full_name='Петров Пётр Петрович (PID)')
+        self.detail = PlanItemDetail.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, num=plan_item.num,
+            title='Тестовая позиция PID', okrb='00.00.00.000', val_amount=Decimal('1'), buyer=self.buyer_a,
+        )
+
+    def test_patch_without_status_does_not_reset_active_record(self):
+        serializer = PlanItemDetailSerializer(self.detail, data={'buyer': self.buyer_b.pk}, partial=True)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        instance = serializer.save()
+        self.assertEqual(instance.status, PlanItemStatus.ACTIVE)
+        self.assertEqual(instance.buyer_id, self.buyer_b.pk)
+
+    def test_patch_reaffirming_same_active_status_is_a_noop(self):
+        serializer = PlanItemDetailSerializer(
+            self.detail, data={'status': PlanItemStatus.ACTIVE, 'buyer': self.buyer_b.pk}, partial=True,
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        instance = serializer.save()
+        self.assertEqual(instance.status, PlanItemStatus.ACTIVE)
+
+    def test_direct_activation_of_draft_is_rejected(self):
+        self.detail.status = PlanItemStatus.DRAFT
+        self.detail.save(update_fields=['status'])
+
+        serializer = PlanItemDetailSerializer(self.detail, data={'status': PlanItemStatus.ACTIVE}, partial=True)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        with self.assertRaises(DRFValidationError):
+            serializer.save()
+
+        self.detail.refresh_from_db()
+        self.assertEqual(self.detail.status, PlanItemStatus.DRAFT)  # не тронут, не задвоился до ACTIVE
+
+    def test_patch_to_non_active_status_still_allowed(self):
+        serializer = PlanItemDetailSerializer(self.detail, data={'status': PlanItemStatus.ARCHIVE}, partial=True)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        instance = serializer.save()
+        self.assertEqual(instance.status, PlanItemStatus.ARCHIVE)
+
+
+class BudgetCostsDirectEditTestCase(TestCase):
+    """Тот же баг, что в PlanItemDetailDirectEditTestCase выше — копипаста между двумя
+    сериализаторами (BudgetCostsSerializer.update() / PlanItemDetailSerializer.update()).
+    Живьём воспроизведено на BudgetCosts.id=2915 при проверке фикса PlanItemDetail: PATCH
+    {"internal_economic_class": <то же значение>} тихо откатывал ACTIVE-запись в DRAFT."""
+
+    def setUp(self):
+        purchases = Purchases.objects.create(year=2027)
+        plan_item = PlanItem.objects.create(plan_purchase=purchases, num='2027-TEST-BC-1', is_public=True)
+        self.iec_a = InternalEconomicClassifier.objects.create(code='9990000001', name='Тестовая статья А')
+        self.iec_b = InternalEconomicClassifier.objects.create(code='9990000002', name='Тестовая статья Б')
+        self.budget_cost = BudgetCosts.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=1,
+            cost=Decimal('1000.00'), year=2027, internal_economic_class=self.iec_a,
+        )
+
+    def test_patch_without_status_does_not_reset_active_record(self):
+        serializer = BudgetCostsSerializer(
+            self.budget_cost, data={'internal_economic_class': self.iec_b.pk}, partial=True,
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        instance = serializer.save()
+        self.assertEqual(instance.status, PlanItemStatus.ACTIVE)
+        self.assertEqual(instance.internal_economic_class_id, self.iec_b.pk)
+
+    def test_direct_activation_of_draft_is_rejected(self):
+        self.budget_cost.status = PlanItemStatus.DRAFT
+        self.budget_cost.save(update_fields=['status'])
+
+        serializer = BudgetCostsSerializer(self.budget_cost, data={'status': PlanItemStatus.ACTIVE}, partial=True)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        with self.assertRaises(DRFValidationError):
+            serializer.save()
+
+        self.budget_cost.refresh_from_db()
+        self.assertEqual(self.budget_cost.status, PlanItemStatus.DRAFT)

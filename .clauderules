@@ -1,0 +1,17 @@
+# Системные папки IDE и Git
+.idea/
+.git/
+
+# Виртуальное окружение Python (ОБЯЗАТЕЛЬНО К ИГНОРИРОВАНИЮ, иначе лимиты сгорят)
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+
+# Папки сборки и кэша тестов
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
