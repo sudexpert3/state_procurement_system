@@ -77,3 +77,5 @@ export type Supplier = ApiSchemas["Supplier"];
 export type TreasuryPayment = ApiSchemas["TreasuryPayment"];
 
 export type UnitOfMeasurement = ApiSchemas["UnitOfMeasurement"];
+
+export type User = ApiSchemas["User"];

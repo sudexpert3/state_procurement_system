@@ -18,6 +18,7 @@ export const ROUTES = {
   REPORTS: `/reports`,
   BUYERS: `/buyers`,
   SUPPLIERS: `/suppliers`,
+  USERS: `/users`,
   NOT_FOUND: "*",
 } as const;
 

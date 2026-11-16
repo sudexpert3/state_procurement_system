@@ -6,12 +6,13 @@ import {
   CalendarRange,
   FileCheck2,
   FileText,
-  GalleryVerticalEnd,
   SquareTerminal,
   UniversityIcon,
+  UsersIcon,
   Wallet,
 } from "lucide-react";
 
+import { useCurrentUser } from "@/services/auth";
 import { Separator } from "@/shared/components/ui/separator";
 import {
   Sidebar,
@@ -25,89 +26,87 @@ import { ROUTES } from "@/shared/model/routes";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 
-const data = {
-  user: {
-    name: "shadcn",
-    role: "Администратор",
-    avatar: "/avatars/shadcn.jpg",
+const baseNavMain = [
+  {
+    title: "Годовые планы",
+    url: ROUTES.PLANS,
+    icon: <CalendarRange />,
   },
-  teams: [
-    {
-      name: "Закупки",
-      logo: <GalleryVerticalEnd />,
-    },
-  ],
-  navMain: [
-    {
-      title: "Годовые планы",
-      url: ROUTES.PLANS,
-      icon: <CalendarRange />,
-    },
-    {
-      title: "Реестр закупок",
-      url: ROUTES.PLAN_ITEMS,
-      icon: <SquareTerminal />,
-    },
-    {
-      title: "Заявки на изменение",
-      url: ROUTES.CHANGE_REQUESTS,
-      icon: <FileCheck2 />,
-    },
-    {
-      title: "Договоры",
-      url: ROUTES.CONTRACTS,
-      icon: <FileText />,
-    },
-    {
-      title: "Платежи",
-      url: ROUTES.PAYMENTS,
-      icon: <Wallet />,
-    },
-    {
-      title: "Отчёты",
-      url: ROUTES.REPORTS,
-      icon: <BarChart3 />,
-    },
-    {
-      title: "Справочники",
-      url: "#",
-      icon: <BookOpen />,
-      isActive: true,
-      items: [
-        {
-          title: "ЭКР",
-          url: ROUTES.ECONOMIC_CODE,
-        },
-        {
-          title: "Коды ОКРБ",
-          url: ROUTES.CODES_OKRB,
-        },
-        {
-          title: "Главки",
-          url: ROUTES.DEPARTMENTS,
-        },
-        {
-          title: "Внутренние коды ЭКР",
-          url: ROUTES.INTERNAL_ECONOMIC_CODE,
-        },
-        {
-          title: "Корректировка лимитов",
-          url: ROUTES.LIMIT_CALIBRATION,
-        },
-        {
-          title: "Закупщики",
-          url: ROUTES.BUYERS,
-        },
-        {
-          title: "Поставщики",
-          url: ROUTES.SUPPLIERS,
-        },
-      ],
-    },
-  ],
+  {
+    title: "Реестр закупок",
+    url: ROUTES.PLAN_ITEMS,
+    icon: <SquareTerminal />,
+  },
+  {
+    title: "Заявки на изменение",
+    url: ROUTES.CHANGE_REQUESTS,
+    icon: <FileCheck2 />,
+  },
+  {
+    title: "Договоры",
+    url: ROUTES.CONTRACTS,
+    icon: <FileText />,
+  },
+  {
+    title: "Платежи",
+    url: ROUTES.PAYMENTS,
+    icon: <Wallet />,
+  },
+  {
+    title: "Отчёты",
+    url: ROUTES.REPORTS,
+    icon: <BarChart3 />,
+  },
+  {
+    title: "Справочники",
+    url: "#",
+    icon: <BookOpen />,
+    isActive: true,
+    items: [
+      {
+        title: "ЭКР",
+        url: ROUTES.ECONOMIC_CODE,
+      },
+      {
+        title: "Коды ОКРБ",
+        url: ROUTES.CODES_OKRB,
+      },
+      {
+        title: "Главки",
+        url: ROUTES.DEPARTMENTS,
+      },
+      {
+        title: "Внутренние коды ЭКР",
+        url: ROUTES.INTERNAL_ECONOMIC_CODE,
+      },
+      {
+        title: "Корректировка лимитов",
+        url: ROUTES.LIMIT_CALIBRATION,
+      },
+      {
+        title: "Закупщики",
+        url: ROUTES.BUYERS,
+      },
+      {
+        title: "Поставщики",
+        url: ROUTES.SUPPLIERS,
+      },
+    ],
+  },
+];
+
+const usersNavItem = {
+  title: "Пользователи",
+  url: ROUTES.USERS,
+  icon: <UsersIcon />,
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: currentUser } = useCurrentUser();
+  const isAdmin = currentUser?.role === "ADMIN_MAIN";
+
+  const navMain = isAdmin ? [...baseNavMain, usersNavItem] : baseNavMain;
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="p-1">
@@ -124,10 +123,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <Separator />
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   );

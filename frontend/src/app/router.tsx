@@ -16,12 +16,14 @@ import * as planItems from "@/features/plan-items";
 import * as plans from "@/features/plans";
 import * as reports from "@/features/reports";
 import * as suppliers from "@/features/suppliers";
+import * as users from "@/features/users";
 import { ROUTES } from "@/shared/model/routes";
 
 import { App } from "./app";
 import { MainLayout } from "./main-layout";
 import { ProtectedRoute } from "./protected-route";
 import { Providers } from "./providers";
+import { RequireRole } from "./require-role";
 
 export const router = createBrowserRouter([
   {
@@ -100,6 +102,15 @@ export const router = createBrowserRouter([
               {
                 path: ROUTES.REPORTS,
                 lazy: reports.list,
+              },
+              {
+                Component: () => <RequireRole role="ADMIN_MAIN" />,
+                children: [
+                  {
+                    path: ROUTES.USERS,
+                    lazy: users.list,
+                  },
+                ],
               },
             ],
           },

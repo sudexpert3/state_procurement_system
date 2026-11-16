@@ -1,14 +1,18 @@
-import type { PlanItemFull } from "@/shared/api/schema";
+import type { CostDepartment, PlanItemFull } from "@/shared/api/schema";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { PlusIcon } from "lucide-react";
+import { toast } from "sonner";
 
+import { rqClient } from "@/shared/api/instance";
+import { queryClient } from "@/shared/api/query-client";
 import { SectionCard } from "@/shared/components/section-card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { CardContent } from "@/shared/components/ui/card";
 import { formatByn, formatMoney } from "@/shared/lib/helpers/format-money";
+import { handleHttpError } from "@/shared/lib/helpers/handle-http-error";
 
 import { DepartmentsTable } from "../../components/departments-table";
 import { DetailField } from "../../components/detail-field";
@@ -19,17 +23,52 @@ import { CostDepartmentDrawer } from "./cost-department-drawer";
 const getTypeLabel = (type: string) =>
   type in typeLabel ? typeLabel[type as keyof typeof typeLabel] : type;
 
+type DrawerState = { economicDetailId: number; item: CostDepartment | null };
+
 export const InfoTab = ({ plan }: { plan: PlanItemFull }) => {
-  const [selectedEconomicDetailId, setSelectedEconomicDetailId] = useState<
-    number | null
-  >(null);
+  const [drawerState, setDrawerState] = useState<DrawerState | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const selectedEconomicDetail = plan.economic_details.find(
-    (detail) => detail.id === selectedEconomicDetailId,
+    (detail) => detail.id === drawerState?.economicDetailId,
   );
 
   const selectedCostDepartments =
     selectedEconomicDetail?.cost_departments ?? [];
+
+  const invalidate = useCallback(
+    () =>
+      queryClient.invalidateQueries({
+        queryKey: ["get", "/api/plan_items/{id}/"],
+      }),
+    [],
+  );
+
+  const deleteMutation = rqClient.useMutation(
+    "delete",
+    "/api/plan_shares/{id}/",
+  );
+
+  const handleDelete = useCallback(
+    (item: CostDepartment) => {
+      setDeletingId(item.id);
+      deleteMutation.mutate(
+        { params: { path: { id: item.id } } },
+        {
+          onSuccess: () => {
+            setDeletingId(null);
+            invalidate();
+            toast.success("Распределение удалено");
+          },
+          onError: (error) => {
+            setDeletingId(null);
+            handleHttpError(error, "Не удалось удалить распределение", true);
+          },
+        },
+      );
+    },
+    [deleteMutation, invalidate],
+  );
 
   return (
     <div className="space-y-4">
@@ -151,11 +190,21 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => {
                       className="bg-background border-2 shadow-sm"
                       actions={
                         <Button
-                          onClick={() => setSelectedEconomicDetailId(year.id)}>
+                          onClick={() =>
+                            setDrawerState({
+                              economicDetailId: year.id,
+                              item: null,
+                            })
+                          }>
                           <PlusIcon size={16} />
                           Добавить подразделение
                         </Button>
                       }
+                      onEdit={(item) =>
+                        setDrawerState({ economicDetailId: year.id, item })
+                      }
+                      onDelete={handleDelete}
+                      deletingId={deletingId}
                     />
                   </div>
                 </div>
@@ -165,11 +214,14 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => {
         )}
       </SectionCard>
       <CostDepartmentDrawer
-        open={selectedEconomicDetailId !== null}
-        excludedDepartmentIds={selectedCostDepartments.map(
-          (department) => department.department_detail.id,
-        )}
-        onClose={() => setSelectedEconomicDetailId(null)}
+        open={drawerState !== null}
+        item={drawerState?.item ?? null}
+        budgetCostId={drawerState?.economicDetailId ?? null}
+        excludedDepartmentIds={selectedCostDepartments
+          .filter((department) => department.id !== drawerState?.item?.id)
+          .map((department) => department.department_detail.id)}
+        onClose={() => setDrawerState(null)}
+        onSuccess={invalidate}
       />
     </div>
   );

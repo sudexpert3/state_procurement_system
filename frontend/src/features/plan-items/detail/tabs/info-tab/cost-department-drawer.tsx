@@ -1,9 +1,15 @@
-import type { Department } from "@/shared/api/schema";
+import type {
+  ApiSchemas,
+  CostDepartment,
+  Department,
+} from "@/shared/api/schema";
 
 import { useMemo, useRef } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2Icon } from "lucide-react";
 import { Controller, useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 
 import { rqClient } from "@/shared/api/instance";
 import { InputField } from "@/shared/components/form/input-field";
@@ -27,6 +33,7 @@ import {
 import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field";
 import { Input } from "@/shared/components/ui/input";
 import { formatByn } from "@/shared/lib/helpers/format-money";
+import { handleHttpError } from "@/shared/lib/helpers/handle-http-error";
 
 import {
   type CostDepartmentFormInput,
@@ -36,8 +43,13 @@ import {
 
 type Props = {
   open: boolean;
+  /** Редактируемая запись — null для создания нового распределения */
+  item: CostDepartment | null;
+  /** ID записи BudgetCosts (года финансирования), к которой привязано распределение */
+  budgetCostId: number | null;
   excludedDepartmentIds: number[];
   onClose: () => void;
+  onSuccess: () => void;
 };
 
 const defaultValues: CostDepartmentFormInput = {
@@ -53,10 +65,15 @@ const flattenTree = (nodes: Department[]): Department[] =>
 
 export const CostDepartmentDrawer = ({
   open,
+  item,
+  budgetCostId,
   excludedDepartmentIds,
   onClose,
+  onSuccess,
 }: Props) => {
   const portalContainerRef = useRef<HTMLDivElement | null>(null);
+  const isEdit = item !== null;
+
   const departmentsQuery = rqClient.useQuery("get", "/api/departments/", {
     params: { query: { is_active: true } },
   });
@@ -70,13 +87,30 @@ export const CostDepartmentDrawer = ({
     [departmentsQuery.data, excludedDepartmentIds],
   );
 
-  const { control, handleSubmit, reset } = useForm<
+  const createMutation = rqClient.useMutation("post", "/api/plan_shares/");
+  const updateMutation = rqClient.useMutation(
+    "patch",
+    "/api/plan_shares/{id}/",
+  );
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  const formValues: CostDepartmentFormInput = item
+    ? {
+        department_id: item.department_detail.id,
+        shared_amount: Number(item.shared_amount),
+        shared_cost: Number(item.shared_cost),
+        shared_inner_cost: Number(item.shared_inner_cost),
+        shared_fund_cost: Number(item.shared_fund_cost),
+      }
+    : defaultValues;
+
+  const { control, handleSubmit } = useForm<
     CostDepartmentFormInput,
     unknown,
     CostDepartmentFormValues
   >({
     resolver: zodResolver(costDepartmentSchema),
-    defaultValues,
+    values: formValues,
   });
 
   const [sharedCost, sharedInnerCost, sharedFundCost] = useWatch({
@@ -88,21 +122,61 @@ export const CostDepartmentDrawer = ({
     Number(sharedInnerCost || 0) +
     Number(sharedFundCost || 0);
 
-  const close = () => {
-    reset(defaultValues);
+  const handleSuccess = (message: string) => {
+    toast.success(message);
     onClose();
+    onSuccess();
   };
 
-  const submit = handleSubmit(close);
+  const submit = handleSubmit((values) => {
+    const body = {
+      department: values.department_id,
+      shared_amount: String(values.shared_amount),
+      shared_cost: String(values.shared_cost),
+      shared_inner_cost: String(values.shared_inner_cost),
+      shared_fund_cost: String(values.shared_fund_cost),
+    };
+
+    if (item) {
+      updateMutation.mutate(
+        { params: { path: { id: item.id } }, body },
+        {
+          onSuccess: () => handleSuccess("Распределение обновлено"),
+          onError: (error) =>
+            handleHttpError(error, "Не удалось сохранить распределение", true),
+        },
+      );
+    } else {
+      createMutation.mutate(
+        {
+          // Базовый ModelViewSet.create() переиспользует полный PlanShareSerializer
+          // (readonly `id` в сгенерированной схеме обязателен для записи, хотя
+          // DRF игнорирует его на вход) — тот же приём, что и в
+          // services/change-requests/api.ts (useCreateChangeRequest).
+          body: {
+            ...body,
+            budget_cost: budgetCostId ?? 0,
+          } as unknown as ApiSchemas["PlanShare"],
+        },
+        {
+          onSuccess: () => handleSuccess("Подразделение добавлено"),
+          onError: (error) =>
+            handleHttpError(error, "Не удалось добавить подразделение", true),
+        },
+      );
+    }
+  });
 
   return (
     <Drawer
       open={open}
-      onOpenChange={(nextOpen) => !nextOpen && close()}
+      onOpenChange={(nextOpen) => !nextOpen && onClose()}
       direction="right">
       <DrawerContent className="flex flex-col" ref={portalContainerRef}>
         <DrawerHeader>
-          <DrawerTitle>Добавить подразделение</DrawerTitle>
+          <DrawerTitle>
+            {isEdit ? "Изменить подразделение" : "Добавить подразделение"}
+          </DrawerTitle>
         </DrawerHeader>
 
         <form
@@ -210,8 +284,12 @@ export const CostDepartmentDrawer = ({
         </form>
 
         <DrawerFooter>
-          <Button type="submit" form="cost-department-form">
-            Добавить
+          <Button
+            type="submit"
+            form="cost-department-form"
+            disabled={isPending}>
+            {isPending && <Loader2Icon size={16} className="animate-spin" />}
+            {isEdit ? "Сохранить" : "Добавить"}
           </Button>
           <DrawerClose asChild>
             <Button type="button" variant="outline">

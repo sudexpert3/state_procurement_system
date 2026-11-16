@@ -4,6 +4,67 @@
  */
 
 export interface paths {
+  "/api/auth/me/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Текущий пользователь (включая роль) — фронтенду нужно знать роль, чтобы показывать
+     *     нужные разделы/кнопки (см. frontend/docs/CurrentStatus.md, запись про buyer_detail от
+     *     2026-11-06 — тот же класс проблемы: без этого эндпоинта фронт не мог узнать роль).
+     */
+    get: operations["auth_me_retrieve"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/token/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * @description Takes a set of user credentials and returns an access and refresh JSON web
+     *     token pair to prove the authentication of those credentials.
+     */
+    post: operations["auth_token_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/token/refresh/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * @description Takes a refresh type JSON web token and returns an access type JSON web
+     *     token if the refresh token is valid.
+     */
+    post: operations["auth_token_refresh_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/budget_costs/": {
     parameters: {
       query?: never;
@@ -1445,6 +1506,62 @@ export interface paths {
     patch: operations["units_of_measurement_partial_update"];
     trace?: never;
   };
+  "/api/users/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Управление пользователями — доступно только роли ADMIN_MAIN (единственная роль с
+     *     правом "Создание пользователей и их администрирование", см. core/choices.py).
+     */
+    get: operations["users_list"];
+    put?: never;
+    /**
+     * @description Управление пользователями — доступно только роли ADMIN_MAIN (единственная роль с
+     *     правом "Создание пользователей и их администрирование", см. core/choices.py).
+     */
+    post: operations["users_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/users/{id}/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Управление пользователями — доступно только роли ADMIN_MAIN (единственная роль с
+     *     правом "Создание пользователей и их администрирование", см. core/choices.py).
+     */
+    get: operations["users_retrieve"];
+    /**
+     * @description Управление пользователями — доступно только роли ADMIN_MAIN (единственная роль с
+     *     правом "Создание пользователей и их администрирование", см. core/choices.py).
+     */
+    put: operations["users_update"];
+    post?: never;
+    /**
+     * @description Управление пользователями — доступно только роли ADMIN_MAIN (единственная роль с
+     *     правом "Создание пользователей и их администрирование", см. core/choices.py).
+     */
+    delete: operations["users_destroy"];
+    options?: never;
+    head?: never;
+    /**
+     * @description Управление пользователями — доступно только роли ADMIN_MAIN (единственная роль с
+     *     правом "Создание пользователей и их администрирование", см. core/choices.py).
+     */
+    patch: operations["users_partial_update"];
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2124,6 +2241,21 @@ export interface components {
       previous?: string | null;
       results: components["schemas"]["TreasuryPayment"][];
     };
+    PaginatedUserList: {
+      /** @example 123 */
+      count: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=400&limit=100
+       */
+      next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=200&limit=100
+       */
+      previous?: string | null;
+      results: components["schemas"]["User"][];
+    };
     PatchedBudgetCosts: {
       readonly id?: number;
       /** Версия пункта плана */
@@ -2711,6 +2843,52 @@ export interface components {
       /** Актуальный код */
       is_active?: boolean;
     };
+    /**
+     * @description CRUD пользователей (`/api/users/`, доступ — только роль ADMIN_MAIN, см.
+     *     `procurement/permissions.py`) и представление текущего пользователя (`/api/auth/me/`).
+     *
+     *     Роль и связанный закупщик физически лежат в `UserProfile` (OneToOne), но наружу
+     *     отдаются как плоские поля — фронтенду не нужно знать про это разделение. DRF сам
+     *     строит/разбирает вложенный `profile.*` по `source=` с точкой (см. `set_value()` в
+     *     `rest_framework.fields`) — поэтому в `create()`/`update()` работаем с
+     *     `validated_data['profile']`, а не с отдельными ключами `role`/`buyer`.
+     */
+    PatchedUser: {
+      readonly id?: number;
+      /**
+       * Имя пользователя
+       * @description Обязательное поле. Не более 150 символов. Только буквы, цифры и символы @/./+/-/_.
+       */
+      username?: string;
+      /** Имя */
+      first_name?: string;
+      /** Фамилия */
+      last_name?: string;
+      /**
+       * Адрес электронной почты
+       * Format: email
+       */
+      email?: string;
+      /**
+       * Активный
+       * @description Отметьте, если пользователь должен считаться активным. Уберите эту отметку вместо удаления учётной записи.
+       */
+      is_active?: boolean;
+      role?: components["schemas"]["RoleEnum"];
+      readonly role_display?: string;
+      buyer?: number | null;
+      password?: string;
+      /**
+       * Дата регистрации
+       * Format: date-time
+       */
+      readonly date_joined?: string;
+      /**
+       * Последний вход
+       * Format: date-time
+       */
+      readonly last_login?: string | null;
+    };
     PlanItem: {
       readonly id: number;
       plan_purchase: number;
@@ -2893,6 +3071,7 @@ export interface components {
       readonly aggregated_cost: string;
       readonly economic_details: components["schemas"]["BudgetCostsForShortItem"][];
       readonly contracts: boolean;
+      readonly contracts_count: number;
       /** Публикуется на goszakupki.by? */
       is_public?: boolean;
       /** Активная позиция? */
@@ -3081,6 +3260,20 @@ export interface components {
       rejection_reason: string;
     };
     /**
+     * @description * `ADMIN_MAIN` - Главный администратор
+     *     * `MAIN_PURCHASER` - Главный закупщик
+     *     * `PURCHASING_SPECIALIST` - Закупщик
+     *     * `FINANCIER` - Финансист
+     *     * `HEAD` - Главный руководитель
+     * @enum {string}
+     */
+    RoleEnum:
+      | "ADMIN_MAIN"
+      | "MAIN_PURCHASER"
+      | "PURCHASING_SPECIALIST"
+      | "FINANCIER"
+      | "HEAD";
+    /**
      * @description * `ACTIVE` - Актуальный (Доступен для договоров)
      *     * `DRAFT` - Черновик (изменения)
      *     * `EXCLUSION` - Черновик (исключение)
@@ -3113,6 +3306,16 @@ export interface components {
       name: string;
       /** УНП */
       unp?: string | null;
+    };
+    TokenObtainPair: {
+      username: string;
+      password: string;
+      readonly access: string;
+      readonly refresh: string;
+    };
+    TokenRefresh: {
+      readonly access: string;
+      refresh: string;
     };
     /**
      * @description Сериализатор платежных поручений (фактические кассовые оплаты).
@@ -3201,6 +3404,52 @@ export interface components {
       is_active?: boolean;
     };
     /**
+     * @description CRUD пользователей (`/api/users/`, доступ — только роль ADMIN_MAIN, см.
+     *     `procurement/permissions.py`) и представление текущего пользователя (`/api/auth/me/`).
+     *
+     *     Роль и связанный закупщик физически лежат в `UserProfile` (OneToOne), но наружу
+     *     отдаются как плоские поля — фронтенду не нужно знать про это разделение. DRF сам
+     *     строит/разбирает вложенный `profile.*` по `source=` с точкой (см. `set_value()` в
+     *     `rest_framework.fields`) — поэтому в `create()`/`update()` работаем с
+     *     `validated_data['profile']`, а не с отдельными ключами `role`/`buyer`.
+     */
+    User: {
+      readonly id: number;
+      /**
+       * Имя пользователя
+       * @description Обязательное поле. Не более 150 символов. Только буквы, цифры и символы @/./+/-/_.
+       */
+      username: string;
+      /** Имя */
+      first_name?: string;
+      /** Фамилия */
+      last_name?: string;
+      /**
+       * Адрес электронной почты
+       * Format: email
+       */
+      email?: string;
+      /**
+       * Активный
+       * @description Отметьте, если пользователь должен считаться активным. Уберите эту отметку вместо удаления учётной записи.
+       */
+      is_active?: boolean;
+      role: components["schemas"]["RoleEnum"];
+      readonly role_display: string;
+      buyer?: number | null;
+      password?: string;
+      /**
+       * Дата регистрации
+       * Format: date-time
+       */
+      readonly date_joined: string;
+      /**
+       * Последний вход
+       * Format: date-time
+       */
+      readonly last_login: string | null;
+    };
+    /**
      * @description * `BYN` - Белорусский рубль (BYN)
      *     * `RUB` - Российский рубль (RUB)
      *     * `USD` - Доллар США (USD)
@@ -3218,6 +3467,75 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  auth_me_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["User"];
+        };
+      };
+    };
+  };
+  auth_token_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TokenObtainPair"];
+        "application/x-www-form-urlencoded": components["schemas"]["TokenObtainPair"];
+        "multipart/form-data": components["schemas"]["TokenObtainPair"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TokenObtainPair"];
+        };
+      };
+    };
+  };
+  auth_token_refresh_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TokenRefresh"];
+        "application/x-www-form-urlencoded": components["schemas"]["TokenRefresh"];
+        "multipart/form-data": components["schemas"]["TokenRefresh"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TokenRefresh"];
+        };
+      };
+    };
+  };
   budget_costs_list: {
     parameters: {
       query?: {
@@ -6925,6 +7243,154 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["UnitOfMeasurement"];
+        };
+      };
+    };
+  };
+  users_list: {
+    parameters: {
+      query?: {
+        /** @description Number of results to return per page. */
+        limit?: number;
+        /** @description The initial index from which to return the results. */
+        offset?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedUserList"];
+        };
+      };
+    };
+  };
+  users_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["User"];
+        "application/x-www-form-urlencoded": components["schemas"]["User"];
+        "multipart/form-data": components["schemas"]["User"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["User"];
+        };
+      };
+    };
+  };
+  users_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this пользователь. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["User"];
+        };
+      };
+    };
+  };
+  users_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this пользователь. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["User"];
+        "application/x-www-form-urlencoded": components["schemas"]["User"];
+        "multipart/form-data": components["schemas"]["User"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["User"];
+        };
+      };
+    };
+  };
+  users_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this пользователь. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  users_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this пользователь. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["PatchedUser"];
+        "application/x-www-form-urlencoded": components["schemas"]["PatchedUser"];
+        "multipart/form-data": components["schemas"]["PatchedUser"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["User"];
         };
       };
     };

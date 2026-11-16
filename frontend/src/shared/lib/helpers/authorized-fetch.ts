@@ -1,4 +1,10 @@
+import {
+  clearTokens,
+  getAccessToken,
+  refreshAccessToken,
+} from "@/shared/api/auth-tokens";
 import { ENV } from "@/shared/model/env";
+import { ROUTES } from "@/shared/model/routes";
 
 /**
  * fetch с Bearer-токеном для эндпоинтов, которые drf-spectacular не смог описать
@@ -10,16 +16,29 @@ export const authorizedFetch = async <T>(
   path: string,
   init?: RequestInit,
 ): Promise<T> => {
-  const token = localStorage.getItem("token");
+  const doFetch = (token: string | null) =>
+    fetch(`${ENV.API_BASE_URL}${path}`, {
+      ...init,
+      headers: {
+        ...(init?.body ? { "Content-Type": "application/json" } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...init?.headers,
+      },
+    });
 
-  const response = await fetch(`${ENV.API_BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      ...(init?.body ? { "Content-Type": "application/json" } : {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...init?.headers,
-    },
-  });
+  let response = await doFetch(getAccessToken());
+
+  // Этот модуль не проходит через openapi-fetch-middleware в instance.ts —
+  // рефреш на 401 приходится повторять здесь тем же приёмом (см. auth-tokens.ts).
+  if (response.status === 401) {
+    const newAccessToken = await refreshAccessToken();
+    if (newAccessToken) {
+      response = await doFetch(newAccessToken);
+    } else {
+      clearTokens();
+      window.location.assign(ROUTES.LOGIN);
+    }
+  }
 
   if (!response.ok) {
     let message = `${response.status} ${response.statusText}`;

@@ -38,6 +38,7 @@ import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -67,6 +68,8 @@ type DataTableProps<TData> = {
   manualFiltering?: boolean;
   cellClassName?: string;
   actions?: (table: ReactTable<TData>) => React.ReactNode;
+  /** Строка итогов под телом таблицы (например, "ИТОГО" по числовым колонкам) */
+  footer?: (table: ReactTable<TData>) => React.ReactNode;
   /**
    * Таблица растягивается на всю доступную высоту родителя (flexbox) вместо
    * фиксированной max-h-[Nvh]. Нужно для страниц-списков верхнего уровня,
@@ -106,6 +109,7 @@ export const DataTable = <TData,>({
   isLoading = false,
   pagination = { type: "default" },
   actions,
+  footer,
   fillAvailableHeight = false,
   persistenceKey,
   ...props
@@ -289,6 +293,7 @@ export const DataTable = <TData,>({
               </TableRow>
             )}
           </TableBody>
+          {footer && <TableFooter>{footer(table)}</TableFooter>}
         </table>
       </div>
       {pagination !== false && (

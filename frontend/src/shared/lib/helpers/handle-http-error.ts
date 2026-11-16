@@ -16,7 +16,7 @@ export const handleHttpError = (
 
     toast.error(defaultMessage, {
       description: errorMessage,
-      duration: 3000,
+      duration: 6000,
       position: "top-center",
       richColors: true,
     });
