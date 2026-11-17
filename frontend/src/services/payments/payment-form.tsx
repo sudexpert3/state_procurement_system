@@ -1,4 +1,8 @@
-import type { Department, TreasuryPayment } from "@/shared/api/schema";
+import type {
+  Contract,
+  Department,
+  TreasuryPayment,
+} from "@/shared/api/schema";
 
 import { useMemo, useRef } from "react";
 
@@ -56,17 +60,32 @@ const defaultValues: PaymentFormInput = {
 type Props = {
   open: boolean;
   item: TreasuryPayment | null;
+  /**
+   * Договор уже зафиксирован контекстом (таб «Платежи» на карточке позиции
+   * плана, см. CurrentStatus.md) — переключатель режима и выбор договора
+   * скрыты, платёж всегда создаётся/редактируется привязанным к этому договору.
+   */
+  fixedContract?: Contract;
   onClose: () => void;
   onSuccess: () => void;
 };
 
-export const PaymentForm = ({ open, item, onClose, onSuccess }: Props) => {
+export const PaymentForm = ({
+  open,
+  item,
+  fixedContract,
+  onClose,
+  onSuccess,
+}: Props) => {
   const portalContainerRef = useRef<HTMLDivElement | null>(null);
   const isEdit = item !== null;
 
-  const contractsQuery = rqClient.useQuery("get", "/api/contracts/", {
-    params: { query: { limit: 1000 } },
-  });
+  const contractsQuery = rqClient.useQuery(
+    "get",
+    "/api/contracts/",
+    { params: { query: { limit: 1000 } } },
+    { enabled: !fixedContract },
+  );
   const departmentsQuery = rqClient.useQuery("get", "/api/departments/", {
     params: { query: { is_active: true } },
   });
@@ -105,7 +124,9 @@ export const PaymentForm = ({ open, item, onClose, onSuccess }: Props) => {
           : new Date(),
         notice: item.notice ?? "",
       }
-    : defaultValues;
+    : fixedContract
+      ? { ...defaultValues, mode: "contract", contract: fixedContract.id }
+      : defaultValues;
 
   const { control, handleSubmit, watch, setValue } = useForm<
     PaymentFormInput,
@@ -174,28 +195,39 @@ export const PaymentForm = ({ open, item, onClose, onSuccess }: Props) => {
           id="payment-form"
           onSubmit={submit}
           className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-2">
-          <Controller
-            name="mode"
-            control={control}
-            render={({ field }) => (
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant={field.value === "contract" ? "default" : "outline"}
-                  onClick={() => field.onChange("contract")}>
-                  По договору
-                </Button>
-                <Button
-                  type="button"
-                  variant={field.value === "free" ? "default" : "outline"}
-                  onClick={() => field.onChange("free")}>
-                  Свободный платёж
-                </Button>
-              </div>
-            )}
-          />
+          {!fixedContract && (
+            <Controller
+              name="mode"
+              control={control}
+              render={({ field }) => (
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={field.value === "contract" ? "default" : "outline"}
+                    onClick={() => field.onChange("contract")}>
+                    По договору
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={field.value === "free" ? "default" : "outline"}
+                    onClick={() => field.onChange("free")}>
+                    Свободный платёж
+                  </Button>
+                </div>
+              )}
+            />
+          )}
 
-          {mode === "contract" && (
+          {fixedContract && (
+            <Field>
+              <FieldLabel>Договор</FieldLabel>
+              <p className="text-sm font-medium">
+                {fixedContract.number} — {fixedContract.supplier_detail.name}
+              </p>
+            </Field>
+          )}
+
+          {mode === "contract" && !fixedContract && (
             <Controller
               name="contract"
               control={control}

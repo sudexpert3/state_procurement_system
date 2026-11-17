@@ -4,6 +4,7 @@ import type { PlanItemShort } from "@/shared/api/schema";
 import { useMemo } from "react";
 
 import { rqClient } from "@/shared/api/instance";
+import { Checkbox } from "@/shared/components/ui/checkbox";
 import {
   Combobox,
   ComboboxContent,
@@ -102,9 +103,23 @@ const flattenLeaves = (nodes: InternalEconomicNode[]): FacetOption[] => {
 const sortOptions = (options: FacetOption[]) =>
   [...options].sort((a, b) => a.label.localeCompare(b.label, "ru"));
 
-type RegistryFiltersProps = { table: Table<PlanItemShort> };
+type RegistryFiltersProps = {
+  table: Table<PlanItemShort>;
+  /**
+   * Фильтр "исполнитель не определён" (`?buyer_unset=true`) — не привязан ни
+   * к одной отображаемой колонке реестра (колонки "Исполнитель" здесь нет),
+   * поэтому, в отличие от фильтров по кодам ЭКР выше, управляется явным
+   * пропом, а не через `table.getColumn(id).setFilterValue()`.
+   */
+  buyerUnset: boolean;
+  onBuyerUnsetChange: (value: boolean) => void;
+};
 
-export const RegistryFilters = ({ table }: RegistryFiltersProps) => {
+export const RegistryFilters = ({
+  table,
+  buyerUnset,
+  onBuyerUnsetChange,
+}: RegistryFiltersProps) => {
   const { data: functionalCodes, isLoading: isFunctionalLoading } =
     rqClient.useQuery("get", "/api/functional_code/", {});
   const { data: economicCodes, isLoading: isEconomicLoading } =
@@ -166,6 +181,13 @@ export const RegistryFilters = ({ table }: RegistryFiltersProps) => {
         placeholder="Код ЭКР внутренний..."
         inputClassName="w-[21rem] bg-white"
       />
+      <label className="flex items-center gap-2 text-sm whitespace-nowrap">
+        <Checkbox
+          checked={buyerUnset}
+          onCheckedChange={(checked) => onBuyerUnsetChange(checked === true)}
+        />
+        Исполнитель не определён
+      </label>
     </>
   );
 };

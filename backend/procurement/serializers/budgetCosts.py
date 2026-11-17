@@ -129,9 +129,9 @@ class BudgetCostsImportSerializer(serializers.ModelSerializer):
     # НЕ входят в идентичность — это именно то, что может измениться при пересмотре
     # бюджета на портале и должно ОБНОВИТЬ существующую запись, а не породить новую.
     _MUTABLE_FIELDS = (
-        'purchases_items_id', 'cost', 'functional_code', 'department_code',
+        'purchases_items_id', 'cost', 'department_code',
         'program_code', 'budget_code_name', 'unk', 'tk_id',
-        'functional_class', 'program_class',
+        'program_class',
     )
 
     # Поля "ручной" классификации ГКСЭ (см. import_reestr26.py) — портал о них не знает,
@@ -171,6 +171,18 @@ class BudgetCostsImportSerializer(serializers.ModelSerializer):
         -67/-144 и ещё 13 аналогичных случаев по всей БД, см. CurrentStatus.md, Проход 10) —
         исправлено добавлением `economic_code` в ключ идентичности; восстановление уже
         испорченных записей — отдельной командой `reactivate_split_budget_costs`.
+
+        Третий баг того же рода (найден пользователем 2026-11-17 на `2026-102377498-1351`,
+        «Серверное оборудование»): ОДНА и та же `economic_code` ("2 40 01 00") может
+        законно относиться к ДВУМ РАЗНЫМ бюджетным параграфам — `functional_code`
+        различался ("03 12 00 039" vs "03 12 00 751", строки реестра 1508/1509) при
+        полностью совпадающих `plan_item`/`year`/`budget_code`/`economic_code`. Строка с
+        параграфом 751 (426 666,67 BYN) ошибочно архивировалась как "предыдущая версия"
+        строки с параграфом 039 (853 333,33 BYN), хотя обе — отдельные, одновременно
+        действующие строки бюджета (как и в случае с `economic_code` выше). Исправлено тем
+        же способом — `functional_code` добавлен в ключ идентичности (и убран из
+        `_MUTABLE_FIELDS`, как ранее `economic_code`); восстановление уже испорченных
+        записей — той же командой `reactivate_split_budget_costs` (обобщена на оба случая).
         """
         plan_item = validated_data.get('plan_item')
 
@@ -179,6 +191,7 @@ class BudgetCostsImportSerializer(serializers.ModelSerializer):
             year=validated_data.get('year'),
             budget_code=validated_data.get('budget_code'),
             economic_code=validated_data.get('economic_code'),
+            functional_code=validated_data.get('functional_code'),
         )
 
         target_record = existing_bc_qs.filter(status=PlanItemStatus.ACTIVE).first()

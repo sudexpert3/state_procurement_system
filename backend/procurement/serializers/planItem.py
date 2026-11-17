@@ -25,6 +25,8 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
     val_amount = serializers.SerializerMethodField()
     aggregated_cost = serializers.SerializerMethodField()
     economic_details = serializers.SerializerMethodField()
+    matched_cost = serializers.SerializerMethodField()
+    matched_details = serializers.SerializerMethodField()
     contracts = serializers.SerializerMethodField()
     contracts_count = serializers.SerializerMethodField()
 
@@ -32,6 +34,7 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
         model = PlanItem
         fields = [
             'id', 'num', 'title', 'okrb', 'val_unit', 'val_amount', 'aggregated_cost', 'economic_details',
+            'matched_cost', 'matched_details',
             'contracts', 'contracts_count',
             'is_public', 'is_active', 'created_at', 'updated_at',
         ]
@@ -95,6 +98,49 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
         detail = self._get_active_detail(obj)
         context = {**self.context, 'plan_item_detail': detail}
         return BudgetCostsForShortItemSerializer(active_budgets, many=True, context=context).data
+
+    @extend_schema_field(serializers.DecimalField(max_digits=15, decimal_places=2))
+    def get_matched_cost(self, obj):
+        """
+        Правка 2026-11-17 (CurrentStatus.md): та же сумма, что и `aggregated_cost`, но
+        только по строкам бюджета, подходящим под активный фильтр кода ЭКР в реестре
+        закупок (`?functional_code=`/`?economic_code=`/`?internal_economic_code=`, см.
+        `views/planItem.py`). Нужно фронту для футера реестра (`RegistryMoneySummary`) —
+        сумма снизу должна учитывать выбранный фильтр, а САМА позиция (эта карточка,
+        `aggregated_cost`/`economic_details`) должна показывать ПОЛНУЮ, объективную
+        информацию по всем статьям независимо от фильтра (решение пользователя — раньше
+        фильтр ошибочно скрывал часть реальных данных позиции). Без активного фильтра
+        `matched_budget_costs_prefetched` совпадает с `active_budget_costs_prefetched`,
+        поэтому `matched_cost` == `aggregated_cost`.
+        """
+        portal_cost = Decimal('0.00')
+        detail = self._get_active_detail(obj)
+        if detail:
+            portal_cost = detail.fund_cost + detail.inner_cost
+
+        matched_bcs = getattr(obj, 'matched_budget_costs_prefetched', None)
+        if matched_bcs is None:
+            matched_bcs = getattr(obj, 'active_budget_costs_prefetched', None)
+        if matched_bcs is None:
+            matched_bcs = obj.budget_costs.filter(status=PlanItemStatus.ACTIVE)
+
+        budget_cost = sum(Decimal(str(bc.cost)) for bc in matched_bcs) if matched_bcs else Decimal('0.00')
+
+        return float(portal_cost + budget_cost)
+
+    @extend_schema_field(serializers.ListField(child=BudgetCostsForShortItemSerializer()))
+    def get_matched_details(self, obj):
+        """Строки бюджета, подходящие под активный фильтр — см. get_matched_cost."""
+        matched_budgets = getattr(obj, 'matched_budget_costs_prefetched', None)
+        if matched_budgets is None:
+            matched_budgets = getattr(obj, 'active_budget_costs_prefetched', None)
+        if matched_budgets is None:
+            matched_budgets = obj.budget_costs.filter(status=PlanItemStatus.ACTIVE).select_related(
+                'internal_economic_class'
+            )
+        detail = self._get_active_detail(obj)
+        context = {**self.context, 'plan_item_detail': detail}
+        return BudgetCostsForShortItemSerializer(matched_budgets, many=True, context=context).data
 
     @extend_schema_field(serializers.BooleanField)
     def get_contracts(self, obj):

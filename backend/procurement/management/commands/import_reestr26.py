@@ -549,23 +549,42 @@ class Command(BaseCommand):
             части одной закупки (подтверждено пользователем и данными БД при разборе
             answer_fin.txt, Раздел 4 — см. CurrentStatus.md, Проход 10: баг в
             BudgetCostsImportSerializer архивировал такие строки друг в друга, т.к. ключ
-            идентичности не учитывал economic_code; исправлено отдельно).
-            Сопоставляет по economic_class (внешний код ЭКР, колонка R) конкретной строки
-            реестра; если код в R не распознан или однозначного совпадения нет — откатывается
-            на первую запись (поведение как раньше, до фикса)."""
+            идентичности не учитывал economic_code; исправлено отдельно) — а также, как
+            выяснилось позже (2026-11-17, пример 2026-102377498-1351, «Серверное
+            оборудование»), ОДНА и та же статья ЭКР может относиться к ДВУМ разным бюджетным
+            параграфам (functional_code различался, "03 12 00 039" vs "03 12 00 751", при
+            одинаковом economic_code) — тот же баг идентичности, исправленный добавлением
+            functional_code в ключ (см. BudgetCostsImportSerializer.create()).
+
+            Сопоставляет сначала по economic_class (внешний код ЭКР, колонка R), затем —
+            если после этого всё ещё остаётся несколько кандидатов (как в примере выше, где
+            economic_class ОДИНАКОВ у обеих строк) — дополнительно по functional_class (тоже
+            колонка R). Если ни один код не распознан или однозначного совпадения так и не
+            нашлось — откатывается на первую запись (поведение как раньше, до фикса)."""
             if not year:
                 return None
             candidates = list(plan_item.budget_costs.filter(year=year, status=PlanItemStatus.ACTIVE))
             if len(candidates) <= 1:
                 return candidates[0] if candidates else None
-            _, econ_code, _, _ = parse_r_codes(cell_value(row_idx, COL_R_CODES))
+
+            func_code, econ_code, _, _ = parse_r_codes(cell_value(row_idx, COL_R_CODES))
+            pool = candidates
+
             if econ_code:
                 econ_obj = econ_cache.get(econ_code)
                 if econ_obj:
-                    matched = [c for c in candidates if c.economic_class_id == econ_obj.id]
-                    if len(matched) == 1:
-                        return matched[0]
-            return candidates[0]
+                    narrowed = [c for c in pool if c.economic_class_id == econ_obj.id]
+                    if narrowed:
+                        pool = narrowed
+
+            if len(pool) > 1 and func_code:
+                func_obj = func_cache.get(func_code)
+                if func_obj:
+                    narrowed = [c for c in pool if c.functional_class_id == func_obj.id]
+                    if narrowed:
+                        pool = narrowed
+
+            return pool[0] if pool else candidates[0]
 
         def create_budget_cost_for_item(row_idx, plan_item, year):
             """BudgetCosts(year), которого нет ни в синхронизации с порталом, ни в БД —
@@ -894,15 +913,35 @@ class Command(BaseCommand):
             amount = to_decimal(cell_value(row_idx, COL_AMOUNT), decimal_places=3) or Decimal('0')
             cost = to_decimal(cell_value(row_idx, COL_COST)) or Decimal('0')
 
+            # Лимит подразделения (PlanShare.shared_amount/shared_cost) — сумма ПО ВСЕМ
+            # строкам реестра с тем же num/статьёй ЭКР/функц.коду/держателем лимита/ГОДОМ
+            # (planshare_totals, посчитан заранее одним проходом выше), а НЕ только текущей
+            # строки. Правка 2026-11-17 (CurrentStatus.md): пример 2026-102377498-67, строки
+            # 85/86 — два разных договора на один и тот же держатель лимита (ООиОЗ) по одной
+            # статье (1 10 07 99) и ОДНОМУ году; раньше вторая строка просто ПЕРЕЗАПИСЫВАЛА
+            # лимит первой (одна и та же пара budget_cost+department -> один и тот же
+            # PlanShare), и в программе оставался виден лимит только последней обработанной
+            # строки. Год — обязательная часть ключа (см. комментарий у planshare_totals
+            # выше) — иначе позиции, профинансированные на несколько лет одной и той же
+            # статьёй (2026-102377498-117/1487/1488/1543), получали бы чужую, завышенную
+            # сумму на каждый отдельный год. Функциональный код (параграф) — туда же, тем же
+            # днём (2026-102377498-1351 — одна статья ЭКР, два разных параграфа, "039" и
+            # "751", каждый со своим BudgetCosts). amount/cost (построчные) по-прежнему
+            # используются ниже для ContractItem — там каждая строка действительно своя
+            # (отдельный договор), агрегировать нельзя.
+            func_code, econ_code, _, _ = parse_r_codes(cell_value(row_idx, COL_R_CODES))
+            share_key = (num, econ_code, func_code, department.pk, year) if category is None else None
+            share_amount, share_cost = planshare_totals.get(share_key, (amount, cost))
+
             plan_share, ps_created = PlanShare.objects.get_or_create(
                 budget_cost=budget_cost, department=department,
-                defaults={'shared_amount': amount, 'shared_cost': cost},
+                defaults={'shared_amount': share_amount, 'shared_cost': share_cost},
             )
             if ps_created:
                 stats['plan_share_created'] += 1
-            elif plan_share.shared_amount != amount or plan_share.shared_cost != cost:
-                plan_share.shared_amount = amount
-                plan_share.shared_cost = cost
+            elif plan_share.shared_amount != share_amount or plan_share.shared_cost != share_cost:
+                plan_share.shared_amount = share_amount
+                plan_share.shared_cost = share_cost
                 plan_share.save()
                 stats['plan_share_updated'] += 1
 
@@ -1016,6 +1055,55 @@ class Command(BaseCommand):
                     internal_code=budget_cost.internal_economic_class,
                     departments=[department],
                 )
+
+        # --- сумма лимита подразделения (PlanShare) по (num, статья ЭКР, держатель лимита) ---
+        # Один проход по файлу заранее: несколько строк реестра с одним и тем же num,
+        # держателем лимита, статьёй ЭКР И ГОДОМ (разные договоры под одним и тем же
+        # лимитом — см. комментарий у PlanShare.objects.get_or_create ниже) должны
+        # СУММИРОВАТЬСЯ в одну запись PlanShare, а не затирать друг друга построчно.
+        # Группируем только NORMAL-строки (настоящий num, classify_row(...) is None) —
+        # для CARRYOVER/NONPUBLIC позиция определяется только во время обработки строки
+        # (нечёткий поиск/счётчик по содержимому), их сюда заранее не включаем.
+        #
+        # Правка 2026-11-17 (по разбору пользователя, CurrentStatus.md): ГОД — обязательная
+        # часть ключа. Без него позиция с ОДНОЙ статьёй, профинансированной на НЕСКОЛЬКО
+        # ЛЕТ разными строками реестра (пример пользователя: 2026-102377498-117/1487/1488 —
+        # 2 года, 2026+2027; 2026-102377498-1543 — 3 года, 2026+2027+2028; один и тот же
+        # договор/статья/держатель лимита, просто разбит по годам) ошибочно получала бы
+        # ОДНУ общую сумму по ВСЕМ годам сразу на КАЖДЫЙ отдельный годовой BudgetCosts —
+        # что гарантированно превышает лимит каждого отдельного года. Теперь год входит в
+        # ключ — сумма считается отдельно по каждому году, как и должно быть.
+        #
+        # ФУНКЦИОНАЛЬНЫЙ КОД (параграф) — тоже обязательная часть ключа (правка того же
+        # дня, пример 2026-102377498-1351, «Серверное оборудование»): одна и та же статья
+        # ЭКР может законно относиться к ДВУМ РАЗНЫМ бюджетным параграфам ("03 12 00 039" и
+        # "03 12 00 751") — без функционального кода в ключе строки 2 параграфов сложились
+        # бы в одну сумму и превысили бы лимит КАЖДОГО параграфа по отдельности (тот же
+        # эффект, что и с пропущенным годом выше). См. также select_budget_cost() — там то
+        # же самое уточнение нужно было для выбора ПРАВИЛЬНОЙ строки BudgetCosts.
+        planshare_totals_raw = defaultdict(lambda: [Decimal('0'), Decimal('0')])
+        for row_idx in range(2, max_row + 1):
+            num_raw = cell_value(row_idx, COL_NUM)
+            if not num_raw or not str(num_raw).strip():
+                continue
+            num_raw = str(num_raw).strip()
+            if classify_row(num_raw) is not None:
+                continue
+            department_for_totals = dept_resolver.resolve_one(cell_value(row_idx, COL_DEPT_HOLDER))
+            if not department_for_totals:
+                continue
+            year_for_totals = cell_value(row_idx, COL_YEAR)
+            try:
+                year_for_totals = int(year_for_totals)
+            except (TypeError, ValueError):
+                year_for_totals = None
+            func_code_for_totals, econ_code_for_totals, _, _ = parse_r_codes(cell_value(row_idx, COL_R_CODES))
+            totals = planshare_totals_raw[
+                (num_raw, econ_code_for_totals, func_code_for_totals, department_for_totals.pk, year_for_totals)
+            ]
+            totals[0] += to_decimal(cell_value(row_idx, COL_AMOUNT), decimal_places=3) or Decimal('0')
+            totals[1] += to_decimal(cell_value(row_idx, COL_COST)) or Decimal('0')
+        planshare_totals = {key: tuple(value) for key, value in planshare_totals_raw.items()}
 
         with transaction.atomic():
             for row_idx in range(2, max_row + 1):

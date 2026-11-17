@@ -1,6 +1,7 @@
 import copy
 
 from django.core.exceptions import ValidationError as DjangoValidationError
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from procurement.models import ContractQuarterlyFinance
@@ -11,9 +12,20 @@ class ContractQuarterlyFinanceSerializer(serializers.ModelSerializer):
     planned_cost (ручная правка квартального плана), actual_cost пересчитывается
     автоматически по платёжкам (см. TreasuryPayment.save()) и обычно не правится руками."""
 
+    # Запрос фронтенда (правка 2026-11-17, CurrentStatus.md): столбец «Остаток» на табе
+    # «Договоры» → «Квартальный план/факт», вычисляемый на бэкенде (не на клиенте) —
+    # read-only, пересчитывается сам при каждом чтении, в т.ч. сразу после PATCH
+    # planned_cost (не хранится отдельным полем, расхождения с БД исключены).
+    remainder_cost = serializers.SerializerMethodField()
+
     class Meta:
         model = ContractQuarterlyFinance
-        fields = ['id', 'contract', 'contract_item', 'quarter', 'year', 'planned_cost', 'actual_cost']
+        fields = ['id', 'contract', 'contract_item', 'quarter', 'year', 'planned_cost', 'actual_cost',
+                  'remainder_cost']
+
+    @extend_schema_field(serializers.DecimalField(max_digits=15, decimal_places=2))
+    def get_remainder_cost(self, obj):
+        return obj.planned_cost - obj.actual_cost
 
     def validate(self, attrs):
         # См. TreasuryPaymentSerializer.validate() — тот же приём: прогоняем модельный

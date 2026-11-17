@@ -1,4 +1,4 @@
-import type { Buyer, CostDepartment, PlanItemFull } from "@/shared/api/schema";
+import type { CostDepartment, PlanItemFull } from "@/shared/api/schema";
 
 import { useCallback, useState } from "react";
 
@@ -12,19 +12,14 @@ import { SectionCard } from "@/shared/components/section-card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { CardContent } from "@/shared/components/ui/card";
-import { formatByn, formatMoney } from "@/shared/lib/helpers/format-money";
+import { formatByn } from "@/shared/lib/helpers/format-money";
 import { handleHttpError } from "@/shared/lib/helpers/handle-http-error";
 
 import { DepartmentsTable } from "../../components/departments-table";
 import { DetailField } from "../../components/detail-field";
-import { typeLabel } from "../../plan-meta";
 
 import { CostDepartmentDrawer } from "./cost-department-drawer";
-import { EditableBuyerField } from "./editable-buyer-field";
 import { EditableInternalEconomicClassField } from "./editable-internal-economic-class-field";
-
-const getTypeLabel = (type: string) =>
-  type in typeLabel ? typeLabel[type as keyof typeof typeLabel] : type;
 
 type DrawerState = { economicDetailId: number; item: CostDepartment | null };
 
@@ -32,9 +27,9 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => {
   const [drawerState, setDrawerState] = useState<DrawerState | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  // Прямое редактирование (минуя заявку на изменение) исполнителя и
-  // внутренней классификации ЭКР — доступно только этим двум ролям, см.
-  // core/choices.py (описание прав FINANCIER) и CurrentStatus.md.
+  // Прямое редактирование (минуя заявку на изменение) внутренней
+  // классификации ЭКР — доступно только этим двум ролям, см. core/choices.py
+  // (описание прав FINANCIER) и CurrentStatus.md.
   //
   // Было временно отключено 2026-11-16 из-за бага бэкенда (PATCH без поля
   // `status` сбрасывал ACTIVE → DRAFT в PlanItemDetailSerializer.update()/
@@ -43,17 +38,6 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => {
   const { data: currentUser } = useCurrentUser();
   const canEditDirectly =
     currentUser?.role === "ADMIN_MAIN" || currentUser?.role === "FINANCIER";
-
-  // Для PATCH /api/plan_items_details/{id}/ нужен id активной версии
-  // PlanItemDetail — PlanItemFull.id (из /api/plan_items/{id}/) это id
-  // корневого неизменяемого PlanItem, другая сущность.
-  const activeDetailQuery = rqClient.useQuery(
-    "get",
-    "/api/plan_items_details/",
-    { params: { query: { plan_item: plan.id, status: "ACTIVE" } } },
-    { enabled: canEditDirectly },
-  );
-  const activeDetailId = activeDetailQuery.data?.results[0]?.id ?? null;
 
   const selectedEconomicDetail = plan.economic_details.find(
     (detail) => detail.id === drawerState?.economicDetailId,
@@ -98,36 +82,6 @@ export const InfoTab = ({ plan }: { plan: PlanItemFull }) => {
 
   return (
     <div className="space-y-4">
-      <SectionCard title="Предмет закупки">
-        <CardContent className="grid grid-cols-2 gap-4 px-2 md:grid-cols-3">
-          <DetailField label="Номер пункта плана" value={plan.num} />
-          <DetailField label="Код ОКРБ" value={plan.okrb} />
-          <DetailField label="Наименование по ОКРБ" value={plan.okrb_title} />
-          <DetailField
-            label="Наименование предмета закупки"
-            value={plan.title}
-          />
-          <DetailField
-            label="Тип (работа/услуга/товар)"
-            value={getTypeLabel(plan.type)}
-          />
-          <EditableBuyerField
-            detailId={activeDetailId}
-            // В OpenAPI-схеме buyer_detail типизирован как массив (Buyer[]),
-            // но реально бэкенд всегда отдаёт один объект Buyer — см.
-            // CurrentStatus.md, раздел "хвосты бэка".
-            currentBuyer={plan.buyer_detail as unknown as Buyer | null}
-            canEdit={canEditDirectly}
-            onSuccess={invalidate}
-          />
-          <DetailField label="Общее количество" value={plan.val_amount} />
-          <DetailField label="Ед. измерения" value={plan.val_unit} />
-          <DetailField
-            label="Общая сумма"
-            value={formatMoney(plan.aggregated_cost.total_cost)}
-          />
-        </CardContent>
-      </SectionCard>
       <SectionCard title="Сведения о финансировании">
         {plan.economic_details.length === 0 ? (
           <CardContent className="px-2">

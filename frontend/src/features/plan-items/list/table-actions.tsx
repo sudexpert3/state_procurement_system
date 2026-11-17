@@ -2,13 +2,12 @@ import type { Table } from "@tanstack/react-table";
 
 import { SearchIcon } from "lucide-react";
 
+import { ColumnVisibilityDropdown } from "@/shared/components/data-table/column-visibility-dropdown";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/shared/components/ui/input-group";
-
-import { ColumnVisibilityDropdown } from "./column-visibility-dropdown";
 
 type TableActionsProps<TData> = { table: Table<TData> };
 

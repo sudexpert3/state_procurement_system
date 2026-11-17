@@ -29,9 +29,15 @@ export const RegistryMoneySummary = ({
   const byYear = new Map<number, number>();
 
   items.forEach((item) => {
-    total += Number(item.aggregated_cost);
+    // matched_cost/matched_details — сумма ТОЛЬКО по строкам бюджета,
+    // подходящим под активный фильтр кода ЭКР (бэкенд добавил 2026-11-17
+    // вечером специально для этого футера — см. CurrentStatus.md, п.1
+    // "Уточнение пользователя"). aggregated_cost/economic_details (полная,
+    // нефильтрованная сумма позиции) используются в остальной части
+    // карточки/строки реестра, здесь — намеренно нет.
+    total += Number(item.matched_cost);
 
-    item.economic_details.forEach((detail) => {
+    item.matched_details.forEach((detail) => {
       if (detail.year == null) return;
 
       byYear.set(

@@ -34,19 +34,25 @@ class PlanItemViewSet(viewsets.ModelViewSet):
         отдельный запрос на каждую строку) и annotate has_contracts одним SQL-подзапросом
         на весь список сразу (вместо отдельного .exists() на каждую позицию в get_contracts).
         """
+        def with_default_budget_prefetch(qs):
+            """Префетч ВСЕХ активных строк бюджета позиции (без срезки по коду статьи) —
+            действие по умолчанию, когда фильтр по коду ЭКР не задан."""
+            return qs.prefetch_related(
+                models.Prefetch(
+                    'budget_costs',
+                    queryset=BudgetCosts.objects.filter(status=PlanItemStatus.ACTIVE).select_related(
+                        'internal_economic_class'
+                    ),
+                    to_attr='active_budget_costs_prefetched',
+                )
+            )
+
         queryset = PlanItem.objects.prefetch_related(
             models.Prefetch(
                 'details',
                 queryset=PlanItemDetail.objects.filter(status=PlanItemStatus.ACTIVE),
                 to_attr='active_plan_item_detail_prefetched'
             ),
-            models.Prefetch(
-                'budget_costs',
-                queryset=BudgetCosts.objects.filter(status=PlanItemStatus.ACTIVE).select_related(
-                    'internal_economic_class'
-                ),
-                to_attr='active_budget_costs_prefetched'
-            )
         ).annotate(
             has_contracts=models.Exists(
                 ContractItem.objects.filter(
@@ -80,7 +86,7 @@ class PlanItemViewSet(viewsets.ModelViewSet):
         )
 
         if not self.request:
-            return queryset.all()
+            return with_default_budget_prefetch(queryset).all()
 
         if self.action == 'list':
             params = self.request.query_params
@@ -106,38 +112,66 @@ class PlanItemViewSet(viewsets.ModelViewSet):
 
             # Фильтры по кодам ЭКР запрошены фронтендом для реестра закупок —
             # бьём по активным BudgetCosts позиции (несколько строк бюджета на
-            # разные года/статьи у одной позиции — обычный случай), distinct()
-            # на PlanItem, чтобы совпадение по нескольким строкам не плодило дубли.
+            # разные года/статьи у одной позиции — обычный случай).
             functional_code = params.get('functional_code', None)
-            if functional_code:
-                queryset = queryset.filter(
-                    budget_costs__status=PlanItemStatus.ACTIVE,
-                    budget_costs__functional_code=functional_code,
-                )
-
             economic_code = params.get('economic_code', None)
-            if economic_code:
-                queryset = queryset.filter(
-                    budget_costs__status=PlanItemStatus.ACTIVE,
-                    budget_costs__economic_code=economic_code,
-                )
-
             internal_economic_code = params.get('internal_economic_code', None)
-            if internal_economic_code:
-                queryset = queryset.filter(
-                    budget_costs__status=PlanItemStatus.ACTIVE,
-                    budget_costs__internal_economic_class__code=internal_economic_code,
-                )
 
-            if functional_code or economic_code or internal_economic_code:
-                queryset = queryset.distinct()
+            budget_costs_conditions = {'status': PlanItemStatus.ACTIVE}
+            if functional_code:
+                budget_costs_conditions['functional_code'] = functional_code
+            if economic_code:
+                budget_costs_conditions['economic_code'] = economic_code
+            if internal_economic_code:
+                budget_costs_conditions['internal_economic_class__code'] = internal_economic_code
+
+            has_article_filter = bool(functional_code or economic_code or internal_economic_code)
+
+            # Правка 2026-11-17 (CurrentStatus.md): отображение позиции (aggregated_cost/
+            # economic_details) должно оставаться ПОЛНЫМ и объективным независимо от
+            # фильтра — пользователь явно попросил вернуть это после предыдущего фикса
+            # (тот по ошибке урезал и отображение, а не только футер). Фильтр по коду ЭКР
+            # теперь влияет только на: (1) какие позиции попадают в список — через
+            # .filter() ниже, и (2) отдельные поля matched_cost/matched_details — только
+            # под них префетч режется по фильтру, для футера реестра (сумма внизу должна
+            # соответствовать активному фильтру, см. PlanItemShortSerializer).
+            queryset = with_default_budget_prefetch(queryset)
+            queryset = queryset.prefetch_related(
+                models.Prefetch(
+                    'budget_costs',
+                    queryset=BudgetCosts.objects.filter(**budget_costs_conditions).select_related(
+                        'internal_economic_class'
+                    ),
+                    to_attr='matched_budget_costs_prefetched',
+                )
+            )
+
+            if has_article_filter:
+                # Один .filter(**...) — один JOIN, одна и та же строка бюджета должна
+                # подходить под все активные условия сразу (а не "функц.код в одной
+                # строке, экон.код — в другой").
+                plan_item_conditions = {
+                    f'budget_costs__{field}': value
+                    for field, value in budget_costs_conditions.items()
+                }
+                queryset = queryset.filter(**plan_item_conditions).distinct()
+
+            # Запрос фронтенда (правка 2026-11-17, CurrentStatus.md): фильтр "исполнитель
+            # не определён" для реестра закупок — позиции, у которых в активной
+            # PlanItemDetail не проставлен buyer. Отдельное отношение ('details', а не
+            # 'budget_costs') — свой JOIN, distinct() нужен независимо от фильтров выше.
+            buyer_unset = params.get('buyer_unset', None)
+            if buyer_unset and buyer_unset.strip().lower() in ('true', '1'):
+                queryset = queryset.filter(
+                    details__status=PlanItemStatus.ACTIVE, details__buyer__isnull=True,
+                ).distinct()
 
             return queryset
 
         if self.action == 'retrieve':
             return PlanItem.objects.prefetch_related('details', 'budget_costs')
 
-        return queryset.all()
+        return with_default_budget_prefetch(queryset).all()
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:

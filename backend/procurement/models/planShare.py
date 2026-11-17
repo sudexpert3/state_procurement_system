@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models import Sum
 # from rest_framework.exceptions import ValidationError
 
-from core.choices import PlanItemStatus, ProcurementItemTypes
+from core.choices import PlanItemStatus
 from .budgetCosts import BudgetCosts
 from .department import Department
 
@@ -48,52 +48,13 @@ class PlanShare(models.Model):
         # PlanShareSerializer.validate() прогоняет этот clean() на preview-копии ДО сохранения
         # и конвертирует его в чистый 400 — тот же паттерн, что у TreasuryPaymentSerializer.
         super().clean()
-        if self.status == PlanItemStatus.ACTIVE and self.shared_amount:
-            plan_item = self.budget_cost.plan_item if self.budget_cost else None
-            if plan_item:
-                detail = plan_item.details.filter(status=PlanItemStatus.ACTIVE).first()
-
-                if detail:
-                    active_budgets = plan_item.budget_costs.filter(status=PlanItemStatus.ACTIVE)
-
-                    # Для услуг (type=job), реально распределённых НА НЕСКОЛЬКО ЛЕТ разными
-                    # строками бюджета, "количество" — почти всегда формальная единица (обычно
-                    # "1" на каждый год), а не физически делимая величина. Многолетняя услуга,
-                    # оплачиваемая несколькими договорами/годами (см. реестр rd26, позиции
-                    # 166/952 — суммарная стоимость совпадает с планом, а "1 услуга в 2026" +
-                    # "1 услуга в 2027" формально суммируется в "2", хотя услуга одна), иначе
-                    # давала бы ложное превышение при сквозном по годам контроле количества.
-                    # Для товаров (type=product), а также для услуг В РАМКАХ ОДНОГО ГОДА
-                    # (несколько подразделений делят одну и ту же годовую строку бюджета)
-                    # проверка остаётся обязательной — она ловит реальные ошибки распределения
-                    # (найдено пользователем 2026-11-14: /plan-items/2898, val_amount=153,
-                    # распределение по подразделениям можно было набить сверх этого без единой
-                    # ошибки, потому что проверка раньше пропускалась для ЛЮБОЙ услуги целиком).
-                    distinct_years = set(active_budgets.values_list('year', flat=True))
-                    is_multi_year_job_split = (
-                        detail.type == ProcurementItemTypes.job and len(distinct_years) > 1
-                    )
-
-                    if not is_multi_year_job_split:
-                        total_allowed_amount = detail.val_amount
-
-                        shares_queryset = PlanShare.objects.filter(
-                            budget_cost__in=active_budgets,
-                            status=PlanItemStatus.ACTIVE
-                        )
-                        if self.pk:
-                            shares_queryset = shares_queryset.exclude(pk=self.pk)
-
-                        already_saved_amount = shares_queryset.aggregate(total=Sum('shared_amount'))['total'] or 0
-
-                        if total_allowed_amount < (already_saved_amount + self.shared_amount):
-                            raise ValidationError({'shared_amount': (
-                                f"Превышение общего количества по пункту плана! "
-                                f"Выделено на весь период закупки: {total_allowed_amount}. "
-                                f"Уже распределено (за все года): {already_saved_amount}. "
-                                f"Попытка добавить в {self.budget_cost.year} году: {self.shared_amount}."
-                            )})
-
+        # Правка 2026-11-17 (CurrentStatus.md, по решению пользователя): запрет на
+        # превышение КОЛИЧЕСТВА (shared_amount vs PlanItemDetail.val_amount) убран —
+        # "количество" в реестре закупок оказалось ненадёжной величиной (формальная
+        # единица для услуг, задвоенные сводные строки без номера договора и т.п., см.
+        # разбор в input/q_fin_planshare_duplicates_20261117.txt), а не точным
+        # физическим лимитом, который стоит блокировать. Контроль СУММЫ (shared_cost,
+        # ниже) остаётся — там ограничение осмысленно (реальные деньги бюджета).
         if self.status == PlanItemStatus.ACTIVE and self.shared_cost:
             b_cost = self.budget_cost
             if b_cost:

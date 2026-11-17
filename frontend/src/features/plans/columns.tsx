@@ -46,6 +46,7 @@ export const createColumns = (
   {
     accessorKey: "year",
     header: () => <DataTableColumnHeader>Год плана</DataTableColumnHeader>,
+    meta: { label: "Год плана" },
     cell: ({ row }) => (
       <DataTableCell>{row.getValue("year") ?? "—"}</DataTableCell>
     ),
@@ -55,6 +56,7 @@ export const createColumns = (
     header: () => (
       <DataTableColumnHeader>Рег. номер плана</DataTableColumnHeader>
     ),
+    meta: { label: "Рег. номер плана" },
     size: 120,
     cell: ({ row }) => (
       <DataTableCell className="font-medium">
@@ -65,6 +67,7 @@ export const createColumns = (
   {
     accessorKey: "is_draft",
     header: () => <DataTableColumnHeader>Черновик</DataTableColumnHeader>,
+    meta: { label: "Черновик" },
     cell: ({ row }) => (
       <DataTableCell
         className={cn(`${row.getValue("is_draft") && "bg-red-200 uppercase"}`)}>
@@ -77,6 +80,7 @@ export const createColumns = (
     header: () => (
       <DataTableColumnHeader>Дата последнего изменения</DataTableColumnHeader>
     ),
+    meta: { label: "Дата последнего изменения" },
     cell: ({ row }) => (
       <DataTableCell className="whitespace-nowrap">
         {formatDate(row.getValue("at_updated"))}
@@ -88,6 +92,7 @@ export const createColumns = (
     header: () => (
       <DataTableColumnHeader>Лицо утвердившее план</DataTableColumnHeader>
     ),
+    meta: { label: "Лицо утвердившее план" },
     size: 200,
     cell: ({ row }) => (
       <DataTableCell className="wrap-break-word whitespace-normal">
@@ -100,6 +105,7 @@ export const createColumns = (
     header: () => (
       <DataTableColumnHeader>Дата утверждения</DataTableColumnHeader>
     ),
+    meta: { label: "Дата утверждения" },
     cell: ({ row }) => (
       <DataTableCell className="whitespace-nowrap">
         {formatDate(row.getValue("date_sign"))}
@@ -111,6 +117,7 @@ export const createColumns = (
     header: () => (
       <DataTableColumnHeader>Лицо разместившее план</DataTableColumnHeader>
     ),
+    meta: { label: "Лицо разместившее план" },
     size: 200,
     cell: ({ row }) => (
       <DataTableCell className="wrap-break-word whitespace-normal">
@@ -123,6 +130,7 @@ export const createColumns = (
     header: () => (
       <DataTableColumnHeader>Дата добавления</DataTableColumnHeader>
     ),
+    meta: { label: "Дата добавления" },
     cell: ({ row }) => (
       <DataTableCell className="whitespace-nowrap">
         {formatDate(row.getValue("date_added"))}

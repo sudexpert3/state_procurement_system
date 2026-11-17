@@ -1,6 +1,7 @@
 import type { Purchase } from "@/shared/api/schema";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { Loader2Icon } from "lucide-react";
 import { useNavigate } from "react-router";
@@ -12,13 +13,12 @@ import {
 } from "@/services/goszakupki";
 import { rqClient } from "@/shared/api/instance";
 import { queryClient } from "@/shared/api/query-client";
+import { ColumnVisibilityDropdown } from "@/shared/components/data-table/column-visibility-dropdown";
 import { DataTable } from "@/shared/components/data-table/data-table";
 import { Button } from "@/shared/components/ui/button";
 import {
   Card,
-  CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
@@ -29,6 +29,14 @@ import { createColumns } from "./columns";
 
 const PlansPage = () => {
   const navigate = useNavigate();
+
+  // "Вид колонок" должен стоять в одном ряду с заголовком и кнопкой
+  // синхронизации (CardHeader), но реальный экземпляр tanstack-table
+  // существует только внутри DataTable (CardContent ниже) — поэтому вместо
+  // рендера на месте используем портал в этот DOM-узел хедера. useState
+  // (не useRef) — чтобы при монтировании ref-колбэка компонент
+  // перерендерился и подхватил ненулевой контейнер для портала.
+  const [columnsSlot, setColumnsSlot] = useState<HTMLDivElement | null>(null);
 
   const { data, isLoading } = rqClient.useQuery("get", "/api/purchases/", {});
 
@@ -66,19 +74,23 @@ const PlansPage = () => {
 
   return (
     <Card className="max-w-full flex-1 gap-2 bg-transparent ring-0">
-      <CardHeader>
-        <CardTitle>Годовые планы</CardTitle>
-        <CardDescription className="text-[12px]">
-          Реестр годовых планов государственных закупок
-        </CardDescription>
-        <CardAction>
-          <Button onClick={handleSyncAll} disabled={syncAllMutation.isPending}>
-            {syncAllMutation.isPending && (
-              <Loader2Icon size={16} className="animate-spin" />
-            )}
-            Синхронизировать список планов закупок с ЭТП
-          </Button>
-        </CardAction>
+      <CardHeader className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+        <div>
+          <CardTitle>Годовые планы</CardTitle>
+          <p className="text-muted-foreground text-[12px]">
+            Реестр годовых планов государственных закупок
+          </p>
+        </div>
+        <div ref={setColumnsSlot} className="flex w-[32rem] justify-center" />
+        <Button
+          onClick={handleSyncAll}
+          disabled={syncAllMutation.isPending}
+          className="justify-self-end">
+          {syncAllMutation.isPending && (
+            <Loader2Icon size={16} className="animate-spin" />
+          )}
+          Синхронизировать список планов закупок с ЭТП
+        </Button>
       </CardHeader>
       <CardContent className="flex min-h-0 flex-1 flex-col">
         <DataTable
@@ -88,6 +100,17 @@ const PlansPage = () => {
           isLoading={isLoading}
           cellClassName="p-4 text-center"
           fillAvailableHeight
+          persistenceKey="plans-list"
+          actions={(table) =>
+            columnsSlot &&
+            createPortal(
+              <ColumnVisibilityDropdown
+                table={table}
+                className="max-w-[32rem]"
+              />,
+              columnsSlot,
+            )
+          }
         />
       </CardContent>
     </Card>

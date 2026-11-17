@@ -1,8 +1,8 @@
 import type { InternalEconomicCode } from "@/shared/api/schema";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-import { CheckIcon, PencilIcon, XIcon } from "lucide-react";
+import { Loader2Icon, PencilIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { rqClient } from "@/shared/api/instance";
@@ -15,6 +15,14 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@/shared/components/ui/combobox";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/shared/components/ui/drawer";
 import { Field, FieldLabel } from "@/shared/components/ui/field";
 import { handleHttpError } from "@/shared/lib/helpers/handle-http-error";
 
@@ -39,20 +47,26 @@ const flattenLeaves = (nodes: InternalEconomicCode[]): InternalEconomicCode[] =>
     node.sub_codes.length === 0 ? [node] : flattenLeaves(node.sub_codes),
   );
 
+// Drawer справа — тот же принцип, что и у редактирования «Сведения о
+// финансировании подразделений» (cost-department-drawer.tsx), а не
+// инлайн-редактирование в строке — для единообразия интерфейса карточки.
+// Заодно и даёт достаточно места для длинных кодов/наименований статей
+// классификатора (раньше для этого искусственно растягивали ячейку сетки).
 export const EditableInternalEconomicClassField = ({
   budgetCostId,
   currentClass,
   canEdit,
   onSuccess,
 }: Props) => {
-  const [isEditing, setIsEditing] = useState(false);
+  const portalContainerRef = useRef<HTMLDivElement | null>(null);
+  const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<CurrentClass>(currentClass);
 
   const codesQuery = rqClient.useQuery(
     "get",
     "/api/internal_economic_code/",
     {},
-    { enabled: isEditing },
+    { enabled: open },
   );
   const leaves = flattenLeaves(
     // TODO: убрать приведение после исправления sub_codes в OpenAPI (см. InternalEconomicCode в shared/api/schema).
@@ -60,12 +74,13 @@ export const EditableInternalEconomicClassField = ({
   );
   const mutation = rqClient.useMutation("patch", "/api/budget_costs/{id}/");
 
-  const startEditing = () => {
+  const openDrawer = () => {
     setSelected(currentClass);
-    setIsEditing(true);
+    setOpen(true);
   };
 
-  const save = () => {
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
     mutation.mutate(
       {
         params: { path: { id: budgetCostId } },
@@ -74,7 +89,7 @@ export const EditableInternalEconomicClassField = ({
       {
         onSuccess: () => {
           toast.success("Внутренняя классификация ЭКР обновлена");
-          setIsEditing(false);
+          setOpen(false);
           onSuccess();
         },
         onError: (error) =>
@@ -87,8 +102,8 @@ export const EditableInternalEconomicClassField = ({
     );
   };
 
-  if (!isEditing) {
-    return (
+  return (
+    <>
       <DetailField
         label="Экономическая классификация внутренняя"
         value={
@@ -100,61 +115,81 @@ export const EditableInternalEconomicClassField = ({
               variant="ghost"
               size="icon"
               className="size-5"
-              onClick={startEditing}>
+              onClick={openDrawer}>
               <PencilIcon size={12} className="text-muted-foreground" />
             </Button>
           )
         }
       />
-    );
-  }
 
-  return (
-    <Field>
-      <FieldLabel>Экономическая классификация внутренняя</FieldLabel>
-      <div className="flex items-center gap-1">
-        <Combobox
-          items={leaves}
-          value={leaves.find((leaf) => leaf.id === selected?.id) ?? null}
-          onValueChange={setSelected}
-          itemToStringLabel={(leaf) =>
-            leaf ? `${leaf.code} - ${leaf.name}` : ""
-          }
-          itemToStringValue={(leaf) => (leaf ? String(leaf.id) : "")}
-          autoHighlight>
-          <ComboboxInput
-            placeholder="Поиск по коду/наименованию..."
-            disabled={codesQuery.isLoading}
-            showClear
-          />
-          <ComboboxContent>
-            <ComboboxEmpty>
-              {codesQuery.isLoading ? "Загрузка..." : "Не найдено"}
-            </ComboboxEmpty>
-            <ComboboxList>
-              {(leaf: InternalEconomicCode) => (
-                <ComboboxItem key={leaf.id} value={leaf}>
-                  {leaf.code} - {leaf.name}
-                </ComboboxItem>
+      <Drawer open={open} onOpenChange={setOpen} direction="right">
+        <DrawerContent
+          // Плейн `sm:max-w-xl` проигрывает по специфичности собственному
+          // `data-[vaul-drawer-direction=right]:sm:max-w-sm` компонента
+          // (атрибутивный селектор специфичнее обычного класса) — тот же
+          // вариант нужен и для переопределения.
+          className="flex flex-col data-[vaul-drawer-direction=right]:sm:max-w-xl"
+          ref={portalContainerRef}>
+          <DrawerHeader>
+            <DrawerTitle>
+              Изменить экономическую классификацию внутреннюю
+            </DrawerTitle>
+          </DrawerHeader>
+
+          <form
+            id="internal-economic-class-edit-form"
+            onSubmit={submit}
+            className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-2">
+            <Field>
+              <FieldLabel>Экономическая классификация внутренняя</FieldLabel>
+              <Combobox
+                items={leaves}
+                value={leaves.find((leaf) => leaf.id === selected?.id) ?? null}
+                onValueChange={setSelected}
+                itemToStringLabel={(leaf) =>
+                  leaf ? `${leaf.code} - ${leaf.name}` : ""
+                }
+                itemToStringValue={(leaf) => (leaf ? String(leaf.id) : "")}
+                autoHighlight>
+                <ComboboxInput
+                  placeholder="Поиск по коду/наименованию..."
+                  disabled={codesQuery.isLoading}
+                  showClear
+                />
+                <ComboboxContent portalContainer={portalContainerRef}>
+                  <ComboboxEmpty>
+                    {codesQuery.isLoading ? "Загрузка..." : "Не найдено"}
+                  </ComboboxEmpty>
+                  <ComboboxList>
+                    {(leaf: InternalEconomicCode) => (
+                      <ComboboxItem key={leaf.id} value={leaf}>
+                        {leaf.code} - {leaf.name}
+                      </ComboboxItem>
+                    )}
+                  </ComboboxList>
+                </ComboboxContent>
+              </Combobox>
+            </Field>
+          </form>
+
+          <DrawerFooter>
+            <Button
+              type="submit"
+              form="internal-economic-class-edit-form"
+              disabled={mutation.isPending}>
+              {mutation.isPending && (
+                <Loader2Icon size={16} className="animate-spin" />
               )}
-            </ComboboxList>
-          </ComboboxContent>
-        </Combobox>
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={save}
-          disabled={mutation.isPending}>
-          <CheckIcon size={16} />
-        </Button>
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={() => setIsEditing(false)}
-          disabled={mutation.isPending}>
-          <XIcon size={16} />
-        </Button>
-      </div>
-    </Field>
+              Сохранить
+            </Button>
+            <DrawerClose asChild>
+              <Button type="button" variant="outline">
+                Отмена
+              </Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 };

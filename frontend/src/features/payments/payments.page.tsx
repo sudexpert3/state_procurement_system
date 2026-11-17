@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { keepPreviousData } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 
+import { PaymentForm } from "@/services/payments";
 import { rqClient } from "@/shared/api/instance";
 import { queryClient } from "@/shared/api/query-client";
 import { DataTable } from "@/shared/components/data-table/data-table";
@@ -21,7 +22,6 @@ import {
 
 import { usePaymentsDelete } from "./hooks/use-payments-delete";
 import { createColumns } from "./columns";
-import { PaymentForm } from "./payment-form";
 import { PaymentsToolbar, type QuarterFilterValue } from "./payments-toolbar";
 
 const PaymentsPage = () => {

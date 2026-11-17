@@ -1279,14 +1279,14 @@ class CodeNormalizationTestCase(TestCase):
 
 class PlanShareValidationTestCase(TestCase):
     """Запрос фронтенда 2026-11-14 (frontend/docs/CurrentStatus.md): распределение лимита по
-    подразделениям (/api/plan_shares/) должно (1) реально проверять превышение количества/суммы
-    и (2) возвращать чистый 400 через сериализатор, а не необработанный 500 из модели.
+    подразделениям (/api/plan_shares/) должно (1) реально проверять превышение суммы и
+    (2) возвращать чистый 400 через сериализатор, а не необработанный 500 из модели.
 
-    Найденный по пути корневой баг: проверка количества (shared_amount) была пропущена для
-    ЛЮБОЙ услуги (type=job) целиком, хотя задумывалась только для услуг, физически растянутых
-    на несколько лет (см. комментарий в PlanShare.clean()) — на реальных данных
-    (/plan-items/2898, val_amount=153) это позволяло набить подразделениям сумму сверх
-    выделенного количества без единой ошибки."""
+    Правка 2026-11-17 (по решению пользователя, см. CurrentStatus.md): запрет на превышение
+    КОЛИЧЕСТВА (shared_amount) убран из PlanShare.clean() — "количество" в реестре закупок
+    оказалось ненадёжной величиной (формальная единица для услуг, задвоенные сводные строки
+    без номера договора — см. input/q_fin_planshare_duplicates_20261117.txt), поэтому её
+    больше не блокируем. Контроль СУММЫ (shared_cost) остаётся обязательным."""
 
     def setUp(self):
         self.purchases = Purchases.objects.create(year=2026)
@@ -1302,9 +1302,10 @@ class PlanShareValidationTestCase(TestCase):
         )
         return plan_item
 
-    def test_quantity_overflow_rejected_for_single_year_job(self):
-        """Воспроизводит реальный кейс /plan-items/2898: услуга (type=job) в рамках ОДНОГО
-        года — проверка количества должна работать как для товара, а не быть пропущена."""
+    def test_quantity_overflow_no_longer_rejected(self):
+        """Бывший /plan-items/2898 (val_amount=153): раньше превышение количества блокировалось
+        для услуги (type=job) в рамках одного года — теперь по решению пользователя количество
+        не проверяется вовсе, сумма при этом по-прежнему укладывается в лимит и сохраняется."""
         plan_item = self._make_item('2026-TEST-PS-1', ProcurementItemTypes.job, Decimal('153'))
         budget_cost = BudgetCosts.objects.create(
             plan_item=plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=1,
@@ -1314,39 +1315,16 @@ class PlanShareValidationTestCase(TestCase):
             status=PlanItemStatus.ACTIVE, budget_cost=budget_cost, department=self.dept_a,
             shared_amount=Decimal('100'), shared_cost=Decimal('47450.98'),
         )
-        with self.assertRaises(ValidationError):
-            PlanShare.objects.create(
-                status=PlanItemStatus.ACTIVE, budget_cost=budget_cost, department=self.dept_b,
-                shared_amount=Decimal('100'), shared_cost=Decimal('25149.02'),
-            )
+        # 100 + 100 = 200 > val_amount=153 — раньше падало, теперь количество не проверяется.
+        share_b = PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=budget_cost, department=self.dept_b,
+            shared_amount=Decimal('100'), shared_cost=Decimal('25149.02'),
+        )
+        self.assertEqual(share_b.shared_amount, Decimal('100'))
 
-    def test_quantity_overflow_still_allowed_for_genuine_multi_year_job_split(self):
-        """Регрессия на исходный сценарий (Проход 6, позиции 166/952): многолетняя услуга с
-        формальным количеством "1" на каждый год — сквозная по годам проверка не должна
-        ложно срабатывать, когда у позиции реально несколько РАЗНЫХ лет бюджета."""
-        plan_item = self._make_item('2026-TEST-PS-2', ProcurementItemTypes.job, Decimal('1'))
-        bc_2026 = BudgetCosts.objects.create(
-            plan_item=plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=2,
-            cost=Decimal('1000.00'), year=2026,
-        )
-        bc_2027 = BudgetCosts.objects.create(
-            plan_item=plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=3,
-            cost=Decimal('1000.00'), year=2027,
-        )
-        PlanShare.objects.create(
-            status=PlanItemStatus.ACTIVE, budget_cost=bc_2026, department=self.dept_a,
-            shared_amount=Decimal('1'), shared_cost=Decimal('1000.00'),
-        )
-        # "1" на 2026 + "1" на 2027 формально суммируется в "2" > val_amount=1 — не должно падать.
-        share_2027 = PlanShare.objects.create(
-            status=PlanItemStatus.ACTIVE, budget_cost=bc_2027, department=self.dept_a,
-            shared_amount=Decimal('1'), shared_cost=Decimal('1000.00'),
-        )
-        self.assertEqual(share_2027.shared_amount, Decimal('1'))
-
-    def test_quantity_overflow_rejected_by_serializer_as_clean_400(self):
-        """Превышение количества через /api/plan_shares/ (PATCH существующей строки) должно
-        вернуть понятную ошибку поля, а не упасть необработанным исключением модели."""
+    def test_quantity_overflow_accepted_by_serializer(self):
+        """Превышение количества через /api/plan_shares/ (PATCH существующей строки) больше не
+        считается ошибкой — поле просто сохраняется."""
         plan_item = self._make_item('2026-TEST-PS-3', ProcurementItemTypes.product, Decimal('10'))
         budget_cost = BudgetCosts.objects.create(
             plan_item=plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=4,
@@ -1357,8 +1335,9 @@ class PlanShareValidationTestCase(TestCase):
             shared_amount=Decimal('5'), shared_cost=Decimal('500.00'),
         )
         serializer = PlanShareSerializer(share, data={'shared_amount': '20'}, partial=True)
-        self.assertFalse(serializer.is_valid())
-        self.assertIn('shared_amount', serializer.errors)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        updated = serializer.save()
+        self.assertEqual(updated.shared_amount, Decimal('20'))
 
     def test_cost_overflow_rejected_by_serializer_as_clean_400(self):
         """То же самое для суммы (shared_cost) — найденный пользователем баг: превышение

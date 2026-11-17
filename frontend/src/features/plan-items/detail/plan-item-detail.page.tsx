@@ -3,24 +3,18 @@ import type { PlanItemFull } from "@/shared/api/schema";
 import { useParams } from "react-router";
 
 import { rqClient } from "@/shared/api/instance";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
-import { Separator } from "@/shared/components/ui/separator";
+import { Card } from "@/shared/components/ui/card";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/shared/components/ui/tabs";
-import { formatMoney } from "@/shared/lib/helpers/format-money";
 
-import { DetailField } from "./components/detail-field";
 import { PlanItemDetailSkeleton } from "./components/plan-item-detail-skeleton";
+import { SubjectInfoCard } from "./components/subject-info-card";
 import { ChangeRequestTab } from "./tabs/change-request-tab";
+import { ContractsTab } from "./tabs/contracts-tab";
 import { InfoTab } from "./tabs/info-tab";
 import { PaymentsTab } from "./tabs/payments-tab";
 
@@ -53,29 +47,7 @@ const PlanItemDetailPage = () => {
     <>
       {!isError && plan && (
         <div className="w-full space-y-4">
-          <Card className="ring-0">
-            <CardHeader className="px-2">
-              <CardTitle className="text-lg font-semibold tracking-wide uppercase">
-                План закупки № {plan.num}
-              </CardTitle>
-            </CardHeader>
-            <Separator />
-            <CardContent className="grid grid-cols-2 gap-4 px-2 md:grid-cols-4">
-              <DetailField label="Номер пункта плана" value={plan.num} />
-              <DetailField
-                label="Наименование предмета закупки"
-                value={plan.title}
-              />
-              <DetailField
-                label="Общее количество"
-                value={`${plan.val_amount} ${plan.val_unit}`}
-              />
-              <DetailField
-                label="Общая сумма"
-                value={formatMoney(plan.aggregated_cost?.total_cost)}
-              />
-            </CardContent>
-          </Card>
+          <SubjectInfoCard plan={plan} />
 
           <Tabs defaultValue="info" className="w-full gap-4">
             {/* Та же акцентная схема (variant="line" + chart-4), что и в
@@ -90,7 +62,7 @@ const PlanItemDetailPage = () => {
                 <TabsTrigger
                   value="info"
                   className="data-active:text-chart-4 after:bg-chart-4 hover:text-chart-4 text-[15px] font-medium transition-colors">
-                  Информация
+                  Финансирование
                 </TabsTrigger>
                 <TabsTrigger
                   value="planning"
@@ -126,14 +98,14 @@ const PlanItemDetailPage = () => {
 
             {/* <TabsContent value="planning">
           <PlanningTab plan={plan2} />
-        </TabsContent>
-
-        <TabsContent value="contracts">
-          <ContractsTab plan={plan2} />
         </TabsContent> */}
 
+            <TabsContent value="contracts">
+              <ContractsTab plan={plan} />
+            </TabsContent>
+
             <TabsContent value="payments">
-              <PaymentsTab />
+              <PaymentsTab planItemId={plan.id} />
             </TabsContent>
 
             <TabsContent value="change-request">

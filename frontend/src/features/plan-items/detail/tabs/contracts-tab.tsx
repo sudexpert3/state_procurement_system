@@ -1,136 +1,97 @@
-import type { ColumnDef } from "@tanstack/react-table";
-import type { CostDepartment } from "@/shared/api/schema";
-import type { ContractDetail, PlanItemDetail } from "../procurement.mock";
+import type { PlanItemFull } from "@/shared/api/schema";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
-import { DepartmentsTable } from "@/features/plan-items/detail/components/departments-table";
-import { DataTable } from "@/shared/components/data-table/data-table";
+import { ContractDetailBody } from "@/services/contracts";
 import { SectionCard } from "@/shared/components/section-card";
 import { CardContent } from "@/shared/components/ui/card";
-import { formatDate } from "@/shared/lib/helpers/format-date";
-import { formatByn, formatMoney } from "@/shared/lib/helpers/format-money";
+import { Skeleton } from "@/shared/components/ui/skeleton";
+import { formatMoney } from "@/shared/lib/helpers/format-money";
 import { cn } from "@/shared/lib/utils";
 
-import { DetailField } from "../components/detail-field";
 import { StatCard } from "../components/stat-card";
 
-const columns: ColumnDef<ContractDetail, unknown>[] = [
-  {
-    accessorKey: "contractNumber",
-    header: "№ договора",
-  },
-  {
-    accessorKey: "contractDate",
-    header: "Дата договора",
-    cell: ({ getValue }) => formatDate(getValue<Date>()),
-  },
-  {
-    id: "supplierName",
-    header: "Поставщик",
-    accessorFn: (row) => row.supplier.name,
-  },
-  {
-    id: "supplierUnp",
-    header: "УНП поставщика",
-    accessorFn: (row) => row.supplier.unp,
-  },
-  {
-    accessorKey: "contractSum",
-    header: "Сумма договора",
-    cell: ({ getValue }) => formatByn(getValue<number>()),
-  },
-  {
-    id: "departments",
-    header: "Подразделение",
-    accessorFn: (row) =>
-      row.departments
-        .map((d) => d.shortName)
-        .filter(Boolean)
-        .join(", "),
-  },
-];
+import { ContractPickerList, usePlanItemContracts } from "./contract-picker";
 
-// Таб «Договоры» — аналитика по пункту плана + список договоров с позициями.
-export const ContractsTab = ({ plan }: { plan: PlanItemDetail }) => {
-  // Сумма всех договоров по пункту плана.
-  // TODO: заменить на значение с бэкенда, когда эндпоинт отдаст агрегат.
+// Таб «Договоры» на карточке позиции плана — договоры, привязанные к этому
+// пункту через ContractItem (фильтр `?plan_item=` бэкенд добавил 2026-11-17,
+// см. CurrentStatus.md). 0 → сообщение, 1 → сразу карточка, >1 → список +
+// карточка выбранного.
+export const ContractsTab = ({ plan }: { plan: PlanItemFull }) => {
+  const { contracts, isLoading, selectedContract, setSelectedId } =
+    usePlanItemContracts(plan.id);
+
+  // Строка спецификации договора (ContractItem) хранит только id PlanShare,
+  // без названия подразделения — а на этой странице все PlanShare пункта
+  // плана уже загружены (plan.economic_details[].cost_departments), так что
+  // достаём имя из них, не делая лишних запросов. CostDepartment.id — это и
+  // есть id PlanShare (ContractItem.plan_share ссылается на ту же запись).
+  const departmentByPlanShare = useMemo(() => {
+    const map = new Map<number, string>();
+    plan.economic_details.forEach((detail) => {
+      detail.cost_departments.forEach((costDepartment) => {
+        map.set(costDepartment.id, costDepartment.department_detail.short_name);
+      });
+    });
+    return map;
+  }, [plan.economic_details]);
+
+  const planTotal = Number(plan.aggregated_cost?.total_cost ?? 0);
   const contractsTotal = useMemo(
-    () => plan.contracts.reduce((sum, c) => sum + c.contractSum, 0),
-    [plan],
+    () => contracts.reduce((sum, c) => sum + Number(c.total_cost), 0),
+    [contracts],
   );
-  const balance = plan.allCost - contractsTotal;
-
-  // Выбранный договор: по умолчанию — последний добавленный, по клику в таблице — выбранный.
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const selectedContract =
-    plan.contracts.find((c) => c.id === selectedId) ?? plan.contracts.at(-1);
+  const balance = planTotal - contractsTotal;
 
   return (
     <SectionCard title="Договоры">
       <CardContent className="space-y-4 px-2">
-        {/* Аналитика по договорам пункта плана */}
-        <div className="flex flex-col gap-4 md:flex-row">
-          <StatCard
-            title="Общая сумма позиции"
-            value={formatMoney(plan.allCost)}
-          />
-          <StatCard
-            title="Сумма всех договоров"
-            value={formatMoney(contractsTotal)}
-          />
-          <StatCard
-            title="Остаток денег по пункту"
-            value={formatMoney(balance)}
-            valueClassName={cn(balance < 0 && "text-destructive")}
-          />
-        </div>
-
-        {/* Список договоров пункта плана */}
-        <DataTable
-          data={plan.contracts}
-          columns={columns}
-          pagination={false}
-          getRow={(contract) => setSelectedId(contract.id)}
-        />
-
-        {/* Сведения о выбранном договоре (по умолчанию — последний добавленный) */}
-        {!selectedContract ? (
+        {isLoading ? (
+          <Skeleton className="h-24 w-full" />
+        ) : contracts.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            По этому плану договоров нет.
+            По этому пункту плана договоров нет.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-4 rounded-md border p-3 md:grid-cols-3">
-            <DetailField
-              label="№ договора"
-              value={selectedContract.contractNumber}
-            />
-            <DetailField
-              label="Дата договора"
-              value={formatDate(selectedContract.contractDate)}
-            />
-            <DetailField
-              label="Поставщик"
-              value={selectedContract.supplier.name}
-            />
-            <DetailField
-              label="УНП поставщика"
-              value={selectedContract.supplier.unp}
-            />
-            <DetailField
-              label="Сумма договора, BYN"
-              value={formatByn(selectedContract.contractSum)}
-            />
+          <>
+            <div className="flex flex-col gap-4 md:flex-row">
+              <StatCard
+                title="Общая сумма позиции"
+                value={formatMoney(planTotal)}
+              />
+              <StatCard
+                title="Сумма всех договоров"
+                value={formatMoney(contractsTotal)}
+              />
+              <StatCard
+                title="Остаток денег по пункту"
+                value={formatMoney(balance)}
+                valueClassName={cn(balance < 0 && "text-destructive")}
+              />
+            </div>
 
-            <DepartmentsTable
-              title="Позиция договора"
-              // Таб целиком на моках (не подключён, см. plan-item-detail.page.tsx) —
-              // форма мок-данных (FinancingDepartment) не совпадает с реальной
-              // CostDepartment, которую ожидает DepartmentsTable после перехода
-              // на реальный API в info-tab.
-              data={selectedContract.departments as unknown as CostDepartment[]}
-            />
-          </div>
+            {contracts.length > 1 && (
+              <ContractPickerList
+                contracts={contracts}
+                onSelect={(c) => setSelectedId(c.id)}
+              />
+            )}
+
+            {selectedContract ? (
+              <div className="rounded-md border">
+                <ContractDetailBody
+                  contract={selectedContract}
+                  departmentByPlanShare={departmentByPlanShare}
+                />
+              </div>
+            ) : (
+              contracts.length > 1 && (
+                <p className="text-muted-foreground text-sm">
+                  Выберите договор в списке выше.
+                </p>
+              )
+            )}
+          </>
         )}
       </CardContent>
     </SectionCard>

@@ -7,6 +7,7 @@ import { keepPreviousData } from "@tanstack/react-query";
 import { rqClient } from "@/shared/api/instance";
 import { DataTable } from "@/shared/components/data-table/data-table";
 import { useServerPagination } from "@/shared/components/data-table/hooks/use-server-pagination";
+import { useServerSearch } from "@/shared/components/data-table/hooks/use-server-search";
 import {
   Card,
   CardContent,
@@ -17,16 +18,35 @@ import {
 
 import { createColumns } from "./columns";
 import { ContractDetail } from "./contract-detail";
+import {
+  ContractsToolbar,
+  type HasPaymentsFilterValue,
+} from "./contracts-toolbar";
 
 const ContractsPage = () => {
   const { limit, offset, pagination, onPaginationChange } =
     useServerPagination();
+  const { search, debouncedSearch, setSearch } = useServerSearch();
+  const [hasPaymentsFilter, setHasPaymentsFilter] =
+    useState<HasPaymentsFilterValue>("all");
   const [selected, setSelected] = useState<Contract | null>(null);
 
   const { data, isLoading } = rqClient.useQuery(
     "get",
     "/api/contracts/",
-    { params: { query: { limit, offset } } },
+    {
+      params: {
+        query: {
+          limit,
+          offset,
+          search: debouncedSearch || undefined,
+          has_payments:
+            hasPaymentsFilter === "all"
+              ? undefined
+              : hasPaymentsFilter === "true",
+        },
+      },
+    },
     { placeholderData: keepPreviousData },
   );
 
@@ -48,6 +68,16 @@ const ContractsPage = () => {
           cellClassName=""
           getRow={setSelected}
           fillAvailableHeight
+          actions={() => (
+            <div className="py-4">
+              <ContractsToolbar
+                search={search}
+                onSearchChange={setSearch}
+                hasPaymentsFilter={hasPaymentsFilter}
+                onHasPaymentsFilterChange={setHasPaymentsFilter}
+              />
+            </div>
+          )}
           pagination={{
             type: "default",
             manual: {

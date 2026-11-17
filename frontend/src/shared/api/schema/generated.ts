@@ -1892,6 +1892,8 @@ export interface components {
        * Format: decimal
        */
       actual_cost?: string;
+      /** Format: decimal */
+      readonly remainder_cost: string;
     };
     CostDetailResponseSchema: {
       /** Format: decimal */
@@ -2472,6 +2474,8 @@ export interface components {
        * Format: decimal
        */
       actual_cost?: string;
+      /** Format: decimal */
+      readonly remainder_cost?: string;
     };
     /**
      * @description CRUD черновика калибровки (Этап, kind=DEPARTMENT_LIMIT_CALIBRATION) — специалист
@@ -3070,6 +3074,9 @@ export interface components {
       /** Format: decimal */
       readonly aggregated_cost: string;
       readonly economic_details: components["schemas"]["BudgetCostsForShortItem"][];
+      /** Format: decimal */
+      readonly matched_cost: string;
+      readonly matched_details: components["schemas"]["BudgetCostsForShortItem"][];
       readonly contracts: boolean;
       readonly contracts_count: number;
       /** Публикуется на goszakupki.by? */
@@ -4521,10 +4528,17 @@ export interface operations {
   contracts_list: {
     parameters: {
       query?: {
+        /** @description Есть хотя бы одна оплата */
+        has_payments?: boolean;
         /** @description Number of results to return per page. */
         limit?: number;
         /** @description The initial index from which to return the results. */
         offset?: number;
+        /** @description ID пункта плана (PlanItem) */
+        plan_item?: number;
+        /** @description A search term. */
+        search?: string;
+        supplier?: number;
       };
       header?: never;
       path?: never;

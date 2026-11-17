@@ -215,6 +215,7 @@ export const createColumns = (): ColumnDef<PlanItemShort>[] => [
     size: 90,
     cell: ({ row }) => {
       const isExists: boolean = row.getValue("contracts");
+      const count = row.original.contracts_count;
 
       return (
         <DataTableCell className="text-center">
@@ -225,7 +226,7 @@ export const createColumns = (): ColumnDef<PlanItemShort>[] => [
                 ? "border-green-200 bg-green-100 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300"
                 : undefined
             }>
-            {isExists ? "Да" : "Нет"}
+            {isExists ? `Да (${count})` : "Нет"}
           </Badge>
         </DataTableCell>
       );

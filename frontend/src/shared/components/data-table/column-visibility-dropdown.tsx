@@ -19,8 +19,13 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 import { Input } from "@/shared/components/ui/input";
+import { cn } from "@/shared/lib/utils";
 
-type Props<TData> = { table: Table<TData> };
+type Props<TData> = {
+  table: Table<TData>;
+  /** Переопределить ширину кнопки-триггера (по умолчанию `max-w-3xs`) */
+  className?: string;
+};
 
 const getColumnLabel = (column: {
   id: string;
@@ -35,7 +40,10 @@ const getColumnLabel = (column: {
   return typeof header === "string" ? header : column.id;
 };
 
-export const ColumnVisibilityDropdown = <TData,>({ table }: Props<TData>) => {
+export const ColumnVisibilityDropdown = <TData,>({
+  table,
+  className,
+}: Props<TData>) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const columns = table.getAllColumns().filter((col) => col.getCanHide());
@@ -49,7 +57,9 @@ export const ColumnVisibilityDropdown = <TData,>({ table }: Props<TData>) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="w-full max-w-3xs justify-between">
+        <Button
+          variant="outline"
+          className={cn("w-full max-w-3xs justify-between", className)}>
           <span className="flex items-center gap-2">
             <Columns3Icon />
             Вид колонок
