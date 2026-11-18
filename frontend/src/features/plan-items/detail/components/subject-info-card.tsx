@@ -5,6 +5,7 @@ import { useCallback } from "react";
 import { useCurrentUser } from "@/services/auth";
 import { rqClient } from "@/shared/api/instance";
 import { queryClient } from "@/shared/api/query-client";
+import { DetailField } from "@/shared/components/detail-field";
 import {
   Card,
   CardContent,
@@ -16,7 +17,6 @@ import { formatMoney } from "@/shared/lib/helpers/format-money";
 
 import { typeLabel } from "../plan-meta";
 
-import { DetailField } from "./detail-field";
 import { EditableBuyerField } from "./editable-buyer-field";
 
 const getTypeLabel = (type: string) =>

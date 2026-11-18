@@ -28,8 +28,12 @@ const PaymentsPage = () => {
   const { limit, offset, pagination, onPaginationChange } =
     useServerPagination();
   const [quarterFilter, setQuarterFilter] = useState<QuarterFilterValue>("all");
+  const [yearFilter, setYearFilter] = useState<number | "all">("all");
+  const [kindFilter, setKindFilter] = useState<number | "all">("all");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<TreasuryPayment | null>(null);
+
+  const kindOfPaymentQuery = rqClient.useQuery("get", "/api/kind_of_payment/");
 
   const { data, isLoading } = rqClient.useQuery(
     "get",
@@ -40,6 +44,8 @@ const PaymentsPage = () => {
           limit,
           offset,
           quarter: quarterFilter !== "all" ? quarterFilter : undefined,
+          payment_year: yearFilter !== "all" ? yearFilter : undefined,
+          kind: kindFilter !== "all" ? kindFilter : undefined,
         },
       },
     },
@@ -95,6 +101,11 @@ const PaymentsPage = () => {
               <PaymentsToolbar
                 quarterFilter={quarterFilter}
                 onQuarterFilterChange={setQuarterFilter}
+                yearFilter={yearFilter}
+                onYearFilterChange={setYearFilter}
+                kindFilter={kindFilter}
+                onKindFilterChange={setKindFilter}
+                kindOptions={kindOfPaymentQuery.data ?? []}
               />
             </div>
           )}

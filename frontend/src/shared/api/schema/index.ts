@@ -51,6 +51,8 @@ export type Department = Omit<
 
 export type EconomicCode = ApiSchemas["ExternalEconomicCode"];
 
+export type KindOfPayment = ApiSchemas["KindOfPayment"];
+
 // TODO: временный тип — убрать после доработки бэка.
 // Сейчас drf-spectacular отдаёт рекурсивное поле sub_codes как string,
 // хотя реально API возвращает массив таких же узлов. Когда схема будет

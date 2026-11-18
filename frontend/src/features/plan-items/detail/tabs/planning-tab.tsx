@@ -1,10 +1,9 @@
 import type { PlanItemDetail } from "../procurement.mock";
 
+import { DetailField } from "@/shared/components/detail-field";
 import { SectionCard } from "@/shared/components/section-card";
 import { CardContent } from "@/shared/components/ui/card";
 import { formatDate } from "@/shared/lib/helpers/format-date";
-
-import { DetailField } from "../components/detail-field";
 
 export const PlanningTab = ({ plan }: { plan: PlanItemDetail }) => (
   <SectionCard title="Планирование">

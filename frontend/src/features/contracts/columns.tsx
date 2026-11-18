@@ -3,7 +3,10 @@ import type { Contract } from "@/shared/api/schema";
 
 import { EyeIcon } from "lucide-react";
 
-import { DataTableCell } from "@/shared/components/data-table/data-table-cell";
+import {
+  DataTableCell,
+  DataTableColumnHeader,
+} from "@/shared/components/data-table/data-table-cell";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { formatDate } from "@/shared/lib/helpers/format-date";
@@ -28,9 +31,20 @@ export const createColumns = (
   },
   {
     id: "supplier",
-    header: "Контрагент",
+    // Фикс. ширина + перенос текста (и на заголовке, и на ячейках) — без
+    // этого длинные наименования контрагентов растягивали всю таблицу до
+    // горизонтального скролла (по умолчанию у ячеек whitespace-nowrap, см.
+    // shared/components/ui/table.tsx).
+    size: 260,
+    header: () => (
+      <DataTableColumnHeader className="w-64 max-w-64 whitespace-normal">
+        Контрагент
+      </DataTableColumnHeader>
+    ),
     cell: ({ row }) => (
-      <DataTableCell>{row.original.supplier_detail.name}</DataTableCell>
+      <DataTableCell className="w-64 max-w-64 break-words whitespace-normal">
+        {row.original.supplier_detail.name}
+      </DataTableCell>
     ),
   },
   {

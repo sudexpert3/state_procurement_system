@@ -1,3 +1,4 @@
+import type { EconomicInfo } from "@/services/contracts";
 import type { PlanItemFull } from "@/shared/api/schema";
 
 import { useMemo } from "react";
@@ -31,6 +32,22 @@ export const ContractsTab = ({ plan }: { plan: PlanItemFull }) => {
     plan.economic_details.forEach((detail) => {
       detail.cost_departments.forEach((costDepartment) => {
         map.set(costDepartment.id, costDepartment.department_detail.short_name);
+      });
+    });
+    return map;
+  }, [plan.economic_details]);
+
+  // Та же карта по PlanShare, но для экономического кода (внешний,
+  // goszakupki.by) и кода ЭКР внутреннего (классификатор ГКСЭ) статьи
+  // бюджета — используется в колонках таблиц «Спецификация» и
+  // «Квартальный план/факт» (см. ContractDetailBody).
+  const economicInfoByPlanShare = useMemo(() => {
+    const map = new Map<number, EconomicInfo>();
+    plan.economic_details.forEach((detail) => {
+      const economicCode = detail.economic_class_detail.code_api;
+      const internalEkrCode = detail.internal_economic_class_detail.code;
+      detail.cost_departments.forEach((costDepartment) => {
+        map.set(costDepartment.id, { economicCode, internalEkrCode });
       });
     });
     return map;
@@ -82,6 +99,7 @@ export const ContractsTab = ({ plan }: { plan: PlanItemFull }) => {
                 <ContractDetailBody
                   contract={selectedContract}
                   departmentByPlanShare={departmentByPlanShare}
+                  economicInfoByPlanShare={economicInfoByPlanShare}
                 />
               </div>
             ) : (

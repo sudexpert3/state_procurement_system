@@ -66,7 +66,9 @@ fetchClient.use({
             message = flat.join(", ");
           }
         }
-      } catch {}
+      } catch {
+        // Тело ответа не JSON — оставляем сообщение по умолчанию (статус/statusText).
+      }
       throw new Error(message);
     }
   },

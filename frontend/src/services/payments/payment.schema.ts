@@ -7,17 +7,21 @@ export const paymentSchema = z
     departments: z.array(z.number()),
     economic_class: z.number().nullable(),
     functional_class: z.number().nullable(),
+    program_class: z.number().nullable(),
+    /** Внутренняя классификация ЭКР — заполнена практически у всех платежей (и по договору, и свободных), в отличие от economic_class/functional_class (только у свободных) */
+    internal_economic_class: z.number().nullable(),
+    /** Вид платежа (KindOfPayment) — договор/свободный/возврат/админ.процедуры и т.д. */
+    kind: z.number().nullable(),
     amount: z.coerce.number<number>().positive("Сумма должна быть больше 0"),
     payment_date: z.coerce.date<Date>({ error: "Укажите дату платежа" }),
+    /** Дата разнесения платежа — по умолчанию совпадает с датой платежа */
+    save_date: z.coerce.date<Date>().nullable(),
+    payment_number: z.string(),
     notice: z.string(),
   })
   .refine((values) => values.mode !== "contract" || values.contract !== null, {
     error: "Выберите договор",
     path: ["contract"],
-  })
-  .refine((values) => values.mode !== "free" || values.departments.length > 0, {
-    error: "Выберите хотя бы одно подразделение",
-    path: ["departments"],
   })
   .refine(
     (values) => values.mode !== "free" || values.economic_class !== null,

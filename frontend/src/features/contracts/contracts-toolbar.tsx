@@ -23,11 +23,25 @@ const HAS_PAYMENTS_OPTIONS = [
 export type HasPaymentsFilterValue =
   (typeof HAS_PAYMENTS_OPTIONS)[number]["value"];
 
+// Пороги для `?expiring_within_days=` (бэкенд сам порог не ограничивает,
+// варианты — на выбор фронта, см. CurrentStatus.md).
+const EXPIRING_OPTIONS = [
+  { value: "all", label: "Любой срок" },
+  { value: "5", label: "Скоро истекает (5 дн.)" },
+  { value: "15", label: "Скоро истекает (15 дн.)" },
+  { value: "30", label: "Скоро истекает (30 дн.)" },
+] as const;
+
+export type ExpiringWithinDaysFilterValue =
+  (typeof EXPIRING_OPTIONS)[number]["value"];
+
 type Props = {
   search: string;
   onSearchChange: (value: string) => void;
   hasPaymentsFilter: HasPaymentsFilterValue;
   onHasPaymentsFilterChange: (value: HasPaymentsFilterValue) => void;
+  expiringFilter: ExpiringWithinDaysFilterValue;
+  onExpiringFilterChange: (value: ExpiringWithinDaysFilterValue) => void;
 };
 
 export const ContractsToolbar = ({
@@ -35,6 +49,8 @@ export const ContractsToolbar = ({
   onSearchChange,
   hasPaymentsFilter,
   onHasPaymentsFilterChange,
+  expiringFilter,
+  onExpiringFilterChange,
 }: Props) => (
   <div className="flex items-center gap-2">
     <InputGroup className="w-[21rem] bg-white">
@@ -58,6 +74,24 @@ export const ContractsToolbar = ({
       <SelectContent position="popper">
         <SelectGroup>
           {HAS_PAYMENTS_OPTIONS.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+    <Select
+      value={expiringFilter}
+      onValueChange={(v) =>
+        onExpiringFilterChange(v as ExpiringWithinDaysFilterValue)
+      }>
+      <SelectTrigger className="w-56 bg-white">
+        <SelectValue placeholder="Срок исполнения..." />
+      </SelectTrigger>
+      <SelectContent position="popper">
+        <SelectGroup>
+          {EXPIRING_OPTIONS.map((opt) => (
             <SelectItem key={opt.value} value={opt.value}>
               {opt.label}
             </SelectItem>

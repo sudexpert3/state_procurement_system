@@ -4528,6 +4528,8 @@ export interface operations {
   contracts_list: {
     parameters: {
       query?: {
+        /** @description Срок исполнения истекает в течение N дней (включая сегодня) */
+        expiring_within_days?: number;
         /** @description Есть хотя бы одна оплата */
         has_payments?: boolean;
         /** @description Number of results to return per page. */

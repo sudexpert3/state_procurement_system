@@ -7,6 +7,11 @@ import { DataTableCell } from "@/shared/components/data-table/data-table-cell";
 import { DeleteButton } from "@/shared/components/delete-button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
 import { formatDate } from "@/shared/lib/helpers/format-date";
 import { formatByn } from "@/shared/lib/helpers/format-money";
 
@@ -77,17 +82,36 @@ export const createColumns = (
   {
     id: "kind",
     header: "Вид платежа",
-    cell: ({ row }) => (
-      <DataTableCell>{row.original.kind_detail?.name ?? "—"}</DataTableCell>
-    ),
+    cell: ({ row }) => {
+      const kind = row.original.kind_detail;
+      return (
+        <DataTableCell className="flex items-center gap-1">
+          {kind?.name ?? "—"}
+          {kind?.is_refund && (
+            <Badge variant="destructive" className="text-xs">
+              Возврат
+            </Badge>
+          )}
+        </DataTableCell>
+      );
+    },
   },
   {
     accessorKey: "notice",
     header: "Примечание",
-    cell: ({ getValue }) => (
-      <DataTableCell className="max-w-xs truncate">
-        {getValue<string | null>() ?? "—"}
-      </DataTableCell>
-    ),
+    cell: ({ getValue }) => {
+      const notice = getValue<string | null>();
+      if (!notice) return <DataTableCell>—</DataTableCell>;
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DataTableCell className="max-w-xs cursor-default truncate">
+              {notice}
+            </DataTableCell>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-sm">{notice}</TooltipContent>
+        </Tooltip>
+      );
+    },
   },
 ];

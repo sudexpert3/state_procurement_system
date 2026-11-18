@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useCurrentUser } from "@/services/auth";
 import { rqClient } from "@/shared/api/instance";
 import { queryClient } from "@/shared/api/query-client";
+import { DetailField } from "@/shared/components/detail-field";
 import { SectionCard } from "@/shared/components/section-card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -16,7 +17,6 @@ import { formatByn } from "@/shared/lib/helpers/format-money";
 import { handleHttpError } from "@/shared/lib/helpers/handle-http-error";
 
 import { DepartmentsTable } from "../../components/departments-table";
-import { DetailField } from "../../components/detail-field";
 
 import { CostDepartmentDrawer } from "./cost-department-drawer";
 import { EditableInternalEconomicClassField } from "./editable-internal-economic-class-field";

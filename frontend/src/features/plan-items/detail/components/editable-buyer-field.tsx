@@ -6,6 +6,7 @@ import { Loader2Icon, PencilIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { rqClient } from "@/shared/api/instance";
+import { DetailField } from "@/shared/components/detail-field";
 import { Button } from "@/shared/components/ui/button";
 import {
   Combobox,
@@ -25,8 +26,6 @@ import {
 } from "@/shared/components/ui/drawer";
 import { Field, FieldLabel } from "@/shared/components/ui/field";
 import { handleHttpError } from "@/shared/lib/helpers/handle-http-error";
-
-import { DetailField } from "./detail-field";
 
 type Props = {
   /** id активной версии PlanItemDetail — null, пока не загрузилась */
