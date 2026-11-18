@@ -482,6 +482,53 @@ class MultiYearReservationTestCase(TestCase):
         self.assertEqual(compute_reserved_amount(self.plan_item, 2027), Decimal('3000.00'))  # не 3500
 
 
+class TreasuryPaymentSearchAndDateRangeFilterTestCase(TestCase):
+    """Запрос фронтенда (2026-11-18): поиск по примечанию и фильтр по периоду дат платежа
+    в GET /api/payments/ (views/treasuryPayment.py::TreasuryPaymentFilter)."""
+
+    def setUp(self):
+        kind = KindOfPayment.objects.create(name='Тестовый платёж (поиск/период)')
+        self.p1 = TreasuryPayment.objects.create(
+            amount=Decimal('10.00'), kind=kind, payment_date='2026-01-15',
+            notice='Сопровождение АИПСИН Драгс', program_class=None,
+        )
+        self.p2 = TreasuryPayment.objects.create(
+            amount=Decimal('20.00'), kind=kind, payment_date='2026-06-10',
+            notice='Другой платёж без совпадения', program_class=None,
+        )
+
+    def test_search_matches_notice_case_insensitively(self):
+        from rest_framework.request import Request
+        from rest_framework.test import APIRequestFactory
+        from rest_framework import filters
+        from procurement.views.treasuryPayment import TreasuryPaymentViewSet
+
+        factory = APIRequestFactory()
+        request = Request(factory.get('/api/payments/', {'search': 'аипсин'}))
+        view = TreasuryPaymentViewSet()
+        view.request = request
+        qs = filters.SearchFilter().filter_queryset(request, TreasuryPayment.objects.all(), view)
+        self.assertEqual(list(qs), [self.p1])
+
+    def test_date_range_filter_is_inclusive_on_both_ends(self):
+        from procurement.views.treasuryPayment import TreasuryPaymentFilter
+        qs = TreasuryPaymentFilter(
+            {'payment_date_after': '2026-01-15', 'payment_date_before': '2026-01-15'},
+            queryset=TreasuryPayment.objects.all(),
+        ).qs
+        self.assertIn(self.p1, qs)
+        self.assertNotIn(self.p2, qs)
+
+    def test_date_range_filter_excludes_outside_range(self):
+        from procurement.views.treasuryPayment import TreasuryPaymentFilter
+        qs = TreasuryPaymentFilter(
+            {'payment_date_after': '2026-02-01', 'payment_date_before': '2026-12-31'},
+            queryset=TreasuryPayment.objects.all(),
+        ).qs
+        self.assertNotIn(self.p1, qs)
+        self.assertIn(self.p2, qs)
+
+
 class TreasuryPaymentAutoRecomputeTestCase(TestCase):
     """Этап 4.3: автоматический пересчёт факта квартального плана договора по платёжкам."""
 
@@ -537,6 +584,55 @@ class TreasuryPaymentAutoRecomputeTestCase(TestCase):
         payment.delete()
         cqf = ContractQuarterlyFinance.objects.get(contract=self.contract, contract_item__isnull=True)
         self.assertEqual(cqf.actual_cost, Decimal('0'))
+
+    def test_payment_mirrored_from_import_does_not_duplicate_breakdown_row(self):
+        """Баг найден 2026-11-18 (сообщение фронтенда): import_reestr26.py зеркалирует импортные
+        платёжки в TreasuryPayment — сохранение каждой из них триггерило этот же сигнал и
+        штамповало лишнюю "сводную" (contract_item=None) запись рядом с уже существующей точной
+        contract_item-разбивкой. Проверяем, что сигнал теперь её не создаёт — а если она уже
+        есть (унаследованный дубль), удаляет."""
+        department = Department.objects.create(full_name='Тестовое управление 4.3г', short_name='ТУ4.3г')
+        purchases = Purchases.objects.create(year=2026)
+        plan_item = PlanItem.objects.create(plan_purchase=purchases, num='2026-TEST-43g', is_public=True)
+        budget_cost = BudgetCosts.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=99,
+            cost=Decimal('300.00'), year=2026,
+        )
+        plan_share = PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=budget_cost, department=department,
+            shared_amount=Decimal('1'), shared_cost=Decimal('300.00'),
+        )
+        contract_item = ContractItem.objects.create(
+            contract=self.contract, plan_share=plan_share, year=2026,
+            contract_amount=Decimal('1'), contract_cost=Decimal('300.00'),
+        )
+        ContractQuarterlyFinance.objects.create(
+            contract=self.contract, contract_item=contract_item, quarter=QuarterTypes.Q1, year=2026,
+            planned_cost=Decimal('300.00'), actual_cost=Decimal('300.00'),
+        )
+
+        # Зеркалирование импортной платёжки на тот же договор/квартал — не должно создать
+        # "сводную" запись-дубль.
+        TreasuryPayment.objects.create(
+            amount=Decimal('300.00'), kind=self.kind_normal, contract=self.contract,
+            payment_year=2026, payment_date='2026-02-01', program_class=None,
+        )
+        self.assertFalse(
+            ContractQuarterlyFinance.objects.filter(contract=self.contract, contract_item__isnull=True).exists()
+        )
+
+        # Унаследованный дубль (созданный до фикса) должен удаляться при следующем пересчёте.
+        ContractQuarterlyFinance.objects.create(
+            contract=self.contract, contract_item=None, quarter=QuarterTypes.Q1, year=2026,
+            planned_cost=Decimal('300.00'), actual_cost=Decimal('300.00'),
+        )
+        TreasuryPayment.objects.create(
+            amount=Decimal('0.01'), kind=self.kind_refund, contract=self.contract,
+            payment_year=2026, payment_date='2026-02-02', program_class=None,
+        )
+        self.assertFalse(
+            ContractQuarterlyFinance.objects.filter(contract=self.contract, contract_item__isnull=True).exists()
+        )
 
 
 class TreasuryPaymentSerializerValidationTestCase(TestCase):
@@ -631,6 +727,103 @@ class ContractGetQuarterlyFinanceTestCase(TestCase):
         self.assertEqual(q1['planned_cost'], Decimal('100.00'))
         self.assertEqual(q1['actual_cost'], Decimal('80.00'))
 
+
+class ContractExpiringWithinDaysFilterTestCase(TestCase):
+    """Запрос пользователя (2026-11-18): фильтр "срок исполнения скоро истекает" в разделе
+    «Договоры» (все договоры) — ContractFilter.expiring_within_days (views/contract.py)."""
+
+    def setUp(self):
+        import datetime
+        from django.utils import timezone
+        supplier = Supplier.objects.create(name='Тестовый поставщик expiring')
+        self.today = timezone.now().date()
+        self.soon = Contract.objects.create(
+            number='T-EXP-SOON', supplier=supplier, total_cost=Decimal('1.00'),
+            planned_delivery_date=self.today + datetime.timedelta(days=3),
+        )
+        self.today_itself = Contract.objects.create(
+            number='T-EXP-TODAY', supplier=supplier, total_cost=Decimal('1.00'),
+            planned_delivery_date=self.today,
+        )
+        self.far_away = Contract.objects.create(
+            number='T-EXP-FAR', supplier=supplier, total_cost=Decimal('1.00'),
+            planned_delivery_date=self.today + datetime.timedelta(days=60),
+        )
+        self.overdue = Contract.objects.create(
+            number='T-EXP-OVERDUE', supplier=supplier, total_cost=Decimal('1.00'),
+            planned_delivery_date=self.today - datetime.timedelta(days=5),
+        )
+
+    def test_filters_to_contracts_due_within_n_days(self):
+        from procurement.views.contract import ContractFilter
+        qs = ContractFilter({'expiring_within_days': '5'}, queryset=Contract.objects.all()).qs
+        self.assertIn(self.soon, qs)
+        self.assertIn(self.today_itself, qs)
+        self.assertNotIn(self.far_away, qs)
+        self.assertNotIn(self.overdue, qs)
+
+
+class BackfillContractBuyerCommandTestCase(TestCase):
+    """Запрос пользователя (2026-11-18): Contract.buyer исторически не заполнялся импортом —
+    backfill_contract_buyer.py выводит его из PlanItemDetail.buyer по всем строкам
+    спецификации, только если закупщик один и тот же везде."""
+
+    def _make_contract_item(self, contract, buyer, *, num_suffix, purchases_items_id):
+        purchases = Purchases.objects.create(year=2026)
+        plan_item = PlanItem.objects.create(plan_purchase=purchases, num=f'2026-TEST-BF-{num_suffix}', is_public=True)
+        PlanItemDetail.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, num=f'2026-TEST-BF-{num_suffix}',
+            title='Тест backfill', okrb='00.00.00.000', val_amount=Decimal('1'), buyer=buyer,
+        )
+        budget_cost = BudgetCosts.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=purchases_items_id,
+            cost=Decimal('100.00'), year=2026,
+        )
+        plan_share = PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=budget_cost, department=self.department,
+            shared_amount=Decimal('1'), shared_cost=Decimal('100.00'),
+        )
+        return ContractItem.objects.create(
+            contract=contract, plan_share=plan_share, year=2026,
+            contract_amount=Decimal('1'), contract_cost=Decimal('100.00'),
+        )
+
+    def setUp(self):
+        self.department = Department.objects.create(full_name='Тестовое управление BF', short_name='ТУbf')
+        self.buyer_a = Buyer.objects.create(full_name='Закупщик А', shot_name='ЗА')
+        self.buyer_b = Buyer.objects.create(full_name='Закупщик Б', shot_name='ЗБ')
+        supplier = Supplier.objects.create(name='Тестовый поставщик backfill')
+        self.contract_single = Contract.objects.create(
+            number='T-BF-SINGLE', supplier=supplier, total_cost=Decimal('100.00'), planned_delivery_date='2026-12-31',
+        )
+        self._make_contract_item(self.contract_single, self.buyer_a, num_suffix='1', purchases_items_id=101)
+
+        self.contract_conflict = Contract.objects.create(
+            number='T-BF-CONFLICT', supplier=supplier, total_cost=Decimal('200.00'), planned_delivery_date='2026-12-31',
+        )
+        self._make_contract_item(self.contract_conflict, self.buyer_a, num_suffix='2', purchases_items_id=102)
+        self._make_contract_item(self.contract_conflict, self.buyer_b, num_suffix='3', purchases_items_id=103)
+
+        self.contract_no_buyer = Contract.objects.create(
+            number='T-BF-NONE', supplier=supplier, total_cost=Decimal('50.00'), planned_delivery_date='2026-12-31',
+        )
+        self._make_contract_item(self.contract_no_buyer, None, num_suffix='4', purchases_items_id=104)
+
+    def test_dry_run_does_not_persist_changes(self):
+        from django.core.management import call_command
+        call_command('backfill_contract_buyer')
+        self.contract_single.refresh_from_db()
+        self.assertIsNone(self.contract_single.buyer)
+
+    def test_apply_resolves_unambiguous_buyer_and_skips_conflict_and_empty(self):
+        from django.core.management import call_command
+        call_command('backfill_contract_buyer', '--apply')
+        self.contract_single.refresh_from_db()
+        self.contract_conflict.refresh_from_db()
+        self.contract_no_buyer.refresh_from_db()
+        self.assertEqual(self.contract_single.buyer_id, self.buyer_a.pk)
+        self.assertIsNone(self.contract_conflict.buyer)
+        self.assertIsNone(self.contract_no_buyer.buyer)
 
 class GoszakupkiPushTestCase(TestCase):
     """Этап 5: отправка позиций ГПЗ на goszakupki.by (create-item/update-item/delete-items,

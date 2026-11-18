@@ -18,6 +18,11 @@ from core.choices import UserRoleType
 
 CAPABILITIES = {
     'manage_users': {UserRoleType.ADMIN_MAIN},
+    # Решение пользователя (2026-11-18): редактирование реестра договоров — только
+    # главный администратор и финансист (см. UserRoleType.FINANCIER — договоры прямо
+    # названы в описании роли). Остальные роли (закупщики, руководитель) продолжают видеть
+    # договоры через общий AllowAny на чтение (см. ContractViewSet.get_permissions()).
+    'edit_contracts': {UserRoleType.ADMIN_MAIN, UserRoleType.FINANCIER},
 }
 
 

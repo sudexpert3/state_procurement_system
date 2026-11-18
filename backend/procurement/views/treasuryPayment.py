@@ -1,7 +1,27 @@
-from rest_framework import viewsets
+import django_filters
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, viewsets
 from rest_framework.permissions import AllowAny
 from ..models import TreasuryPayment
 from ..serializers import TreasuryPaymentSerializer
+
+
+class TreasuryPaymentFilter(django_filters.FilterSet):
+    # Запрос фронтенда (2026-11-18): фильтр по произвольному периоду дат платежа —
+    # существующие payment_year/quarter дают только грубый период (целый квартал).
+    payment_date_after = django_filters.DateFilter(
+        field_name='payment_date', lookup_expr='gte', label='Дата платежа с (включительно)',
+    )
+    payment_date_before = django_filters.DateFilter(
+        field_name='payment_date', lookup_expr='lte', label='Дата платежа по (включительно)',
+    )
+
+    class Meta:
+        model = TreasuryPayment
+        fields = [
+            'contract', 'payment_year', 'quarter', 'kind', 'departments',
+            'payment_date_after', 'payment_date_before',
+        ]
 
 
 class TreasuryPaymentViewSet(viewsets.ModelViewSet):
@@ -12,4 +32,7 @@ class TreasuryPaymentViewSet(viewsets.ModelViewSet):
     )
     serializer_class = TreasuryPaymentSerializer
     permission_classes = [AllowAny]  # Временный режим отладки системы
-    filterset_fields = ['contract', 'payment_year', 'quarter', 'kind', 'departments']
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_class = TreasuryPaymentFilter
+    # Запрос фронтенда (2026-11-18): поиск по примечанию — по аналогии с /api/contracts/.
+    search_fields = ['notice']

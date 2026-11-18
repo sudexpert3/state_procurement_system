@@ -109,3 +109,41 @@ class HasCapabilityPermissionTestCase(TestCase):
         user.profile.role = UserRoleType.HEAD  # роль неважна — is_superuser решает
         user.profile.save()
         self.assertTrue(self.permission_cls.has_permission(self._request_as(user), None))
+
+
+class EditContractsCapabilityTestCase(TestCase):
+    """Запрос пользователя (2026-11-18): редактировать реестр договоров могут только
+    «Главный администратор» и «Финансист» (см. CAPABILITIES['edit_contracts'],
+    ContractViewSet.get_permissions()). Проверяем именно эту пару ролей — в отличие от
+    manage_users (только ADMIN_MAIN), здесь допущена ещё и FINANCIER."""
+
+    def setUp(self):
+        self.factory = APIRequestFactory()
+        self.permission_cls = has_capability('edit_contracts')()
+
+    def _request_as(self, user):
+        request = self.factory.patch('/api/contracts/1/')
+        request.user = user
+        return request
+
+    def test_financier_allowed(self):
+        user = User.objects.create_user(username='financier1', password='x')
+        user.profile.role = UserRoleType.FINANCIER
+        user.profile.save()
+        self.assertTrue(self.permission_cls.has_permission(self._request_as(user), None))
+
+    def test_admin_main_allowed(self):
+        user = User.objects.create_user(username='admin_role2', password='x')
+        user.profile.role = UserRoleType.ADMIN_MAIN
+        user.profile.save()
+        self.assertTrue(self.permission_cls.has_permission(self._request_as(user), None))
+
+    def test_other_roles_denied(self):
+        user = User.objects.create_user(username='purchaser1', password='x')
+        user.profile.role = UserRoleType.PURCHASING_SPECIALIST
+        user.profile.save()
+        self.assertFalse(self.permission_cls.has_permission(self._request_as(user), None))
+
+    def test_anonymous_denied(self):
+        from django.contrib.auth.models import AnonymousUser
+        self.assertFalse(self.permission_cls.has_permission(self._request_as(AnonymousUser()), None))

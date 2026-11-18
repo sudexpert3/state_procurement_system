@@ -974,6 +974,14 @@ class Command(BaseCommand):
                     number=contract_num, contract_date=contract_date, supplier=supplier,
                     total_cost=Decimal('0'), is_registered_in_treasury=is_registered,
                     payment_terms=payment_terms, planned_delivery_date=delivery_date,
+                    # Запрос пользователя (2026-11-18): Contract.buyer раньше никогда не
+                    # заполнялся импортом — берём с позиции плана ЭТОЙ строки (plan_detail.buyer
+                    # уже резолвлен выше, до создания договора). Для договоров, собранных из
+                    # нескольких строк с РАЗНЫМИ закупщиками (редкость — см.
+                    # backfill_contract_buyer.py), здесь попадёт закупщик только первой
+                    # обработанной строки — не идеально, но лучше пустого поля; полную сверку по
+                    # всем строкам делает именно backfill-команда, не этот проход.
+                    buyer=plan_detail.buyer,
                 )
                 stats['contract_created'] += 1
                 touched_contract_ids.add(contract.pk)

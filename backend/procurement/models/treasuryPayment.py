@@ -186,7 +186,25 @@ def _recompute_contract_quarter_actual(contract, quarter, year):
     подразделению) запись ContractQuarterlyFinance по факту из TreasuryPayment (нетто, с
     учётом KindOfPayment.is_refund). Не трогает contract_item-записи, созданные при переносе
     rd26.xlsx (у них своя, более детальная история по подразделениям) — это отдельный,
-    параллельный разрез для платежей, заводимых напрямую через API (Этап 4.3)."""
+    параллельный разрез для платежей, заводимых напрямую через API (Этап 4.3).
+
+    Баг найден 2026-11-18: import_reestr26.py зеркалирует импортные платёжки в
+    TreasuryPayment (решение от 2026-10-30) — сохранение каждой из них ТОЖЕ триггерило этот
+    пересчёт и штамповало лишнюю "сводную" запись рядом с уже существующей точной
+    contract_item-разбивкой (904 договора, 1255 задвоенных строк на момент находки — см.
+    CurrentStatus.md). Если на этот квартал уже есть разбивка по строкам договора — сводная
+    запись не нужна и только путает (дублирует/расходится в цифрах): устаревшую удаляем,
+    новую не создаём."""
+    from .contractQuarterlyFinance import ContractQuarterlyFinance
+    has_breakdown = ContractQuarterlyFinance.objects.filter(
+        contract=contract, contract_item__isnull=False, quarter=quarter, year=year,
+    ).exists()
+    if has_breakdown:
+        ContractQuarterlyFinance.objects.filter(
+            contract=contract, contract_item__isnull=True, quarter=quarter, year=year,
+        ).delete()
+        return
+
     paid = TreasuryPayment.objects.filter(
         contract=contract, quarter=quarter, payment_year=year, kind__is_refund=False,
     ).aggregate(s=models.Sum('amount'))['s'] or Decimal('0')
@@ -195,7 +213,6 @@ def _recompute_contract_quarter_actual(contract, quarter, year):
     ).aggregate(s=models.Sum('amount'))['s'] or Decimal('0')
     net = paid - refunded
 
-    from .contractQuarterlyFinance import ContractQuarterlyFinance
     cqf = ContractQuarterlyFinance.objects.filter(
         contract=contract, contract_item__isnull=True, quarter=quarter, year=year,
     ).first()

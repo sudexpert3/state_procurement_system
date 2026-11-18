@@ -3,14 +3,31 @@ from ..models import Contract, ContractItem
 from procurement.serializers.procurementMethodDetail import ProcurementMethodDetailSerializer
 from procurement.serializers.supplier import SupplierSerializer
 from procurement.serializers.treasuryPayment import TreasuryPaymentSerializer
+from procurement.serializers.department import DepartmentSerializer
+from procurement.serializers.externalEconomicCode import ExternalEconomicCodeSerializer
+from procurement.serializers.internalEconomicClassifier import InternalEconomicClassifierSerializer
 
 
 class ContractItemSerializer(serializers.ModelSerializer):
     """Спецификация договора (Детализация списания лимитов подразделений)"""
+    # Запрос фронтенда (2026-11-18): подразделение и коды ЭКР — чтобы показывать их в общем
+    # реестре /contracts без доп. запросов на клиенте (та же техника, что и
+    # TreasuryPaymentSerializer.departments_detail — вложенный сериализатор поверх уже
+    # имеющейся связи). В отличие от TreasuryPayment.departments — здесь это не отдельное
+    # поле, а резолв через plan_share (department всегда есть, коды ЭКР могут быть не
+    # проставлены — nullable FK на BudgetCosts, тогда вернётся null).
+    department_detail = DepartmentSerializer(source='plan_share.department', read_only=True)
+    economic_class_detail = ExternalEconomicCodeSerializer(source='plan_share.budget_cost.economic_class', read_only=True)
+    internal_economic_class_detail = InternalEconomicClassifierSerializer(
+        source='plan_share.budget_cost.internal_economic_class', read_only=True,
+    )
 
     class Meta:
         model = ContractItem
-        fields = ['id', 'contract', 'title', 'year', 'plan_share', 'contract_amount', 'contract_cost']
+        fields = [
+            'id', 'contract', 'title', 'year', 'plan_share', 'contract_amount', 'contract_cost',
+            'department_detail', 'economic_class_detail', 'internal_economic_class_detail',
+        ]
 
 
 class ContractSerializer(serializers.ModelSerializer):
