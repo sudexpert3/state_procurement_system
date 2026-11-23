@@ -5,7 +5,7 @@ import type {
   InternalEconomicCode,
 } from "@/shared/api/schema";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDebounceValue } from "@siberiacancode/reactuse";
@@ -40,6 +40,8 @@ import {
   FieldError,
   FieldLabel,
 } from "@/shared/components/ui/field";
+import { Input } from "@/shared/components/ui/input";
+import { RequiredField } from "@/shared/components/ui/required-field";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { formatByn } from "@/shared/lib/helpers/format-money";
 import { handleHttpError } from "@/shared/lib/helpers/handle-http-error";
@@ -59,6 +61,103 @@ type Props = {
   defaultYear: number;
   onClose: () => void;
   onSuccess: () => void;
+};
+
+// Разбивка по финансовым разрядам при вводе суммы — для наглядности и
+// контроля больших чисел (решение пользователя). Обычный <Input type="number">
+// не позволяет вставлять пробелы-разделители, поэтому здесь — controlled
+// text-input: на каждое изменение строка очищается до цифр/точки и заново
+// группируется по тысячам, наружу (в react-hook-form) всегда уходит чистое
+// число.
+const groupThousands = (digits: string) => {
+  const [intPart = "", decPart] = digits.split(".");
+  const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return decPart !== undefined ? `${grouped}.${decPart}` : grouped;
+};
+
+const sanitizeAmountInput = (raw: string) => {
+  let cleaned = raw.replace(/[^\d.,]/g, "").replace(",", ".");
+  const firstDot = cleaned.indexOf(".");
+  if (firstDot !== -1) {
+    cleaned =
+      cleaned.slice(0, firstDot + 1) +
+      cleaned.slice(firstDot + 1).replace(/\./g, "");
+  }
+  return cleaned;
+};
+
+const AmountInput = ({
+  id,
+  value,
+  onChange,
+  disabled,
+  invalid,
+}: {
+  id?: string;
+  value: number;
+  onChange: (value: number) => void;
+  disabled?: boolean;
+  invalid?: boolean;
+}) => {
+  const [display, setDisplay] = useState(() =>
+    groupThousands(value ? String(value) : "0"),
+  );
+  // Чтобы не перетирать то, что пользователь печатает прямо сейчас, —
+  // пересинхронизируем отображение, только если value реально сменился НЕ
+  // из этого инпута (загрузка другой записи, сброс формы).
+  const lastEmittedValue = useRef(value);
+
+  useEffect(() => {
+    if (value !== lastEmittedValue.current) {
+      setDisplay(groupThousands(value ? String(value) : "0"));
+      lastEmittedValue.current = value;
+    }
+  }, [value]);
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const cursor = input.selectionStart ?? input.value.length;
+    // Сколько "значащих" символов (цифр/точки) было до курсора в строке,
+    // которую только что набрал пользователь, — после перегруппировки
+    // пробелов курсор ставится после того же количества значащих символов.
+    const significantBeforeCursor = (
+      input.value.slice(0, cursor).match(/[\d.]/g) ?? []
+    ).length;
+
+    const cleaned = sanitizeAmountInput(input.value);
+    const grouped = groupThousands(cleaned || "0");
+    const numericValue =
+      cleaned === "" || cleaned === "." ? 0 : Number(cleaned);
+
+    setDisplay(grouped);
+    lastEmittedValue.current = numericValue;
+    onChange(numericValue);
+
+    requestAnimationFrame(() => {
+      let seen = 0;
+      let pos = grouped.length;
+      for (let i = 0; i < grouped.length; i++) {
+        if (/[\d.]/.test(grouped.charAt(i))) seen++;
+        if (seen >= significantBeforeCursor) {
+          pos = i + 1;
+          break;
+        }
+      }
+      input.setSelectionRange(pos, pos);
+    });
+  };
+
+  return (
+    <Input
+      id={id}
+      type="text"
+      inputMode="decimal"
+      value={display}
+      onChange={handleChange}
+      disabled={disabled}
+      aria-invalid={invalid}
+    />
+  );
 };
 
 const buildDefaultValues = (defaultYear: number): DepartmentLimitFormInput => ({
@@ -494,15 +593,26 @@ export const DepartmentLimitForm = ({
             )}
           />
 
-          <InputField
-            control={control}
+          <Controller
             name="amount"
-            label="Сумма лимита, BYN"
-            type="number"
-            step="0.01"
-            min={0}
-            disabled={isLocked}
-            required
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="field-amount">
+                  Сумма лимита, BYN <RequiredField />
+                </FieldLabel>
+                <AmountInput
+                  id="field-amount"
+                  value={field.value}
+                  onChange={field.onChange}
+                  disabled={isLocked}
+                  invalid={fieldState.invalid}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
           />
 
           {availability.data && (

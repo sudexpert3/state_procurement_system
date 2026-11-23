@@ -7,12 +7,18 @@ import { DataTableCell } from "@/shared/components/data-table/data-table-cell";
 import { DeleteButton } from "@/shared/components/delete-button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import { formatDate } from "@/shared/lib/helpers/format-date";
 import { formatByn } from "@/shared/lib/helpers/format-money";
 
-const STATUS_BADGE_VARIANT = {
-  DRAFT: "secondary",
-  ACTIVE: "outline",
-  ARCHIVE: "destructive",
+// Свои цвета вместо стандартных вариантов Badge (secondary/outline/destructive) —
+// тот же приём, что в plan-meta.ts: border+bg+text, включая dark-вариант.
+const STATUS_BADGE_CLASSNAME = {
+  DRAFT:
+    "border-blue-200 bg-blue-100 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300",
+  ACTIVE:
+    "border-green-200 bg-green-100 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300",
+  ARCHIVE:
+    "border-red-200 bg-red-100 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300",
 } as const;
 
 // Своя подпись вместо `status_display` с бэкенда (там «Актуальный (Доступен
@@ -56,9 +62,28 @@ export const createColumns = (
     id: "status",
     header: "Статус",
     cell: ({ row }) => (
-      <Badge variant={STATUS_BADGE_VARIANT[row.original.status]}>
-        {STATUS_LABELS[row.original.status]}
-      </Badge>
+      <DataTableCell className="flex flex-col items-start gap-1">
+        <Badge
+          variant="outline"
+          className={STATUS_BADGE_CLASSNAME[row.original.status]}>
+          {STATUS_LABELS[row.original.status]}
+        </Badge>
+        {/* effective_date — дата, с которой запись реально действует: для
+            DRAFT ещё не значима (запись не действует), для ACTIVE/ARCHIVE
+            это и есть фактическая дата активации (поле блокируется сразу
+            после активации, см. department-limit-form.tsx/isLocked). */}
+        {row.original.status === "ACTIVE" && (
+          <span className="text-muted-foreground text-xs">
+            {formatDate(row.original.effective_date)}
+          </span>
+        )}
+        {row.original.status === "ARCHIVE" && (
+          <span className="text-muted-foreground text-xs">
+            {formatDate(row.original.effective_date)}-
+            {formatDate(row.original.deactivated_at)}
+          </span>
+        )}
+      </DataTableCell>
     ),
   },
   {
