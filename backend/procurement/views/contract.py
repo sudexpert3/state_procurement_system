@@ -38,10 +38,18 @@ class ContractFilter(django_filters.FilterSet):
         method='filter_expiring_within_days',
         label='Срок исполнения истекает в течение N дней (включая сегодня)',
     )
+    # Запрос фронтенда (CurrentStatus.md, 2026-11-21, следом за тем же фильтром у
+    # /api/plan_items/): подразделение договора определяется через спецификацию
+    # (ContractItem.plan_share.department) — у одного договора может быть несколько
+    # строк спецификации с разными подразделениями, поэтому ищем "хотя бы одна".
+    department = django_filters.NumberFilter(
+        field_name='items__plan_share__department',
+        label='ID подразделения (через спецификацию договора)',
+    )
 
     class Meta:
         model = Contract
-        fields = ['supplier', 'plan_item', 'has_payments', 'expiring_within_days']
+        fields = ['supplier', 'plan_item', 'has_payments', 'expiring_within_days', 'department']
 
     def filter_has_payments(self, queryset, name, value):
         if value:

@@ -7,15 +7,19 @@ import * as buyers from "@/features/buyers";
 import * as changeRequests from "@/features/change-requests";
 import * as codeOkrb from "@/features/code-okrb";
 import * as contracts from "@/features/contracts";
+import * as departmentLimits from "@/features/department-limits";
 import * as departments from "@/features/departments";
 import * as economicCode from "@/features/economic-code";
+import * as functionalCode from "@/features/functional-code";
 import * as internalEconomicCode from "@/features/internal-economic-code";
-import * as limitCalibration from "@/features/limit-calibration";
+import * as kindOfPayment from "@/features/kind-of-payment";
 import * as payments from "@/features/payments";
 import * as planItems from "@/features/plan-items";
 import * as plans from "@/features/plans";
+import * as programCode from "@/features/program-code";
 import * as reports from "@/features/reports";
 import * as suppliers from "@/features/suppliers";
+import * as unitsOfMeasurement from "@/features/units-of-measurement";
 import * as users from "@/features/users";
 import { ROUTES } from "@/shared/model/routes";
 
@@ -76,6 +80,22 @@ export const router = createBrowserRouter([
                 lazy: economicCode.list,
               },
               {
+                path: ROUTES.FUNCTIONAL_CODE,
+                lazy: functionalCode.list,
+              },
+              {
+                path: ROUTES.PROGRAM_CODE,
+                lazy: programCode.list,
+              },
+              {
+                path: ROUTES.UNITS_OF_MEASUREMENT,
+                lazy: unitsOfMeasurement.list,
+              },
+              {
+                path: ROUTES.KIND_OF_PAYMENT,
+                lazy: kindOfPayment.list,
+              },
+              {
                 path: ROUTES.DEPARTMENTS,
                 lazy: departments.list,
               },
@@ -96,12 +116,16 @@ export const router = createBrowserRouter([
                 lazy: internalEconomicCode.list,
               },
               {
-                path: ROUTES.LIMIT_CALIBRATION,
-                lazy: limitCalibration.list,
+                path: ROUTES.REPORTS,
+                loader: () => redirect(ROUTES.REPORTS_GENERAL_MONEY),
               },
               {
-                path: ROUTES.REPORTS,
-                lazy: reports.list,
+                path: ROUTES.REPORTS_GENERAL_MONEY,
+                lazy: reports.generalMoney,
+              },
+              {
+                path: ROUTES.REPORTS_BUDGET_EXECUTION,
+                lazy: reports.budgetExecution,
               },
               {
                 Component: () => <RequireRole role="ADMIN_MAIN" />,
@@ -109,6 +133,17 @@ export const router = createBrowserRouter([
                   {
                     path: ROUTES.USERS,
                     lazy: users.list,
+                  },
+                ],
+              },
+              {
+                Component: () => (
+                  <RequireRole role={["ADMIN_MAIN", "FINANCIER"]} />
+                ),
+                children: [
+                  {
+                    path: ROUTES.DEPARTMENT_LIMITS,
+                    lazy: departmentLimits.list,
                   },
                 ],
               },

@@ -23,6 +23,15 @@ CAPABILITIES = {
     # названы в описании роли). Остальные роли (закупщики, руководитель) продолжают видеть
     # договоры через общий AllowAny на чтение (см. ContractViewSet.get_permissions()).
     'edit_contracts': {UserRoleType.ADMIN_MAIN, UserRoleType.FINANCIER},
+    # Решение пользователя (2026-11-20): корректировка общих лимитов из файла fin_YYYY.xlsb
+    # (страница "Общие деньги") — только главный администратор и финансист (см.
+    # UserRoleType.FINANCIER — "осуществляет корректировку лимитов: или из файла или руками").
+    # Без отдельного согласования — см. services/change_requests.py::create_budget_limit_correction().
+    'budget_limit_correction': {UserRoleType.ADMIN_MAIN, UserRoleType.FINANCIER},
+    # Решение пользователя (2026-11-23): распределение лимитов по держателям (подразделениям)
+    # правится напрямую, без согласования — т.к. и так доступно только финансисту/админу
+    # (см. UserRoleType.FINANCIER — "осуществляет корректировку лимитов... руками").
+    'department_limits': {UserRoleType.ADMIN_MAIN, UserRoleType.FINANCIER},
 }
 
 

@@ -9,6 +9,7 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from core.choices import (
     ChangeRequestKind, ChangeRequestStatus, PlanItemStatus, ProcurementItemTypes, QuarterTypes,
+    UserRoleType,
 )
 from procurement.models import (
     PlanItem, PlanItemDetail, BudgetCosts, PlanShare, Department, Contract, ContractItem,
@@ -144,6 +145,58 @@ class ChangeRequestEngineTestCase(TestCase):
         with self.assertRaises(ValidationError):
             cr_service.create_change_request(self.plan_item, ChangeRequestKind.BUDGET_LIMIT_CORRECTION)
 
+    def test_delete_draft_removes_change_request_and_children(self):
+        """Решение пользователя (2026-11-20): специалист может удалить черновик заявки,
+        который начал готовить и передумал — не дожидаясь отклонения."""
+        cr = cr_service.create_change_request(self.plan_item, ChangeRequestKind.PLAN_ITEM_CHANGE)
+        cr_id = cr.pk
+        draft_bc_id = cr.draft_budget_costs.get().pk
+
+        cr_service.delete_draft(cr)
+
+        self.assertFalse(ChangeRequest.objects.filter(pk=cr_id).exists())
+        self.assertFalse(BudgetCosts.objects.filter(pk=draft_bc_id).exists())
+        # старая ACTIVE-строка не тронута — удаление черновика не должно её архивировать
+        self.budget_cost.refresh_from_db()
+        self.assertEqual(self.budget_cost.status, PlanItemStatus.ACTIVE)
+
+    def test_delete_draft_refuses_non_draft_status(self):
+        cr = cr_service.create_change_request(self.plan_item, ChangeRequestKind.PLAN_ITEM_CHANGE)
+        cr_service.submit(cr)
+        with self.assertRaises(ValidationError):
+            cr_service.delete_draft(cr)
+        self.assertTrue(ChangeRequest.objects.filter(pk=cr.pk).exists())
+
+
+class ChangeRequestDestroyApiTestCase(TestCase):
+    """DELETE /api/change_requests/{id}/ (решение пользователя 2026-11-20) — проверяет именно
+    HTTP-слой: ModelViewSet.destroy() переопределён на cr_service.delete_draft() (см.
+    views/changeRequest.py), потому что "голый" DELETE уронил бы ProtectedError (все дочерние
+    DRAFT-строки ссылаются на ChangeRequest через on_delete=PROTECT)."""
+
+    def setUp(self):
+        from rest_framework.test import APIClient
+        self.client = APIClient()
+        self.purchases = Purchases.objects.create(year=2026)
+        self.plan_item = PlanItem.objects.create(plan_purchase=self.purchases, num='2026-TEST-DEL', is_public=True)
+        PlanItemDetail.objects.create(
+            plan_item=self.plan_item, status=PlanItemStatus.ACTIVE, num='2026-TEST-DEL',
+            title='Позиция на удаление черновика', okrb='00.00.00.000', val_amount=Decimal('1'),
+        )
+
+    def test_delete_draft_returns_204(self):
+        cr = cr_service.create_change_request(self.plan_item, ChangeRequestKind.PLAN_ITEM_CHANGE)
+        response = self.client.delete(f'/api/change_requests/{cr.pk}/')
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(ChangeRequest.objects.filter(pk=cr.pk).exists())
+
+    def test_delete_on_review_returns_400_not_500(self):
+        cr = cr_service.create_change_request(self.plan_item, ChangeRequestKind.PLAN_ITEM_CHANGE)
+        cr_service.submit(cr)
+        response = self.client.delete(f'/api/change_requests/{cr.pk}/')
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(ChangeRequest.objects.filter(pk=cr.pk).exists())
+
 
 class BudgetQuarterlyLimitTestCase(TestCase):
     """Квартальное распределение лимита (Этап 3.3)."""
@@ -254,13 +307,29 @@ class BudgetExecutionReportTestCase(TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]['allocated'], Decimal('200.00'))
 
-    def test_no_data_for_other_quarter(self):
+    def test_other_quarter_shows_row_with_zero_allocated_not_empty(self):
+        """Баг 2026-11-19 (фронтенд): строка по кварталу без доведённого лимита раньше ПРОПАДАЛА
+        целиком (INNER JOIN с BudgetQuarterlyLimit), хотя обязательства/оплата по ней есть.
+        Теперь строка остаётся, allocated — просто 0."""
         BudgetQuarterlyLimit.objects.create(
             plan_share=self.plan_share, budget_cost=self.budget_cost, quarter=QuarterTypes.Q1,
             amount=Decimal('200.00'),
         )
         rows = compute_budget_execution_report(year=2026, department_id=self.department.pk, quarter=QuarterTypes.Q2)
-        self.assertEqual(rows, [])
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['allocated'], Decimal('0'))
+        self.assertEqual(rows[0]['committed_obligations'], Decimal('500.00'))
+        self.assertEqual(rows[0]['paid'], Decimal('250.00'))
+
+    def test_quarter_report_not_empty_when_budget_quarterly_limit_table_is_empty(self):
+        """Точный репро бага с CurrentStatus.md: в реальной БД BudgetQuarterlyLimit пуста
+        (доведение лимитов по кварталам ещё не ведётся) — отчёт по любому кварталу
+        возвращал [] целиком вместо строк с allocated=0."""
+        rows = compute_budget_execution_report(year=2026, department_id=self.department.pk, quarter=QuarterTypes.Q1)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['allocated'], Decimal('0'))
+        self.assertEqual(rows[0]['committed_obligations'], Decimal('500.00'))
+        self.assertEqual(rows[0]['paid'], Decimal('250.00'))
 
 
 class LimitRedistributionTestCase(TestCase):
@@ -344,7 +413,11 @@ class LimitRedistributionTestCase(TestCase):
 
 
 class BudgetLimitCorrectionTestCase(TestCase):
-    """Приём корректировок лимитов от Казначейства (Этап 3.4) — агрегатный уровень статьи."""
+    """Приём корректировок лимитов от Казначейства (Этап 3.4) — агрегатный уровень статьи.
+
+    Решение пользователя (2026-11-20): отдельное согласование (submit/approve) для этого вида
+    заявки убрано — create_budget_limit_correction() теперь сама отправляет и одобряет
+    заявку в одной транзакции, т.к. доступ к ней и так ограничен ролью (финансист/админ)."""
 
     def setUp(self):
         from procurement.models import FunctionalCode, ExternalEconomicCode
@@ -358,14 +431,7 @@ class BudgetLimitCorrectionTestCase(TestCase):
              'year': 2026, 'quarter': QuarterTypes.Q1, 'amount': Decimal('9831556.00')},
         ], reason='fin_2026.xlsb от 2026-11-02')
         self.assertEqual(cr.kind, ChangeRequestKind.BUDGET_LIMIT_CORRECTION)
-        self.assertEqual(cr.status, ChangeRequestStatus.DRAFT)
-
-        forecast = cr_service.compute_forecast(cr)
-        self.assertEqual(forecast['lines'][0]['old_amount'], Decimal('0'))
-        self.assertEqual(forecast['lines'][0]['delta'], Decimal('9831556.00'))
-
-        cr_service.submit(cr)
-        cr_service.approve(cr)
+        self.assertEqual(cr.status, ChangeRequestStatus.APPROVED)  # применяется сразу, без ON_REVIEW
 
         active = ArticleQuarterlyAllocation.objects.get(
             functional_class=self.func, economic_class=self.econ, year=2026,
@@ -378,19 +444,13 @@ class BudgetLimitCorrectionTestCase(TestCase):
             {'functional_class': self.func.pk, 'economic_class': self.econ.pk,
              'year': 2026, 'quarter': QuarterTypes.Q1, 'amount': Decimal('100.00')},
         ])
-        cr_service.submit(cr1)
-        cr_service.approve(cr1)
+        self.assertEqual(cr1.status, ChangeRequestStatus.APPROVED)
 
         cr2 = cr_service.create_budget_limit_correction([
             {'functional_class': self.func.pk, 'economic_class': self.econ.pk,
              'year': 2026, 'quarter': QuarterTypes.Q1, 'amount': Decimal('150.00')},
         ])
-        forecast = cr_service.compute_forecast(cr2)
-        self.assertEqual(forecast['lines'][0]['old_amount'], Decimal('100.00'))
-        self.assertEqual(forecast['lines'][0]['delta'], Decimal('50.00'))
-
-        cr_service.submit(cr2)
-        cr_service.approve(cr2)
+        self.assertEqual(cr2.status, ChangeRequestStatus.APPROVED)
 
         from procurement.models import ArticleQuarterlyAllocation
         self.assertEqual(
@@ -406,6 +466,181 @@ class BudgetLimitCorrectionTestCase(TestCase):
     def test_empty_lines_rejected(self):
         with self.assertRaises(ValidationError):
             cr_service.create_budget_limit_correction([])
+
+
+class FinFileParserPreviewTestCase(TestCase):
+    """`fin_file_parser.build_preview()` — обёртка REST-предпросмотра (задание фронтенда
+    2026-11-19) над parse_fin_file(). Сам разбор .xlsb не мокаем здесь целиком — он уже
+    покрыт ручной проверкой на реальном fin_2026.xlsb (см. management-команду); проверяем
+    именно то, что добавляет build_preview: расшифровку id в объекты справочников и
+    JSON-пригодный вид report (set -> список, tuple -> словарь)."""
+
+    def setUp(self):
+        from procurement.models import FunctionalCode, ExternalEconomicCode
+        self.func = FunctionalCode.objects.create(code_api='03 12 00 039', description='ГКСЭ')
+        self.econ = ExternalEconomicCode.objects.create(code_api='1 10 10 99', description='Прочие текущие расходы')
+
+    @patch('procurement.services.fin_file_parser.parse_fin_file')
+    def test_enriches_lines_and_normalizes_report(self, mock_parse):
+        from procurement.services import fin_file_parser
+
+        mock_parse.return_value = (
+            [{'functional_class': self.func.pk, 'economic_class': self.econ.pk,
+              'year': 2026, 'quarter': 'Q1', 'amount': Decimal('100.00')}],
+            {
+                'rows_total': 3, 'matched_articles': 1,
+                'excluded': [('03_12_00_039_99_00', '1.10.01.00')],
+                'functional_not_found': {'03_12_00_999_99_00'},
+                'economic_not_found': {'9.99.99.99'},
+            },
+        )
+
+        result = fin_file_parser.build_preview('irrelevant/path.xlsb', 2026, unk=1534)
+
+        mock_parse.assert_called_once_with('irrelevant/path.xlsb', 2026, unk=1534, sheet_name=fin_file_parser.SHEET_NAME)
+        line = result['lines'][0]
+        self.assertEqual(line['functional_class'], self.func.pk)
+        self.assertEqual(line['functional_class_detail'], self.func)
+        self.assertEqual(line['economic_class_detail'], self.econ)
+        self.assertEqual(line['amount'], Decimal('100.00'))
+
+        report = result['report']
+        self.assertEqual(report['excluded'], [{'functional_raw_code': '03_12_00_039_99_00',
+                                               'economic_raw_code': '1.10.01.00'}])
+        self.assertEqual(report['functional_not_found'], ['03_12_00_999_99_00'])
+        self.assertEqual(report['economic_not_found'], ['9.99.99.99'])
+
+
+class BudgetLimitCorrectionApiTestCase(TestCase):
+    """REST-слой для предпросмотра/подтверждения импорта корректировки лимитов (задание
+    фронтенда 2026-11-19, CurrentStatus.md). Предпросмотр мокает fin_file_parser.build_preview
+    (сам разбор .xlsb уже покрыт отдельно, см. FinFileParserPreviewTestCase) — здесь
+    проверяется HTTP-слой: multipart-приём файла, временный файл, коды ответа.
+
+    Решение пользователя (2026-11-20): оба действия доступны только финансисту/админу
+    (CAPABILITIES['budget_limit_correction']) — здесь аутентифицируемся финансистом, чтобы
+    проверять именно бизнес-логику; саму проверку прав см. в
+    AnonymousBudgetLimitCorrectionAccessTestCase ниже."""
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+        from rest_framework.test import APIClient
+        from procurement.models import FunctionalCode, ExternalEconomicCode
+        self.client = APIClient()  # нужен .post(..., format=...) — обычный django.test.Client его не поддерживает
+        user = get_user_model().objects.create_user(username='financier_api', password='x')
+        user.profile.role = UserRoleType.FINANCIER
+        user.profile.save()
+        self.client.force_authenticate(user=user)
+        self.func = FunctionalCode.objects.create(code_api='03 12 00 039', description='ГКСЭ')
+        self.econ = ExternalEconomicCode.objects.create(code_api='1 10 10 99', description='Прочие текущие расходы')
+
+    @patch('procurement.views.changeRequest.fin_file_parser.build_preview')
+    def test_preview_returns_parsed_lines_without_saving(self, mock_build_preview):
+        import os
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from procurement.models import ArticleQuarterlyAllocation
+
+        mock_build_preview.return_value = {
+            'lines': [{'functional_class': self.func.pk, 'functional_class_detail': self.func,
+                       'economic_class': self.econ.pk, 'economic_class_detail': self.econ,
+                       'year': 2026, 'quarter': 'Q1', 'amount': Decimal('100.00')}],
+            'report': {'rows_total': 1, 'matched_articles': 1, 'excluded': [],
+                      'functional_not_found': [], 'economic_not_found': []},
+        }
+        upload = SimpleUploadedFile('fin_2026.xlsb', b'fake-xlsb-bytes', content_type='application/octet-stream')
+
+        response = self.client.post(
+            '/api/change_requests/budget_limit_correction_preview/',
+            {'file': upload, 'year': 2026, 'unk': 1534}, format='multipart',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['lines']), 1)
+        self.assertEqual(response.data['lines'][0]['amount'], '100.00')
+        self.assertEqual(response.data['lines'][0]['functional_class_detail']['code_api'], '03 12 00 039')
+        mock_build_preview.assert_called_once()
+        called_path, called_year = mock_build_preview.call_args.args
+        self.assertEqual(called_year, 2026)
+        self.assertFalse(os.path.exists(called_path))  # временный файл удалён после ответа
+        self.assertEqual(ArticleQuarterlyAllocation.objects.count(), 0)  # предпросмотр ничего не пишет в БД
+
+    @patch('procurement.views.changeRequest.fin_file_parser.build_preview')
+    def test_preview_returns_400_on_parse_error(self, mock_build_preview):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        mock_build_preview.side_effect = ValueError("Sheet 'T' not found")
+        upload = SimpleUploadedFile('broken.xlsb', b'not-really-xlsb', content_type='application/octet-stream')
+
+        response = self.client.post(
+            '/api/change_requests/budget_limit_correction_preview/',
+            {'file': upload, 'year': 2026}, format='multipart',
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Sheet 'T' not found", response.data['detail'])
+
+    def test_confirm_applies_correction_immediately_without_review(self):
+        """Решение пользователя (2026-11-20): заявка больше не ждёт отдельного
+        submit/approve — сохранение из формы на фронте должно сразу сделать корректировку
+        действующей (см. cr_service.create_budget_limit_correction())."""
+        response = self.client.post(
+            '/api/change_requests/budget_limit_correction/',
+            {
+                'reason': 'fin_2026.xlsb от Казначейства',
+                'lines': [{'functional_class': self.func.pk, 'economic_class': self.econ.pk,
+                          'year': 2026, 'quarter': 'Q1', 'amount': '9831556.00'}],
+            }, format='json',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['kind'], ChangeRequestKind.BUDGET_LIMIT_CORRECTION)
+        self.assertEqual(response.data['status'], ChangeRequestStatus.APPROVED)
+        self.assertIsNotNone(response.data['submitted_at'])
+        self.assertIsNotNone(response.data['reviewed_at'])
+
+        change_request = ChangeRequest.objects.get(pk=response.data['id'])
+        draft = change_request.draft_article_allocations.get()
+        self.assertEqual(draft.amount, Decimal('9831556.00'))
+        self.assertEqual(draft.quarter, QuarterTypes.Q1)
+        self.assertEqual(draft.status, PlanItemStatus.ACTIVE)  # уже действует, не ждёт approve
+
+
+class AnonymousBudgetLimitCorrectionAccessTestCase(TestCase):
+    """Запрос пользователя (2026-11-20): импорт корректировки лимитов — только
+    финансист/админ (см. BudgetLimitCorrectionCapabilityTestCase в authentication/tests.py
+    для проверки самого permission-класса; здесь — что он реально подключён к вьюсету)."""
+
+    def setUp(self):
+        from rest_framework.test import APIClient
+        from procurement.models import FunctionalCode, ExternalEconomicCode
+        self.client = APIClient()
+        self.func = FunctionalCode.objects.create(code_api='03 12 00 039', description='ГКСЭ')
+        self.econ = ExternalEconomicCode.objects.create(code_api='1 10 10 99', description='Прочие текущие расходы')
+
+    def test_anonymous_confirm_denied(self):
+        response = self.client.post(
+            '/api/change_requests/budget_limit_correction/',
+            {
+                'reason': 'тест',
+                'lines': [{'functional_class': self.func.pk, 'economic_class': self.econ.pk,
+                          'year': 2026, 'quarter': 'Q1', 'amount': '100.00'}],
+            }, format='json',
+        )
+        # DRF: раз в DEFAULT_AUTHENTICATION_CLASSES есть аутентификаторы, но ни один не
+        # сработал (анонимный запрос без токена/сессии) — permission_denied() поднимает
+        # NotAuthenticated (401), а не PermissionDenied (403); см.
+        # rest_framework.views.APIView.permission_denied().
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(ChangeRequest.objects.count(), 0)
+
+    def test_anonymous_preview_denied(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        upload = SimpleUploadedFile('fin_2026.xlsb', b'fake-xlsb-bytes', content_type='application/octet-stream')
+        response = self.client.post(
+            '/api/change_requests/budget_limit_correction_preview/',
+            {'file': upload, 'year': 2026}, format='multipart',
+        )
+        self.assertEqual(response.status_code, 401)
 
 
 class MultiYearReservationTestCase(TestCase):
@@ -763,6 +998,74 @@ class ContractExpiringWithinDaysFilterTestCase(TestCase):
         self.assertNotIn(self.overdue, qs)
 
 
+class ContractDepartmentFilterTestCase(TestCase):
+    """Запрос фронтенда (2026-11-21, следом за тем же фильтром у /api/plan_items/,
+    см. CurrentStatus.md): ?department=<id> на /api/contracts/ — подразделение
+    определяется через спецификацию (ContractItem.plan_share.department), у одного
+    договора может быть несколько строк с разными подразделениями."""
+
+    def _make_contract_item(self, contract, department, *, num_suffix, purchases_items_id):
+        purchases = Purchases.objects.create(year=2026)
+        plan_item = PlanItem.objects.create(plan_purchase=purchases, num=f'2026-TEST-CD-{num_suffix}', is_public=True)
+        PlanItemDetail.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, num=f'2026-TEST-CD-{num_suffix}',
+            title='Тест фильтра подразделения', okrb='00.00.00.000', val_amount=Decimal('1'),
+        )
+        budget_cost = BudgetCosts.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=purchases_items_id,
+            cost=Decimal('100.00'), year=2026,
+        )
+        plan_share = PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=budget_cost, department=department,
+            shared_amount=Decimal('1'), shared_cost=Decimal('100.00'),
+        )
+        return ContractItem.objects.create(
+            contract=contract, plan_share=plan_share, year=2026,
+            contract_amount=Decimal('1'), contract_cost=Decimal('100.00'),
+        )
+
+    def setUp(self):
+        supplier = Supplier.objects.create(name='Тестовый поставщик department-filter')
+        self.dept_1 = Department.objects.create(full_name='Управление CD-1', short_name='CD1')
+        self.dept_2 = Department.objects.create(full_name='Управление CD-2', short_name='CD2')
+
+        # Договор только с dept_1.
+        self.contract_1 = Contract.objects.create(
+            number='T-DEP-1', supplier=supplier, total_cost=Decimal('100.00'),
+            planned_delivery_date='2026-12-31',
+        )
+        self._make_contract_item(self.contract_1, self.dept_1, num_suffix=1, purchases_items_id=301)
+
+        # Договор с двумя строками спецификации (dept_1 и dept_2) — проверка distinct().
+        self.contract_2 = Contract.objects.create(
+            number='T-DEP-2', supplier=supplier, total_cost=Decimal('200.00'),
+            planned_delivery_date='2026-12-31',
+        )
+        self._make_contract_item(self.contract_2, self.dept_1, num_suffix=2, purchases_items_id=302)
+        self._make_contract_item(self.contract_2, self.dept_2, num_suffix=3, purchases_items_id=303)
+
+        # Договор только с dept_2.
+        self.contract_3 = Contract.objects.create(
+            number='T-DEP-3', supplier=supplier, total_cost=Decimal('50.00'),
+            planned_delivery_date='2026-12-31',
+        )
+        self._make_contract_item(self.contract_3, self.dept_2, num_suffix=4, purchases_items_id=304)
+
+    def _ids(self, **query):
+        response = self.client.get('/api/contracts/', query)
+        self.assertEqual(response.status_code, 200)
+        return {row['id'] for row in response.json()['results']}
+
+    def test_filter_by_department(self):
+        self.assertEqual(self._ids(department=self.dept_1.id), {self.contract_1.id, self.contract_2.id})
+        self.assertEqual(self._ids(department=self.dept_2.id), {self.contract_2.id, self.contract_3.id})
+
+    def test_no_filter_returns_all(self):
+        self.assertEqual(
+            self._ids(), {self.contract_1.id, self.contract_2.id, self.contract_3.id},
+        )
+
+
 class BackfillContractBuyerCommandTestCase(TestCase):
     """Запрос пользователя (2026-11-18): Contract.buyer исторически не заполнялся импортом —
     backfill_contract_buyer.py выводит его из PlanItemDetail.buyer по всем строкам
@@ -906,16 +1209,26 @@ class GoszakupkiPushTestCase(TestCase):
         self.assertEqual(result['deleted_purchases_item_ids'], [])
 
 
-class DepartmentLimitCalibrationTestCase(TestCase):
-    """Калибровка разбивки статьи Минфина на подстатьи/держателей лимита (решение
-    пользователя 2026-11-03, kind=DEPARTMENT_LIMIT_CALIBRATION)."""
+class DepartmentArticleLimitDirectEditTestCase(TestCase):
+    """Страница «Распределение лимитов» (решение пользователя 2026-11-23) — правится
+    напрямую (CRUD + activate), без ChangeRequest/согласования. Доступ — только финансист/
+    админ (CAPABILITIES['department_limits']) — здесь аутентифицируемся финансистом, саму
+    проверку прав см. в DepartmentLimitsCapabilityTestCase (authentication/tests.py)."""
 
     def setUp(self):
+        from django.contrib.auth import get_user_model
+        from rest_framework.test import APIClient
         from procurement.models import FunctionalCode, ExternalEconomicCode, ArticleQuarterlyAllocation
+
+        self.client = APIClient()
+        user = get_user_model().objects.create_user(username='financier_dl', password='x')
+        user.profile.role = UserRoleType.FINANCIER
+        user.profile.save()
+        self.client.force_authenticate(user=user)
+
         self.func = FunctionalCode.objects.create(code_api='03 12 00 039', description='ГКСЭ')
         self.econ = ExternalEconomicCode.objects.create(code_api='1 10 03 99', description='Расходные материалы')
-        self.iec_a = InternalEconomicClassifier.objects.create(code='1100300001', name='Подстатья А')
-        self.iec_b = InternalEconomicClassifier.objects.create(code='1100300002', name='Подстатья Б')
+        self.iec = InternalEconomicClassifier.objects.create(code='1100300001', name='Подстатья А')
         self.dept1 = Department.objects.create(full_name='Отдел 1', short_name='О1')
         self.dept2 = Department.objects.create(full_name='Отдел 2', short_name='О2')
         for q in [QuarterTypes.Q1, QuarterTypes.Q2, QuarterTypes.Q3, QuarterTypes.Q4]:
@@ -925,136 +1238,100 @@ class DepartmentLimitCalibrationTestCase(TestCase):
             )
         # Итого по статье за год: 500000.00
 
-    def _balanced_lines(self):
+    def _create_draft(self, department, amount):
+        response = self.client.post('/api/department_article_limits/', {
+            'functional_class': self.func.pk, 'economic_class': self.econ.pk,
+            'internal_economic_class': self.iec.pk, 'department': department.pk,
+            'year': 2026, 'amount': str(amount),
+        }, format='json')
+        self.assertEqual(response.status_code, 201, response.data)
+        return response.data
+
+    def test_new_record_defaults_to_draft(self):
+        data = self._create_draft(self.dept1, Decimal('200000.00'))
+        self.assertEqual(data['status'], PlanItemStatus.DRAFT)
+
+    def test_activate_promotes_draft_to_active(self):
         from procurement.models import DepartmentArticleLimit
-        return [
-            {'functional_class': self.func, 'economic_class': self.econ,
-             'internal_economic_class': self.iec_a, 'department': None, 'year': 2026,
-             'amount': Decimal('300000.00'), 'status': PlanItemStatus.DRAFT},
-            {'functional_class': self.func, 'economic_class': self.econ,
-             'internal_economic_class': self.iec_a, 'department': self.dept1, 'year': 2026,
-             'amount': Decimal('200000.00'), 'status': PlanItemStatus.DRAFT},
-            {'functional_class': self.func, 'economic_class': self.econ,
-             'internal_economic_class': self.iec_a, 'department': self.dept2, 'year': 2026,
-             'amount': Decimal('100000.00'), 'status': PlanItemStatus.DRAFT},
-            {'functional_class': self.func, 'economic_class': self.econ,
-             'internal_economic_class': self.iec_b, 'department': None, 'year': 2026,
-             'amount': Decimal('200000.00'), 'status': PlanItemStatus.DRAFT},
-            {'functional_class': self.func, 'economic_class': self.econ,
-             'internal_economic_class': self.iec_b, 'department': self.dept1, 'year': 2026,
-             'amount': Decimal('200000.00'), 'status': PlanItemStatus.DRAFT},
-        ]
+        data = self._create_draft(self.dept1, Decimal('200000.00'))
 
-    def test_create_calibration_starts_empty_when_no_active_rows(self):
-        cr = cr_service.create_department_limit_calibration(
-            functional_class_id=self.func.pk, economic_class_id=self.econ.pk, year=2026,
-        )
-        self.assertEqual(cr.kind, ChangeRequestKind.DEPARTMENT_LIMIT_CALIBRATION)
-        self.assertEqual(cr.draft_department_limits.count(), 0)
+        response = self.client.post(f"/api/department_article_limits/{data['id']}/activate/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], PlanItemStatus.ACTIVE)
+        self.assertEqual(DepartmentArticleLimit.objects.get(pk=data['id']).status, PlanItemStatus.ACTIVE)
 
-    def test_underallocated_draft_is_allowed(self):
-        """Недораспределение — нормальное состояние (пример пользователя: план - резерв -
-        доведено = нераспределённые лимиты, положительный остаток). НЕ должно блокировать
-        применение калибровки."""
+    def test_activate_archives_previous_active_with_same_combo(self):
+        """Решение пользователя (2026-11-23): «Активировать» делает архивными все записи-
+        лимиты ВЫБРАННОГО подразделения по выбранному параграфу-статье и внутреннему коду —
+        история версий лимита сохраняется построчно."""
         from procurement.models import DepartmentArticleLimit
-        cr = cr_service.create_department_limit_calibration(
-            functional_class_id=self.func.pk, economic_class_id=self.econ.pk, year=2026,
-        )
-        # Подстатья покрывает только 300000 из доступных 500000 — остаток 200000 остаётся
-        # нераспределённым, это допустимо.
-        DepartmentArticleLimit.objects.create(
-            functional_class=self.func, economic_class=self.econ, internal_economic_class=self.iec_a,
-            department=None, year=2026, amount=Decimal('300000.00'),
-            status=PlanItemStatus.DRAFT, change_request=cr,
-        )
-        forecast = cr_service.compute_forecast(cr)
-        self.assertTrue(forecast['is_balanced'])
-        self.assertEqual(forecast['article_diff'], Decimal('200000.00'))
+        first = self._create_draft(self.dept1, Decimal('200000.00'))
+        self.client.post(f"/api/department_article_limits/{first['id']}/activate/")
 
-        cr_service.submit(cr)
-        cr_service.approve(cr)  # не должно поднимать ValidationError
+        second = self._create_draft(self.dept1, Decimal('250000.00'))
+        response = self.client.post(f"/api/department_article_limits/{second['id']}/activate/")
+        self.assertEqual(response.status_code, 200)
+
+        old = DepartmentArticleLimit.objects.get(pk=first['id'])
+        self.assertEqual(old.status, PlanItemStatus.ARCHIVE)
+        self.assertIsNotNone(old.deactivated_at)
+        new = DepartmentArticleLimit.objects.get(pk=second['id'])
+        self.assertEqual(new.status, PlanItemStatus.ACTIVE)
+
+        # Другое подразделение с той же статьёй/подстатьёй не затрагивается.
+        other = self._create_draft(self.dept2, Decimal('100000.00'))
+        self.client.post(f"/api/department_article_limits/{other['id']}/activate/")
         self.assertEqual(
-            DepartmentArticleLimit.objects.filter(status=PlanItemStatus.ACTIVE).count(), 1,
+            DepartmentArticleLimit.objects.filter(status=PlanItemStatus.ACTIVE).count(), 2,
         )
 
-    def test_overallocated_draft_rejected_on_approve(self):
-        """Перерасход — подстатьям раздали больше, чем реально доступно статье. Это
-        единственное, что должно блокировать применение калибровки."""
-        from procurement.models import DepartmentArticleLimit
-        cr = cr_service.create_department_limit_calibration(
-            functional_class_id=self.func.pk, economic_class_id=self.econ.pk, year=2026,
+    def test_activate_non_draft_rejected(self):
+        data = self._create_draft(self.dept1, Decimal('200000.00'))
+        self.client.post(f"/api/department_article_limits/{data['id']}/activate/")  # -> ACTIVE
+
+        response = self.client.post(f"/api/department_article_limits/{data['id']}/activate/")
+        self.assertEqual(response.status_code, 400)
+
+    def test_patch_amount_on_active_record_rejected(self):
+        data = self._create_draft(self.dept1, Decimal('200000.00'))
+        self.client.post(f"/api/department_article_limits/{data['id']}/activate/")
+
+        response = self.client.patch(
+            f"/api/department_article_limits/{data['id']}/", {'amount': '999999.00'}, format='json',
         )
-        DepartmentArticleLimit.objects.create(
-            functional_class=self.func, economic_class=self.econ, internal_economic_class=self.iec_a,
-            department=None, year=2026, amount=Decimal('600000.00'),  # больше доступных 500000
-            status=PlanItemStatus.DRAFT, change_request=cr,
+        self.assertEqual(response.status_code, 400)
+
+    def test_patch_note_on_active_record_allowed(self):
+        data = self._create_draft(self.dept1, Decimal('200000.00'))
+        self.client.post(f"/api/department_article_limits/{data['id']}/activate/")
+
+        response = self.client.patch(
+            f"/api/department_article_limits/{data['id']}/", {'note': 'уточнение'}, format='json',
         )
-        forecast = cr_service.compute_forecast(cr)
-        self.assertFalse(forecast['is_balanced'])
-        self.assertEqual(forecast['article_diff'], Decimal('-100000.00'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['note'], 'уточнение')
 
-        cr_service.submit(cr)
-        with self.assertRaises(ValidationError):
-            cr_service.approve(cr)
+    def test_delete_allowed_only_for_draft(self):
+        data = self._create_draft(self.dept1, Decimal('200000.00'))
+        response = self.client.delete(f"/api/department_article_limits/{data['id']}/")
+        self.assertEqual(response.status_code, 204)
 
-    def test_balanced_draft_approves_and_creates_active_rows(self):
-        from procurement.models import DepartmentArticleLimit
-        cr = cr_service.create_department_limit_calibration(
-            functional_class_id=self.func.pk, economic_class_id=self.econ.pk, year=2026,
-        )
-        for line in self._balanced_lines():
-            DepartmentArticleLimit.objects.create(change_request=cr, **line)
+        data2 = self._create_draft(self.dept1, Decimal('200000.00'))
+        self.client.post(f"/api/department_article_limits/{data2['id']}/activate/")
+        response = self.client.delete(f"/api/department_article_limits/{data2['id']}/")
+        self.assertEqual(response.status_code, 400)
 
-        forecast = cr_service.compute_forecast(cr)
-        self.assertTrue(forecast['is_balanced'])
-        self.assertEqual(forecast['article_diff'], Decimal('0'))
-        for b in forecast['subarticle_balance']:
-            self.assertEqual(b['diff'], Decimal('0'))
+    def test_overspend_does_not_block_activation(self):
+        """Перерасход разрешён — только предупреждение на фронте, не блокировка (решение
+        пользователя: "добавлять такую сумму разрешается")."""
+        data = self._create_draft(self.dept1, Decimal('600000.00'))  # больше доступных 500000
+        response = self.client.post(f"/api/department_article_limits/{data['id']}/activate/")
+        self.assertEqual(response.status_code, 200)
 
-        cr_service.submit(cr)
-        cr_service.approve(cr)
-
-        active = DepartmentArticleLimit.objects.filter(status=PlanItemStatus.ACTIVE)
-        self.assertEqual(active.count(), 5)
-        dept1_a = active.get(internal_economic_class=self.iec_a, department=self.dept1)
-        self.assertEqual(dept1_a.amount, Decimal('200000.00'))
-
-    def test_second_calibration_seeds_from_active_and_archives_stale(self):
-        from procurement.models import DepartmentArticleLimit
-        cr1 = cr_service.create_department_limit_calibration(
-            functional_class_id=self.func.pk, economic_class_id=self.econ.pk, year=2026,
-        )
-        for line in self._balanced_lines():
-            DepartmentArticleLimit.objects.create(change_request=cr1, **line)
-        cr_service.submit(cr1)
-        cr_service.approve(cr1)
-
-        # Новая калибровка должна подхватить 5 уже ACTIVE строк как стартовые черновики.
-        cr2 = cr_service.create_department_limit_calibration(
-            functional_class_id=self.func.pk, economic_class_id=self.econ.pk, year=2026,
-        )
-        self.assertEqual(cr2.draft_department_limits.count(), 5)
-
-        # Специалист ошибочно УВЕЛИЧИВАЕТ долю держателя (200000 -> 250000 для dept1/iec_b),
-        # не увеличив саму подстатью iec_b (осталась 200000) — держателю раздали больше, чем
-        # есть в подстатье (перерасход), approve() должен отказать.
-        draft_to_edit = cr2.draft_department_limits.get(
-            internal_economic_class=self.iec_b, department=self.dept1,
-        )
-        draft_to_edit.amount = Decimal('250000.00')
-        draft_to_edit.save()
-
-        forecast = cr_service.compute_forecast(cr2)
-        self.assertFalse(forecast['is_balanced'])
-        cr_service.submit(cr2)
-        with self.assertRaises(ValidationError):
-            cr_service.approve(cr2)
-        # Старый снимок остаётся ACTIVE нетронутым, пока неодобренная заявка не применена.
-        self.assertEqual(DepartmentArticleLimit.objects.filter(status=PlanItemStatus.ACTIVE).count(), 5)
-
-    def test_reconciliation_target_excludes_prior_years_reservation(self):
-        """План 500000, резерв прошлых лет 150000 — сверка должна требовать сумму подстатей
-        == 350000 (500000-150000), а НЕ полных 500000 (пример пользователя 2026-11-03)."""
+    def test_article_availability_uses_both_prior_year_reserve_functions(self):
+        """Починка техдолга (CurrentStatus.md, 2026-11-21: движок калибровки использовал
+        только compute_reserved_amount_by_article, не вторую функцию) — теперь считает ОБЕ,
+        как и `available_limit` в general_money_report.py."""
         supplier = Supplier.objects.create(name='Тестовый поставщик ДЛ-резерв')
         contract = Contract.objects.create(
             number='T-DL-RES', supplier=supplier, total_cost=Decimal('150000.00'),
@@ -1071,26 +1348,29 @@ class DepartmentLimitCalibrationTestCase(TestCase):
             status=PlanItemStatus.ACTIVE, budget_cost=bc_2025, department=self.dept1,
             shared_amount=Decimal('1'), shared_cost=Decimal('150000.00'),
         )
-        # Многолетний резерв "наперёд" на 2026 год — договор заключён под строкой 2025 года.
         ContractItem.objects.create(
             contract=contract, plan_share=ps_2025, year=2026,
             contract_amount=Decimal('1'), contract_cost=Decimal('150000.00'),
         )
 
-        cr = cr_service.create_department_limit_calibration(
-            functional_class_id=self.func.pk, economic_class_id=self.econ.pk, year=2026,
-        )
-        from procurement.models import DepartmentArticleLimit
-        # Подстатья на оставшиеся 350000 (не 500000) — должно сойтись.
-        DepartmentArticleLimit.objects.create(
-            functional_class=self.func, economic_class=self.econ, internal_economic_class=self.iec_a,
-            department=None, year=2026, amount=Decimal('350000.00'),
-            status=PlanItemStatus.DRAFT, change_request=cr,
-        )
-        forecast = cr_service.compute_forecast(cr)
-        self.assertEqual(forecast['prior_years_obligations'], Decimal('150000.00'))
-        self.assertEqual(forecast['article_available'], Decimal('350000.00'))
-        self.assertEqual(forecast['article_diff'], Decimal('0'))
+        response = self.client.get('/api/department_article_limits/article_availability/', {
+            'functional_class': self.func.pk, 'economic_class': self.econ.pk, 'year': 2026,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Decimal(response.data['available_limit']), Decimal('350000.00'))  # 500000-150000
+        self.assertEqual(Decimal(response.data['allocated_total']), Decimal('0'))
+        self.assertEqual(Decimal(response.data['remaining']), Decimal('350000.00'))
+
+    def test_overspend_summary_lists_statya_over_limit(self):
+        data = self._create_draft(self.dept1, Decimal('600000.00'))  # больше доступных 500000
+        self.client.post(f"/api/department_article_limits/{data['id']}/activate/")
+
+        response = self.client.get('/api/department_article_limits/overspend_summary/', {'year': 2026})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        line = response.data[0]
+        self.assertEqual(line['economic_class'], self.econ.pk)
+        self.assertEqual(Decimal(line['overspend_amount']), Decimal('100000.00'))  # 600000-500000
 
 
 class DepartmentLimitAvailabilityTestCase(TestCase):
@@ -1169,12 +1449,10 @@ class GeneralMoneyReportTestCase(TestCase):
             contract_amount=Decimal('1'), contract_cost=Decimal('150000.00'),
         )
 
-        # Доведённые лимиты — подстатья В на 250000 (сумма держателей сознательно МЕНЬШЕ
-        # (150000+50000=200000), чтобы заодно проверить, что это не блокирует и не обязано
-        # совпадать для целей САМОГО ОТЧЁТА — калибровка со своей сверкой тестируется отдельно).
+        # Доведённые лимиты — подстатья В, держатель dept1, 250000.
         DepartmentArticleLimit.objects.create(
             functional_class=self.func, economic_class=self.econ, internal_economic_class=self.iec,
-            department=None, year=2026, amount=Decimal('250000.00'), status=PlanItemStatus.ACTIVE,
+            department=self.dept1, year=2026, amount=Decimal('250000.00'), status=PlanItemStatus.ACTIVE,
         )
 
         # Внесено в ГПЗ (2026 год, публикуемая + непубликуемая часть) — две позиции плана 2026.
@@ -1224,6 +1502,8 @@ class GeneralMoneyReportTestCase(TestCase):
 
         self.assertEqual(row['planned_annual'], Decimal('500000.00'))
         self.assertEqual(row['prior_years_obligations'], Decimal('150000.00'))
+        # Доступные лимиты (2026-11-21): 500000 - 150000 = 350000.
+        self.assertEqual(row['available_limit'], Decimal('350000.00'))
         self.assertEqual(row['allocated_limit'], Decimal('250000.00'))
         # Пример пользователя: 500000 - 150000 - 250000 = 100000.
         self.assertEqual(row['unassigned_limit'], Decimal('100000.00'))
@@ -1249,6 +1529,187 @@ class GeneralMoneyReportTestCase(TestCase):
         rows = compute_general_money_report(year=2026)
         row = rows[0]
         self.assertEqual(row['paid_actual'], Decimal('25000.00'))  # 20000 + 5000
+
+    def test_is_calibrated_true_even_when_allocated_limit_zero(self):
+        """Запрос фронтенда (2026-11-20): allocated_limit == 0 — легитимный результат
+        распределения (например, обнулили сумму держателя), не признак "распределение не
+        проведено". is_calibrated должен различать эти два случая через сам факт
+        существования ACTIVE записи, а не через сумму."""
+        from procurement.models import DepartmentArticleLimit
+        DepartmentArticleLimit.objects.filter(
+            functional_class=self.func, economic_class=self.econ, year=2026, status=PlanItemStatus.ACTIVE,
+        ).update(amount=Decimal('0'))
+
+        rows = compute_general_money_report(year=2026)
+        row = rows[0]
+        self.assertEqual(row['allocated_limit'], Decimal('0'))
+        self.assertTrue(row['is_calibrated'])
+
+    def test_is_calibrated_false_when_no_subarticle_rows_at_all(self):
+        from procurement.models import (
+            ArticleQuarterlyAllocation, DepartmentArticleLimit, FunctionalCode, ExternalEconomicCode,
+        )
+        DepartmentArticleLimit.objects.all().delete()
+        func2 = FunctionalCode.objects.create(code_api='03 12 00 040', description='Другая ГКСЭ-статья')
+        econ2 = ExternalEconomicCode.objects.create(code_api='1 10 03 98', description='Без калибровки')
+        for q in [QuarterTypes.Q1, QuarterTypes.Q2, QuarterTypes.Q3, QuarterTypes.Q4]:
+            ArticleQuarterlyAllocation.objects.create(
+                functional_class=func2, economic_class=econ2, year=2026, quarter=q, amount=Decimal('1000.00'),
+            )
+
+        rows = compute_general_money_report(year=2026)
+        row = next(r for r in rows if r['economic_class_id'] == econ2.pk)
+        self.assertEqual(row['allocated_limit'], Decimal('0'))
+        self.assertFalse(row['is_calibrated'])
+
+    def test_rows_sorted_by_economic_code_numeric_segments_not_lexicographically(self):
+        """Запрос фронтенда (2026-11-20): без сортировки фронту приходилось пересчитывать
+        порядок на клиенте, чтобы сгруппировать строки по статье (первые два сегмента
+        economic_code). Код "1 2 ..." лексикографически МЕНЬШЕ "1 10 ...", хотя по смыслу
+        сегмента (2 < 10) порядок должен быть обратным — проверяем именно эту ловушку."""
+        from procurement.models import ArticleQuarterlyAllocation, ExternalEconomicCode
+        econ_small_lexically_first = ExternalEconomicCode.objects.create(
+            code_api='1 10 00 00', description='Сегмент "10"',
+        )
+        econ_big_lexically_first = ExternalEconomicCode.objects.create(
+            code_api='1 2 00 00', description='Сегмент "2"',
+        )
+        for econ in (econ_small_lexically_first, econ_big_lexically_first):
+            ArticleQuarterlyAllocation.objects.create(
+                functional_class=self.func, economic_class=econ, year=2026,
+                quarter=QuarterTypes.Q1, amount=Decimal('1.00'),
+            )
+
+        rows = compute_general_money_report(year=2026)
+        codes_in_order = [r['economic_code'] for r in rows]
+        self.assertLess(
+            codes_in_order.index('1 2 00 00'), codes_in_order.index('1 10 00 00'),
+        )
+
+    def test_same_economic_code_different_paragraph_distinguished_by_functional_description(self):
+        """Запрос пользователя (2026-11-21): один и тот же economic_code может встречаться
+        НЕСКОЛЬКИМИ строками отчёта с разными суммами, если финансирование идёт по разным
+        параграфам (пример пользователя: "2 40 01 00" дважды на реальных данных) — фронту
+        нужен текст параграфа (functional_description), иначе не различить, какая строка
+        к какому параграфу относится."""
+        from procurement.models import ArticleQuarterlyAllocation, FunctionalCode
+        func2 = FunctionalCode.objects.create(
+            code_api='03 12 00 042', description='03_12_00 § 851 (Витебск 3)',
+        )
+        ArticleQuarterlyAllocation.objects.create(
+            functional_class=func2, economic_class=self.econ, year=2026,
+            quarter=QuarterTypes.Q1, amount=Decimal('1000.00'),
+        )
+
+        rows = compute_general_money_report(year=2026)
+        matching = [r for r in rows if r['economic_code'] == self.econ.code_api]
+        self.assertEqual(len(matching), 2)
+        functional_descriptions = {r['functional_description'] for r in matching}
+        self.assertEqual(functional_descriptions, {self.func.description, func2.description})
+
+
+class GeneralMoneyReportPriorYearsPlanBudgetTestCase(TestCase):
+    """Запрос пользователя (2026-11-21): "принятые обязательства прошлых лет" должны
+    учитывать не только резерв через рассинхрон ContractItem.year/budget_cost.year (уже
+    покрыто GeneralMoneyReportTestCase), но и позиции, ОПУБЛИКОВАННЫЕ В ПРЕДЫДУЩЕМ плане,
+    но уже имеющие собственную строку BudgetCosts ИМЕННО года отчёта (пример пользователя:
+    позиция 2026-102377498-117 — план 2026 года, финансирование в 2026 и 2027 — при отчёте
+    за 2027 год сумма 2027 года должна попасть в prior_years_obligations, хотя позиции в
+    плане 2027 года нет вообще)."""
+
+    def setUp(self):
+        from procurement.models import FunctionalCode, ExternalEconomicCode, ArticleQuarterlyAllocation
+        self.func = FunctionalCode.objects.create(code_api='03 12 00 777', description='ГКСЭ-МЛ')
+        self.econ = ExternalEconomicCode.objects.create(code_api='1 10 03 77', description='Тест многолетка')
+
+        # Плановое назначение на 2027 год (отдельный план/файл fin_2027, уже загружен) —
+        # 250000 итого (по 62500 на квартал).
+        for q in [QuarterTypes.Q1, QuarterTypes.Q2, QuarterTypes.Q3, QuarterTypes.Q4]:
+            ArticleQuarterlyAllocation.objects.create(
+                functional_class=self.func, economic_class=self.econ, year=2027, quarter=q,
+                amount=Decimal('62500.00'),
+            )
+
+        # Позиция опубликована в плане 2026 года (plan_purchase.year=2026), но финансируется
+        # ДВУМЯ отдельными строками BudgetCosts — 2026 и 2027. Самой позиции в плане 2027
+        # года нет (никакого PlanItem с plan_purchase.year=2027 не создаём).
+        purchases_2026 = Purchases.objects.create(year=2026)
+        self.plan_item = PlanItem.objects.create(
+            plan_purchase=purchases_2026, num='2026-TEST-ML-117', is_public=True,
+        )
+        BudgetCosts.objects.create(
+            plan_item=self.plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=1,
+            cost=Decimal('400000.00'), year=2026, functional_class=self.func, economic_class=self.econ,
+        )
+        self.bc_2027 = BudgetCosts.objects.create(
+            plan_item=self.plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=2,
+            cost=Decimal('300000.00'), year=2027, functional_class=self.func, economic_class=self.econ,
+        )
+
+    def test_prior_years_obligations_includes_future_year_budget_cost_of_older_plan_item(self):
+        rows = compute_general_money_report(year=2027)
+        self.assertEqual(len(rows), 1)
+        row = rows[0]
+        self.assertEqual(row['planned_annual'], Decimal('250000.00'))
+        self.assertEqual(row['prior_years_obligations'], Decimal('300000.00'))
+        # 250000 - 300000 = -50000 — отчёт не должен "прятать" перерасход отрицательным
+        # занулением, финансист должен увидеть реальное превышение.
+        self.assertEqual(row['available_limit'], Decimal('-50000.00'))
+
+    def test_own_year_plan_item_budget_cost_is_not_counted_as_prior_years(self):
+        """Контрольный случай: BudgetCosts(year=2027) позиции, ОПУБЛИКОВАННОЙ В ПЛАНЕ 2027
+        года (а не прошлого) — не должна попадать в prior_years_obligations, это обычное
+        "внесено в ГПЗ" текущего года отчёта."""
+        purchases_2027 = Purchases.objects.create(year=2027)
+        own_year_item = PlanItem.objects.create(
+            plan_purchase=purchases_2027, num='2027-TEST-ML-OWN', is_public=True,
+        )
+        BudgetCosts.objects.create(
+            plan_item=own_year_item, status=PlanItemStatus.ACTIVE, purchases_items_id=3,
+            cost=Decimal('10000.00'), year=2027, functional_class=self.func, economic_class=self.econ,
+        )
+        rows = compute_general_money_report(year=2027)
+        row = rows[0]
+        # prior_years_obligations не меняется — только сумма от позиции 2026 года.
+        self.assertEqual(row['prior_years_obligations'], Decimal('300000.00'))
+        # А "внесено в ГПЗ" теперь включает обе строки (300000 + 10000).
+        self.assertEqual(row['entered_into_plan'], Decimal('310000.00'))
+
+    def test_does_not_double_count_with_contract_item_reservation_mechanism(self):
+        """Оба механизма резерва (ContractItem-рассинхрон и BudgetCosts предыдущего плана)
+        не пересекаются — суммируются, не задваивая одну и ту же сумму."""
+        supplier = Supplier.objects.create(name='Тестовый поставщик ML')
+        department = Department.objects.create(full_name='Отдел ML', short_name='МЛ')
+        plan_share = PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=self.bc_2027, department=department,
+            shared_amount=Decimal('1'), shared_cost=Decimal('300000.00'),
+        )
+        # Отдельный многолетний договор другой позиции (2026 года), резервирующий ещё
+        # 50000 на 2027 год через рассинхрон ContractItem.year/budget_cost.year.
+        purchases_2026b = Purchases.objects.create(year=2026)
+        other_item = PlanItem.objects.create(
+            plan_purchase=purchases_2026b, num='2026-TEST-ML-OTHER', is_public=True,
+        )
+        bc_other_2026 = BudgetCosts.objects.create(
+            plan_item=other_item, status=PlanItemStatus.ACTIVE, purchases_items_id=4,
+            cost=Decimal('50000.00'), year=2026, functional_class=self.func, economic_class=self.econ,
+        )
+        ps_other = PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=bc_other_2026, department=department,
+            shared_amount=Decimal('1'), shared_cost=Decimal('50000.00'),
+        )
+        contract = Contract.objects.create(
+            number='T-ML-OTHER', supplier=supplier, total_cost=Decimal('50000.00'),
+            planned_delivery_date='2027-12-31',
+        )
+        ContractItem.objects.create(
+            contract=contract, plan_share=ps_other, year=2027,
+            contract_amount=Decimal('1'), contract_cost=Decimal('50000.00'),
+        )
+
+        rows = compute_general_money_report(year=2027)
+        row = rows[0]
+        self.assertEqual(row['prior_years_obligations'], Decimal('350000.00'))  # 300000 + 50000
 
 
 class PlanItemCodeFilterTestCase(TestCase):
@@ -1318,6 +1779,93 @@ class PlanItemCodeFilterTestCase(TestCase):
     def test_combined_filters_do_not_duplicate_rows(self):
         ids = self._ids(functional_code='03 12 00 039', economic_code='1 10 10 99')
         self.assertEqual(ids, {self.item_a.id})
+
+
+class PlanItemBuyerDepartmentFilterTestCase(TestCase):
+    """Серверная фильтрация /api/plan_items/ по ?buyer=<id> и ?department=<id>
+    (запрошено фронтендом 2026-11-21, см. CurrentStatus.md): select с конкретным
+    исполнителем (дополняет уже существующий ?buyer_unset=true) и select с
+    подразделением, для которого проводится закупка (через PlanShare)."""
+
+    def setUp(self):
+        self.purchases = Purchases.objects.create(year=2026)
+        self.buyer_a = Buyer.objects.create(shot_name='Иванов И.И.', full_name='Иванов Иван Иванович')
+        self.buyer_b = Buyer.objects.create(shot_name='Петров П.П.', full_name='Петров Пётр Петрович')
+        self.dept_1 = Department.objects.create(full_name='Управление 1', short_name='У1')
+        self.dept_2 = Department.objects.create(full_name='Управление 2', short_name='У2')
+
+        # Позиция A: закупщик — buyer_a, распределена только на dept_1.
+        self.item_a = PlanItem.objects.create(plan_purchase=self.purchases, num='2026-TEST-BD-1', is_public=True)
+        PlanItemDetail.objects.create(
+            plan_item=self.item_a, status=PlanItemStatus.ACTIVE, num='2026-TEST-BD-1',
+            title='Позиция A', okrb='00.00.00.000', val_amount=Decimal('1'), buyer=self.buyer_a,
+        )
+        bc_a = BudgetCosts.objects.create(
+            plan_item=self.item_a, status=PlanItemStatus.ACTIVE, purchases_items_id=201,
+            cost=Decimal('100.00'), year=2026,
+        )
+        PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=bc_a, department=self.dept_1,
+            shared_amount=Decimal('1'), shared_cost=Decimal('100.00'),
+        )
+
+        # Позиция B: закупщик — buyer_b, распределена на dept_1 И dept_2 (две строки
+        # PlanShare под одной BudgetCosts) — должна находиться фильтром по ЛЮБОМУ из них.
+        self.item_b = PlanItem.objects.create(plan_purchase=self.purchases, num='2026-TEST-BD-2', is_public=True)
+        PlanItemDetail.objects.create(
+            plan_item=self.item_b, status=PlanItemStatus.ACTIVE, num='2026-TEST-BD-2',
+            title='Позиция Б', okrb='00.00.00.000', val_amount=Decimal('2'), buyer=self.buyer_b,
+        )
+        bc_b = BudgetCosts.objects.create(
+            plan_item=self.item_b, status=PlanItemStatus.ACTIVE, purchases_items_id=202,
+            cost=Decimal('200.00'), year=2026,
+        )
+        PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=bc_b, department=self.dept_1,
+            shared_amount=Decimal('1'), shared_cost=Decimal('100.00'),
+        )
+        PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=bc_b, department=self.dept_2,
+            shared_amount=Decimal('1'), shared_cost=Decimal('100.00'),
+        )
+
+        # Позиция C: закупщик не указан, распределена на dept_2 — проверяет, что фильтр
+        # по buyer не путает "не указан" с конкретным id, и что department=dept_2 находит
+        # и B, и C без дублей.
+        self.item_c = PlanItem.objects.create(plan_purchase=self.purchases, num='2026-TEST-BD-3', is_public=True)
+        PlanItemDetail.objects.create(
+            plan_item=self.item_c, status=PlanItemStatus.ACTIVE, num='2026-TEST-BD-3',
+            title='Позиция В', okrb='00.00.00.000', val_amount=Decimal('1'),
+        )
+        bc_c = BudgetCosts.objects.create(
+            plan_item=self.item_c, status=PlanItemStatus.ACTIVE, purchases_items_id=203,
+            cost=Decimal('50.00'), year=2026,
+        )
+        PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=bc_c, department=self.dept_2,
+            shared_amount=Decimal('1'), shared_cost=Decimal('50.00'),
+        )
+
+    def _ids(self, **query):
+        query.setdefault('purchase', self.purchases.id)
+        response = self.client.get('/api/plan_items/', query)
+        self.assertEqual(response.status_code, 200)
+        return {row['id'] for row in response.json()['results']}
+
+    def test_filter_by_buyer(self):
+        self.assertEqual(self._ids(buyer=self.buyer_a.id), {self.item_a.id})
+        self.assertEqual(self._ids(buyer=self.buyer_b.id), {self.item_b.id})
+
+    def test_filter_by_department_does_not_duplicate_rows(self):
+        # item_b имеет ДВЕ строки PlanShare на dept_1/dept_2 под одной BudgetCosts —
+        # distinct() должен вернуть её один раз, а не дважды.
+        self.assertEqual(self._ids(department=self.dept_1.id), {self.item_a.id, self.item_b.id})
+        self.assertEqual(self._ids(department=self.dept_2.id), {self.item_b.id, self.item_c.id})
+
+    def test_combined_buyer_and_department_filters(self):
+        self.assertEqual(
+            self._ids(buyer=self.buyer_b.id, department=self.dept_2.id), {self.item_b.id},
+        )
 
 
 class PlanItemListQueryCountTestCase(TestCase):

@@ -25,7 +25,11 @@ import { useLocalStorageState } from "@/shared/lib/react/use-local-storage-state
 import { ROUTES } from "@/shared/model/routes";
 
 import { createColumns } from "./columns";
-import { RegistryFilters } from "./registry-filters";
+import {
+  type BuyerFilterValue,
+  type DepartmentFilterValue,
+  RegistryFilters,
+} from "./registry-filters";
 import { RegistryMoneySummary } from "./registry-money-summary";
 import { TableActions } from "./table-actions";
 import { YearToggle } from "./year-toggle";
@@ -75,7 +79,7 @@ const PlansItemsPage = () => {
   const { sync: syncItems, isPending: isSyncingItems } =
     useSyncPurchaseItemsAction();
 
-  // Фильтры реестра (коды ЭКР + "исполнитель не определён") раньше жили
+  // Фильтры реестра (коды ЭКР + исполнитель/подразделение) раньше жили
   // только в useState — при переходе на карточку позиции и возврате назад
   // (`/plan-items` без query-параметров, как у ссылки в сайдбаре) они
   // полностью слетали (запрос пользователя, см. CurrentStatus.md, п.5 от
@@ -87,8 +91,12 @@ const PlansItemsPage = () => {
     functionalCode?: string;
     economicCode?: string;
     internalEconomicCode?: string;
-    buyerUnset: boolean;
-  }>("plan-items-list:filters", { buyerUnset: false });
+    buyerFilter: BuyerFilterValue;
+    departmentFilter: DepartmentFilterValue;
+  }>("plan-items-list:filters", {
+    buyerFilter: "all",
+    departmentFilter: "all",
+  });
 
   const functionalCode =
     searchParams.get("functional_code") ?? storedFilters.functionalCode;
@@ -97,11 +105,24 @@ const PlansItemsPage = () => {
   const internalEconomicCode =
     searchParams.get("internal_economic_code") ??
     storedFilters.internalEconomicCode;
+
+  // buyer=<id> и buyer_unset=true — взаимоисключающие параметры одного и того
+  // же select'а (см. registry-filters.tsx): "конкретный исполнитель" либо
+  // "не определён". Если в URL нет ни одного из них — откат на localStorage.
+  const buyerParam = searchParams.get("buyer");
   const buyerUnsetParam = searchParams.get("buyer_unset");
-  const buyerUnset =
-    buyerUnsetParam != null
-      ? buyerUnsetParam === "true"
-      : storedFilters.buyerUnset;
+  const buyerFilter: BuyerFilterValue =
+    buyerParam != null
+      ? Number(buyerParam)
+      : buyerUnsetParam != null
+        ? "unset"
+        : storedFilters.buyerFilter;
+
+  const departmentParam = searchParams.get("department");
+  const departmentFilter: DepartmentFilterValue =
+    departmentParam != null
+      ? Number(departmentParam)
+      : storedFilters.departmentFilter;
 
   // Колоночные фильтры (функц./эконом./внутренний ЭКР код) передаются в
   // DataTable как controlled columnFilters — их значения нужны и снаружи,
@@ -162,14 +183,30 @@ const PlansItemsPage = () => {
     });
   };
 
-  const handleBuyerUnsetChange = (value: boolean) => {
-    setStoredFilters((prev) => ({ ...prev, buyerUnset: value }));
+  const handleBuyerFilterChange = (value: BuyerFilterValue) => {
+    setStoredFilters((prev) => ({ ...prev, buyerFilter: value }));
     setSearchParams((prev) => {
       const params = new URLSearchParams(prev);
-      if (value) {
+      params.delete("buyer");
+      params.delete("buyer_unset");
+      if (value === "unset") {
         params.set("buyer_unset", "true");
+      } else if (value !== "all") {
+        params.set("buyer", String(value));
+      }
+      params.set("offset", "0");
+      return params;
+    });
+  };
+
+  const handleDepartmentFilterChange = (value: DepartmentFilterValue) => {
+    setStoredFilters((prev) => ({ ...prev, departmentFilter: value }));
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      if (value === "all") {
+        params.delete("department");
       } else {
-        params.delete("buyer_unset");
+        params.set("department", String(value));
       }
       params.set("offset", "0");
       return params;
@@ -220,7 +257,9 @@ const PlansItemsPage = () => {
           functional_code: functionalCode,
           economic_code: economicCode,
           internal_economic_code: internalEconomicCode,
-          buyer_unset: buyerUnset || undefined,
+          buyer_unset: buyerFilter === "unset" || undefined,
+          buyer: typeof buyerFilter === "number" ? buyerFilter : undefined,
+          department: departmentFilter !== "all" ? departmentFilter : undefined,
         },
       },
     },
@@ -249,7 +288,9 @@ const PlansItemsPage = () => {
           functional_code: functionalCode,
           economic_code: economicCode,
           internal_economic_code: internalEconomicCode,
-          buyer_unset: buyerUnset || undefined,
+          buyer_unset: buyerFilter === "unset" || undefined,
+          buyer: typeof buyerFilter === "number" ? buyerFilter : undefined,
+          department: departmentFilter !== "all" ? departmentFilter : undefined,
         },
       },
     },
@@ -312,8 +353,10 @@ const PlansItemsPage = () => {
               <TableActions table={table} />
               <RegistryFilters
                 table={table}
-                buyerUnset={buyerUnset}
-                onBuyerUnsetChange={handleBuyerUnsetChange}
+                buyerFilter={buyerFilter}
+                onBuyerFilterChange={handleBuyerFilterChange}
+                departmentFilter={departmentFilter}
+                onDepartmentFilterChange={handleDepartmentFilterChange}
               />
             </div>
           )}

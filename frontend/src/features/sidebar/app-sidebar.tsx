@@ -6,6 +6,7 @@ import {
   CalendarRange,
   FileCheck2,
   FileText,
+  ScaleIcon,
   SquareTerminal,
   UniversityIcon,
   UsersIcon,
@@ -54,8 +55,18 @@ const baseNavMain = [
   },
   {
     title: "Отчёты",
-    url: ROUTES.REPORTS,
+    url: "#",
     icon: <BarChart3 />,
+    items: [
+      {
+        title: "Общие деньги",
+        url: ROUTES.REPORTS_GENERAL_MONEY,
+      },
+      {
+        title: "Оперативный",
+        url: ROUTES.REPORTS_BUDGET_EXECUTION,
+      },
+    ],
   },
   {
     title: "Справочники",
@@ -68,8 +79,20 @@ const baseNavMain = [
         url: ROUTES.ECONOMIC_CODE,
       },
       {
+        title: "Функциональные коды",
+        url: ROUTES.FUNCTIONAL_CODE,
+      },
+      {
+        title: "Программные коды",
+        url: ROUTES.PROGRAM_CODE,
+      },
+      {
         title: "Коды ОКРБ",
         url: ROUTES.CODES_OKRB,
+      },
+      {
+        title: "Единицы измерения",
+        url: ROUTES.UNITS_OF_MEASUREMENT,
       },
       {
         title: "Главки",
@@ -80,8 +103,8 @@ const baseNavMain = [
         url: ROUTES.INTERNAL_ECONOMIC_CODE,
       },
       {
-        title: "Корректировка лимитов",
-        url: ROUTES.LIMIT_CALIBRATION,
+        title: "Виды платежей",
+        url: ROUTES.KIND_OF_PAYMENT,
       },
       {
         title: "Закупщики",
@@ -101,11 +124,25 @@ const usersNavItem = {
   icon: <UsersIcon />,
 };
 
+// Самостоятельный пункт меню верхнего уровня (решение пользователя
+// 2026-11-23) — не справочник и не заявка на изменение, прямой доступ к
+// держателям лимитов по подстатьям, доступен только финансисту/админу.
+const departmentLimitsNavItem = {
+  title: "Распределение лимитов",
+  url: ROUTES.DEPARTMENT_LIMITS,
+  icon: <ScaleIcon />,
+};
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: currentUser } = useCurrentUser();
   const isAdmin = currentUser?.role === "ADMIN_MAIN";
+  const canManageLimits = isAdmin || currentUser?.role === "FINANCIER";
 
-  const navMain = isAdmin ? [...baseNavMain, usersNavItem] : baseNavMain;
+  const navMain = [
+    ...baseNavMain,
+    ...(canManageLimits ? [departmentLimitsNavItem] : []),
+    ...(isAdmin ? [usersNavItem] : []),
+  ];
 
   return (
     <Sidebar collapsible="icon" {...props}>

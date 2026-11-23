@@ -1,5 +1,7 @@
 import type {
-  CalibrateDepartmentLimitsPayload,
+  BudgetLimitCorrectionCreatePayload,
+  BudgetLimitCorrectionPreviewRequest,
+  BudgetLimitCorrectionPreviewResponse,
   ChangeRequest,
   ChangeRequestKind,
   ChangeRequestStatus,
@@ -88,32 +90,10 @@ export const useCreateChangeRequest = () => {
           } as unknown as ChangeRequest,
         },
         {
-          onSuccess: (created) => options?.onSuccess?.(created),
-          onError: options?.onError,
-        },
-      ),
-  };
-};
-
-export const useCalibrateDepartmentLimits = () => {
-  const mutation = rqClient.useMutation(
-    "post",
-    "/api/change_requests/calibrate_department_limits/",
-  );
-
-  return {
-    ...mutation,
-    calibrate: (
-      payload: CalibrateDepartmentLimitsPayload,
-      options?: {
-        onSuccess?: (created: ChangeRequest) => void;
-        onError?: (error: unknown) => void;
-      },
-    ) =>
-      mutation.mutate(
-        { body: payload },
-        {
-          onSuccess: (created) => options?.onSuccess?.(created),
+          onSuccess: (created) => {
+            invalidateChangeRequests();
+            options?.onSuccess?.(created);
+          },
           onError: options?.onError,
         },
       ),
@@ -138,7 +118,99 @@ export const useCreateRedistribution = () => {
       mutation.mutate(
         { body: payload },
         {
-          onSuccess: (created) => options?.onSuccess?.(created),
+          onSuccess: (created) => {
+            invalidateChangeRequests();
+            options?.onSuccess?.(created);
+          },
+          onError: options?.onError,
+        },
+      ),
+  };
+};
+
+// Разрешено только для status=DRAFT — бэкенд вернёт 400 (не 500) на попытку
+// удалить заявку в любом другом статусе (ON_REVIEW/APPROVED/REJECTED — это
+// уже история, для отмены есть reject), см. CurrentStatus.md.
+export const useDeleteChangeRequest = () => {
+  const mutation = rqClient.useMutation("delete", "/api/change_requests/{id}/");
+
+  return {
+    ...mutation,
+    deleteDraft: (
+      id: number,
+      options?: { onSuccess?: () => void; onError?: (error: unknown) => void },
+    ) =>
+      mutation.mutate(
+        { params: { path: { id } } },
+        {
+          onSuccess: () => {
+            invalidateChangeRequests();
+            options?.onSuccess?.();
+          },
+          onError: options?.onError,
+        },
+      ),
+  };
+};
+
+export const useBudgetLimitCorrectionPreview = () => {
+  const mutation = rqClient.useMutation(
+    "post",
+    "/api/change_requests/budget_limit_correction_preview/",
+  );
+
+  return {
+    ...mutation,
+    preview: (
+      payload: { file: File; year: number },
+      options?: {
+        onSuccess?: (result: BudgetLimitCorrectionPreviewResponse) => void;
+        onError?: (error: unknown) => void;
+      },
+    ) => {
+      // multipart/form-data: openapi-fetch отдаёт FormData как есть (не
+      // JSON.stringify), браузер сам проставляет Content-Type с boundary —
+      // поэтому `file`/`year` собираем в FormData, а не в обычный объект.
+      const formData = new FormData();
+      formData.set("file", payload.file);
+      formData.set("year", String(payload.year));
+
+      mutation.mutate(
+        // Схема типизирует тело как {file: string, year: number} — OpenAPI не
+        // умеет описать бинарный upload иначе, DRF-поле на деле File. Реально
+        // отправляем FormData, openapi-fetch её не трогает (см. комментарий выше).
+        { body: formData as unknown as BudgetLimitCorrectionPreviewRequest },
+        {
+          onSuccess: (result) => options?.onSuccess?.(result),
+          onError: options?.onError,
+        },
+      );
+    },
+  };
+};
+
+export const useCreateBudgetLimitCorrection = () => {
+  const mutation = rqClient.useMutation(
+    "post",
+    "/api/change_requests/budget_limit_correction/",
+  );
+
+  return {
+    ...mutation,
+    createBudgetLimitCorrection: (
+      payload: BudgetLimitCorrectionCreatePayload,
+      options?: {
+        onSuccess?: (created: ChangeRequest) => void;
+        onError?: (error: unknown) => void;
+      },
+    ) =>
+      mutation.mutate(
+        { body: payload },
+        {
+          onSuccess: (created) => {
+            invalidateChangeRequests();
+            options?.onSuccess?.(created);
+          },
           onError: options?.onError,
         },
       ),

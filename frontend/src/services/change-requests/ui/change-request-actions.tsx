@@ -6,6 +6,17 @@ import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import { useDeletePlanItems, usePushPlanItems } from "@/services/goszakupki";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/shared/components/ui/alert-dialog";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
@@ -15,6 +26,7 @@ import { handleHttpError } from "@/shared/lib/helpers/handle-http-error";
 import {
   useApproveChangeRequest,
   useChangeRequestForecastQuery,
+  useDeleteChangeRequest,
   useRejectChangeRequest,
   useSubmitChangeRequest,
 } from "../api";
@@ -30,6 +42,8 @@ type Props = {
   item: ChangeRequest;
   /** Скрыть кнопку "Отправить на проверку" — например, если черновик ещё правится отдельной формой. */
   hideSubmit?: boolean;
+  /** Черновик удалён — родитель должен закрыть просмотр/сбросить выбор. */
+  onDeleted?: () => void;
 };
 
 /**
@@ -38,13 +52,18 @@ type Props = {
  * списке заявок (features/change-requests), и прямо на карточке позиции плана
  * (features/plan-items/detail) — поэтому живёт в services, а не в features.
  */
-export const ChangeRequestActions = ({ item, hideSubmit = false }: Props) => {
+export const ChangeRequestActions = ({
+  item,
+  hideSubmit = false,
+  onDeleted,
+}: Props) => {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
 
   const forecastQuery = useChangeRequestForecastQuery(item.id);
   const { submit, isPending: isSubmitting } = useSubmitChangeRequest();
   const { approve, isPending: isApproving } = useApproveChangeRequest();
   const { reject, isPending: isRejecting } = useRejectChangeRequest();
+  const { deleteDraft, isPending: isDeleting } = useDeleteChangeRequest();
   const pushMutation = usePushPlanItems();
   const deleteMutation = useDeletePlanItems();
 
@@ -77,6 +96,17 @@ export const ChangeRequestActions = ({ item, hideSubmit = false }: Props) => {
           handleHttpError(error, "Не удалось отклонить заявку", true),
       },
     );
+  };
+
+  const handleDelete = () => {
+    deleteDraft(item.id, {
+      onSuccess: () => {
+        toast.success("Черновик удалён");
+        onDeleted?.();
+      },
+      onError: (error) =>
+        handleHttpError(error, "Не удалось удалить черновик", true),
+    });
   };
 
   const handleSendToGoszakupki = () => {
@@ -145,6 +175,34 @@ export const ChangeRequestActions = ({ item, hideSubmit = false }: Props) => {
       </div>
 
       <div className="flex justify-end gap-2">
+        {item.status === "DRAFT" && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" disabled={isDeleting}>
+                {isDeleting && (
+                  <Loader2Icon size={16} className="animate-spin" />
+                )}
+                Удалить черновик
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Удалить черновик заявки?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Действие необратимо. Все несохранённые данные черновика
+                  (строки распределения, правки позиции и т.п.) будут удалены
+                  вместе с заявкой.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Отмена</AlertDialogCancel>
+                <AlertDialogAction variant="destructive" onClick={handleDelete}>
+                  Удалить
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
         {item.status === "DRAFT" && !hideSubmit && (
           <Button onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting && <Loader2Icon size={16} className="animate-spin" />}

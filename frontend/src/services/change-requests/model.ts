@@ -5,7 +5,6 @@ export const CHANGE_REQUEST_KIND_LABELS: Record<ChangeRequestKind, string> = {
   PLAN_ITEM_EXCLUSION: "Исключение позиции плана",
   LIMIT_REDISTRIBUTION: "Перераспределение лимита",
   BUDGET_LIMIT_CORRECTION: "Корректировка лимита (Казначейство)",
-  DEPARTMENT_LIMIT_CALIBRATION: "Калибровка лимитов по подразделениям",
 };
 
 export const CHANGE_REQUEST_STATUS_LABELS: Record<ChangeRequestStatus, string> =

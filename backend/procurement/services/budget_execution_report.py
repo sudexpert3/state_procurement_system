@@ -20,7 +20,7 @@
 """
 from decimal import Decimal
 
-from django.db.models import Sum
+from django.db.models import Sum, Q
 
 from core.choices import PlanItemStatus
 from procurement.models import PlanShare, ContractItem, TreasuryPayment, BudgetQuarterlyLimit
@@ -33,22 +33,28 @@ def compute_budget_execution_report(year=None, department_id=None, quarter=None)
     if department_id:
         shares = shares.filter(department_id=department_id)
 
+    # Строки отчёта (держатель × статья × год) всегда перечисляются по одному и тому же
+    # набору `shares` — и для «года целиком», и для конкретного квартала. Раньше для квартала
+    # строки брались из INNER JOIN с `quarterly_limits` (shares.filter(quarterly_limits__...)),
+    # из-за чего при пустой `BudgetQuarterlyLimit` (доведение лимитов по кварталам в реальной
+    # БД ещё не ведётся) отчёт целиком пропадал, хотя обязательства/оплата по этим строкам
+    # есть. Теперь `allocated` для квартала — условная (filter=) сумма ВНУТРИ LEFT JOIN, она
+    # не отбрасывает группы без совпадений (просто даёт 0, пока `BudgetQuarterlyLimit` не
+    # наполнена) — то же самое поведение для committed_obligations/paid, что и у «года целиком».
     if quarter:
-        allocated_rows = shares.filter(
-            quarterly_limits__status=PlanItemStatus.ACTIVE, quarterly_limits__quarter=quarter,
-        ).values(
-            'department_id', 'department__short_name',
-            'budget_cost__year',
-            'budget_cost__internal_economic_class_id', 'budget_cost__internal_economic_class__code',
-            'budget_cost__internal_economic_class__name',
-        ).annotate(allocated=Sum('quarterly_limits__amount'))
+        allocated_sum = Sum(
+            'quarterly_limits__amount',
+            filter=Q(quarterly_limits__status=PlanItemStatus.ACTIVE, quarterly_limits__quarter=quarter),
+        )
     else:
-        allocated_rows = shares.values(
-            'department_id', 'department__short_name',
-            'budget_cost__year',
-            'budget_cost__internal_economic_class_id', 'budget_cost__internal_economic_class__code',
-            'budget_cost__internal_economic_class__name',
-        ).annotate(allocated=Sum('shared_cost'))
+        allocated_sum = Sum('shared_cost')
+
+    allocated_rows = shares.values(
+        'department_id', 'department__short_name',
+        'budget_cost__year',
+        'budget_cost__internal_economic_class_id', 'budget_cost__internal_economic_class__code',
+        'budget_cost__internal_economic_class__name',
+    ).annotate(allocated=allocated_sum)
 
     committed_qs = ContractItem.objects.filter(
         plan_share__status=PlanItemStatus.ACTIVE, plan_share__budget_cost__status=PlanItemStatus.ACTIVE,

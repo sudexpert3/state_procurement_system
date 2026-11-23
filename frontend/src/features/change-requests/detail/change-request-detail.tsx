@@ -33,7 +33,7 @@ export const ChangeRequestDetail = ({ item, onClose }: Props) => (
 
       {item && (
         <div className="flex-1 overflow-y-auto px-4 py-2">
-          <ChangeRequestActions item={item} />
+          <ChangeRequestActions item={item} onDeleted={onClose} />
         </div>
       )}
 

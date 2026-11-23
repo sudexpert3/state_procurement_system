@@ -24,22 +24,6 @@ export type EconomicInfo = { economicCode: string; internalEkrCode: string };
 
 type Props = {
   contract: Contract;
-  /**
-   * id PlanShare (= ContractItem.plan_share) → короткое имя подразделения.
-   * `ContractItem` отдаёт только id PlanShare, без названия подразделения
-   * (бэкенд их не денормализует) — карта строится там, где эти PlanShare уже
-   * загружены целиком (карточка позиции плана, см. `contracts-tab.tsx`).
-   * В реестре договоров (`features/contracts/contract-detail.tsx`) такой
-   * карты нет — колонка там покажет «—».
-   */
-  departmentByPlanShare?: Map<number, string>;
-  /**
-   * id PlanShare → экономический код и код ЭКР внутренний той статьи
-   * бюджета, с которой списывается строка спецификации. Строится там же,
-   * где departmentByPlanShare (карточка позиции плана) — в реестре
-   * договоров такой карты нет, колонки покажут «—».
-   */
-  economicInfoByPlanShare?: Map<number, EconomicInfo>;
 };
 
 /**
@@ -49,11 +33,7 @@ type Props = {
  * (таб «Договоры», см. CurrentStatus.md) — чтобы не дублировать разметку
  * между двумя местами, где показывается один и тот же договор.
  */
-export const ContractDetailBody = ({
-  contract,
-  departmentByPlanShare,
-  economicInfoByPlanShare,
-}: Props) => {
+export const ContractDetailBody = ({ contract }: Props) => {
   // Прямое редактирование условий оплаты — доступно только этим двум ролям,
   // см. core/choices.py (описание прав FINANCIER) и тот же принцип проверки
   // роли, что в info-tab.tsx (canEditDirectly).
@@ -82,18 +62,20 @@ export const ContractDetailBody = ({
   );
 
   // ContractQuarterlyFinance хранит только id строки спецификации
-  // (contract_item), без экономического кода/ЭКР напрямую — достаём их через
-  // plan_share этой строки, раз карта экономики уже построена по позиции
-  // плана (economicInfoByPlanShare).
+  // (contract_item), без экономического кода/ЭКР напрямую — достаём их из
+  // уже денормализованных полей самой строки (`ContractItem.economic_class_detail`/
+  // `.internal_economic_class_detail`, бэкенд добавил 2026-11-18).
   const economicInfoByContractItem = useMemo(() => {
     const map = new Map<number, EconomicInfo>();
-    if (!economicInfoByPlanShare) return map;
     contract.items.forEach((item) => {
-      const info = economicInfoByPlanShare.get(item.plan_share);
-      if (info) map.set(item.id, info);
+      const economicCode = item.economic_class_detail?.code_api;
+      const internalEkrCode = item.internal_economic_class_detail?.code;
+      if (economicCode && internalEkrCode) {
+        map.set(item.id, { economicCode, internalEkrCode });
+      }
     });
     return map;
-  }, [contract.items, economicInfoByPlanShare]);
+  }, [contract.items]);
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-2">
@@ -174,28 +156,25 @@ export const ContractDetailBody = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {contract.items.map((line) => {
-                const economicInfo = economicInfoByPlanShare?.get(
-                  line.plan_share,
-                );
-                return (
-                  <TableRow key={line.id}>
-                    <TableCell className="w-48 max-w-48 break-words whitespace-normal">
-                      {line.title ?? "—"}
-                    </TableCell>
-                    <TableCell>{economicInfo?.economicCode ?? "—"}</TableCell>
-                    <TableCell>
-                      {economicInfo?.internalEkrCode ?? "—"}
-                    </TableCell>
-                    <TableCell>
-                      {departmentByPlanShare?.get(line.plan_share) ?? "—"}
-                    </TableCell>
-                    <TableCell>{line.year}</TableCell>
-                    <TableCell>{line.contract_amount}</TableCell>
-                    <TableCell>{formatByn(line.contract_cost)}</TableCell>
-                  </TableRow>
-                );
-              })}
+              {contract.items.map((line) => (
+                <TableRow key={line.id}>
+                  <TableCell className="w-48 max-w-48 break-words whitespace-normal">
+                    {line.title ?? "—"}
+                  </TableCell>
+                  <TableCell>
+                    {line.economic_class_detail?.code_api ?? "—"}
+                  </TableCell>
+                  <TableCell>
+                    {line.internal_economic_class_detail?.code ?? "—"}
+                  </TableCell>
+                  <TableCell>
+                    {line.department_detail?.short_name ?? "—"}
+                  </TableCell>
+                  <TableCell>{line.year}</TableCell>
+                  <TableCell>{line.contract_amount}</TableCell>
+                  <TableCell>{formatByn(line.contract_cost)}</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         )}

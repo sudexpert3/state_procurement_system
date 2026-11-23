@@ -1,6 +1,14 @@
+import type { DateRange } from "react-day-picker";
 import type { KindOfPayment } from "@/shared/api/schema";
 
+import { SearchIcon } from "lucide-react";
+
 import { Button } from "@/shared/components/ui/button";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/shared/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -9,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
+
+import { PaymentsDateRangeFilter } from "./payments-date-range-filter";
 
 const QUARTER_OPTIONS = [
   { value: "Q1", label: "I квартал" },
@@ -27,6 +37,10 @@ const currentYear = new Date().getFullYear();
 const YEAR_OPTIONS = [currentYear, currentYear - 1, currentYear - 2];
 
 type Props = {
+  search: string;
+  onSearchChange: (value: string) => void;
+  dateRange: DateRange | undefined;
+  onDateRangeChange: (value: DateRange | undefined) => void;
   quarterFilter: QuarterFilterValue;
   onQuarterFilterChange: (value: QuarterFilterValue) => void;
   yearFilter: number | "all";
@@ -37,6 +51,10 @@ type Props = {
 };
 
 export const PaymentsToolbar = ({
+  search,
+  onSearchChange,
+  dateRange,
+  onDateRangeChange,
   quarterFilter,
   onQuarterFilterChange,
   yearFilter,
@@ -46,6 +64,17 @@ export const PaymentsToolbar = ({
   kindOptions,
 }: Props) => (
   <div className="flex flex-wrap items-center gap-3">
+    <InputGroup className="w-64 bg-white">
+      <InputGroupAddon>
+        <SearchIcon />
+      </InputGroupAddon>
+      <InputGroupInput
+        value={search}
+        onChange={(e) => onSearchChange(e.target.value)}
+        placeholder="Поиск по примечанию..."
+      />
+    </InputGroup>
+    <PaymentsDateRangeFilter value={dateRange} onChange={onDateRangeChange} />
     {/* Кнопки года/квартала — по аналогии с YearToggle на «Реестре закупок» (plan-items/list/year-toggle.tsx) */}
     <div className="flex flex-wrap gap-1">
       <Button

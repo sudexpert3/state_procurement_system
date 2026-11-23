@@ -147,3 +147,79 @@ class EditContractsCapabilityTestCase(TestCase):
     def test_anonymous_denied(self):
         from django.contrib.auth.models import AnonymousUser
         self.assertFalse(self.permission_cls.has_permission(self._request_as(AnonymousUser()), None))
+
+
+class BudgetLimitCorrectionCapabilityTestCase(TestCase):
+    """Запрос пользователя (2026-11-20): импорт корректировки лимитов из файла fin_YYYY.xlsb
+    (страница "Общие деньги") доступен только «Главному администратору» и «Финансисту» —
+    та же пара ролей, что и у edit_contracts (см. CAPABILITIES['budget_limit_correction'],
+    ChangeRequestViewSet.get_permissions())."""
+
+    def setUp(self):
+        self.factory = APIRequestFactory()
+        self.permission_cls = has_capability('budget_limit_correction')()
+
+    def _request_as(self, user):
+        request = self.factory.post('/api/change_requests/budget_limit_correction/')
+        request.user = user
+        return request
+
+    def test_financier_allowed(self):
+        user = User.objects.create_user(username='financier2', password='x')
+        user.profile.role = UserRoleType.FINANCIER
+        user.profile.save()
+        self.assertTrue(self.permission_cls.has_permission(self._request_as(user), None))
+
+    def test_admin_main_allowed(self):
+        user = User.objects.create_user(username='admin_role3', password='x')
+        user.profile.role = UserRoleType.ADMIN_MAIN
+        user.profile.save()
+        self.assertTrue(self.permission_cls.has_permission(self._request_as(user), None))
+
+    def test_other_roles_denied(self):
+        user = User.objects.create_user(username='purchaser2', password='x')
+        user.profile.role = UserRoleType.PURCHASING_SPECIALIST
+        user.profile.save()
+        self.assertFalse(self.permission_cls.has_permission(self._request_as(user), None))
+
+    def test_anonymous_denied(self):
+        from django.contrib.auth.models import AnonymousUser
+        self.assertFalse(self.permission_cls.has_permission(self._request_as(AnonymousUser()), None))
+
+
+class DepartmentLimitsCapabilityTestCase(TestCase):
+    """Решение пользователя (2026-11-23): страница «Распределение лимитов» доступна только
+    «Главному администратору» и «Финансисту» — та же пара ролей, что и у
+    budget_limit_correction (см. CAPABILITIES['department_limits'],
+    DepartmentArticleLimitViewSet.get_permissions())."""
+
+    def setUp(self):
+        self.factory = APIRequestFactory()
+        self.permission_cls = has_capability('department_limits')()
+
+    def _request_as(self, user):
+        request = self.factory.get('/api/department_article_limits/')
+        request.user = user
+        return request
+
+    def test_financier_allowed(self):
+        user = User.objects.create_user(username='financier_dl_cap', password='x')
+        user.profile.role = UserRoleType.FINANCIER
+        user.profile.save()
+        self.assertTrue(self.permission_cls.has_permission(self._request_as(user), None))
+
+    def test_admin_main_allowed(self):
+        user = User.objects.create_user(username='admin_dl_cap', password='x')
+        user.profile.role = UserRoleType.ADMIN_MAIN
+        user.profile.save()
+        self.assertTrue(self.permission_cls.has_permission(self._request_as(user), None))
+
+    def test_other_roles_denied(self):
+        user = User.objects.create_user(username='purchaser_dl_cap', password='x')
+        user.profile.role = UserRoleType.PURCHASING_SPECIALIST
+        user.profile.save()
+        self.assertFalse(self.permission_cls.has_permission(self._request_as(user), None))
+
+    def test_anonymous_denied(self):
+        from django.contrib.auth.models import AnonymousUser
+        self.assertFalse(self.permission_cls.has_permission(self._request_as(AnonymousUser()), None))

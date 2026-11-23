@@ -145,3 +145,42 @@ def parse_fin_file(file_path, year, unk=None, sheet_name=SHEET_NAME):
                     })
 
     return lines, report
+
+
+def build_preview(file_path, year, unk=None, sheet_name=SHEET_NAME):
+    """Обёртка над parse_fin_file() для REST-предпросмотра
+    (views/changeRequest.py::budget_limit_correction_preview) — ничего не пишет в БД, только
+    читает. Добавляет к строкам расшифровку функционального/экономического кода (`*_detail`),
+    чтобы фронту не нужно было делать отдельный запрос за каждым id, и приводит `report` к
+    JSON-пригодному виду (`set` -> отсортированный список, `tuple` -> словарь)."""
+    from procurement.models import FunctionalCode, ExternalEconomicCode
+
+    lines, report = parse_fin_file(file_path, year, unk=unk, sheet_name=sheet_name)
+
+    func_map = {fc.pk: fc for fc in FunctionalCode.objects.filter(
+        pk__in={line['functional_class'] for line in lines})}
+    econ_map = {ec.pk: ec for ec in ExternalEconomicCode.objects.filter(
+        pk__in={line['economic_class'] for line in lines})}
+
+    enriched_lines = [{
+        'functional_class': line['functional_class'],
+        'functional_class_detail': func_map[line['functional_class']],
+        'economic_class': line['economic_class'],
+        'economic_class_detail': econ_map[line['economic_class']],
+        'year': line['year'],
+        'quarter': line['quarter'],
+        'amount': line['amount'],
+    } for line in lines]
+
+    return {
+        'lines': enriched_lines,
+        'report': {
+            'rows_total': report['rows_total'],
+            'matched_articles': report['matched_articles'],
+            'excluded': [
+                {'functional_raw_code': fc, 'economic_raw_code': ec} for fc, ec in report['excluded']
+            ],
+            'functional_not_found': sorted(report['functional_not_found']),
+            'economic_not_found': sorted(report['economic_not_found']),
+        },
+    }

@@ -20,16 +20,29 @@ export type RedistributionLinePayload = ApiSchemas["RedistributionLine"];
 
 export type RedistributePayload = ApiSchemas["RedistributionCreate"];
 
-export type CalibrateDepartmentLimitsPayload =
-  ApiSchemas["DepartmentLimitCalibrationCreate"];
+// Импорт файла корректировки лимитов от Казначейства (Этап 3.4/задание
+// фронтенда 2026-11-19) — предпросмотр разбора fin_YYYY.xlsb без записи в БД,
+// затем подтверждение (возможно, отредактированных) строк создаёт черновик
+// ChangeRequest(kind=BUDGET_LIMIT_CORRECTION).
+export type BudgetLimitCorrectionPreviewRequest =
+  ApiSchemas["BudgetLimitCorrectionPreviewRequest"];
+export type BudgetLimitCorrectionPreviewResponse =
+  ApiSchemas["BudgetLimitCorrectionPreviewResponse"];
+export type BudgetLimitCorrectionPreviewLine =
+  ApiSchemas["BudgetLimitCorrectionPreviewLine"];
+export type BudgetLimitCorrectionPreviewReport =
+  ApiSchemas["BudgetLimitCorrectionPreviewReport"];
+export type BudgetLimitCorrectionPreviewExcludedLine =
+  ApiSchemas["BudgetLimitCorrectionPreviewExcludedLine"];
+export type BudgetLimitCorrectionLine = ApiSchemas["BudgetLimitCorrectionLine"];
+export type BudgetLimitCorrectionCreatePayload =
+  ApiSchemas["BudgetLimitCorrectionCreate"];
 
 export type ForecastPlanItemChange = ApiSchemas["PlanItemChangeForecast"];
 export type ForecastPlanItemExclusion = ApiSchemas["PlanItemExclusionForecast"];
 export type ForecastLimitRedistribution = ApiSchemas["RedistributionForecast"];
 export type ForecastBudgetLimitCorrection =
   ApiSchemas["BudgetLimitCorrectionForecast"];
-export type ForecastDepartmentLimitCalibration =
-  ApiSchemas["DepartmentLimitCalibrationForecast"];
 
 export type ForecastArticleLine =
   ApiSchemas["PlanItemChangeForecastArticleLine"];
@@ -41,11 +54,5 @@ export type ForecastRedistributionLine =
   ApiSchemas["RedistributionForecastLine"];
 export type ForecastBudgetCorrectionLine =
   ApiSchemas["BudgetLimitCorrectionForecastLine"];
-export type ForecastSubarticleLine =
-  ApiSchemas["DepartmentLimitSubarticleLine"];
-export type ForecastDepartmentLine =
-  ApiSchemas["DepartmentLimitDepartmentLine"];
-export type ForecastSubarticleBalance =
-  ApiSchemas["DepartmentLimitSubarticleBalance"];
 
 export type ChangeRequestForecast = ApiSchemas["ChangeRequestForecast"];

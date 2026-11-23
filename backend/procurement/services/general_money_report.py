@@ -11,13 +11,33 @@ ArticleQuarterlyAllocation, единственный источник "план�
 
   planned_annual            — плановое назначение на год по статье: сумма
                                ArticleQuarterlyAllocation.amount по кварталам.
-  prior_years_obligations   — принятые обязательства прошлых лет: многолетние договоры,
-                               заключённые до report year, но финансирование которых
-                               приходится на report year (см. multi_year_reservation.py).
-  allocated_limit           — доведённые лимиты: сумма подстатей DepartmentArticleLimit
-                               (department IS NULL) этой статьи/года — то, что финансист
-                               уже разбил по подстатьям (калибровка, см. change_requests.py
-                               DEPARTMENT_LIMIT_CALIBRATION).
+  prior_years_obligations   — принятые обязательства прошлых лет: сумма ДВУХ разных (не
+                               пересекающихся) сценариев многолетнего финансирования, см.
+                               multi_year_reservation.py: (1) `compute_reserved_amount_by_article`
+                               — многолетний договор, заключённый до report year, под строкой
+                               БЮДЖЕТА ДРУГОГО года (своей строки report year для той позиции
+                               ещё не было на момент заключения); (2) добавлено 2026-11-21 по
+                               запросу пользователя, `compute_prior_years_budget_costs_by_article`
+                               — позиция, опубликованная в ПРЕДЫДУЩЕМ годовом плане, но у
+                               которой уже есть собственная строка `BudgetCosts` ИМЕННО report
+                               year (многолетнее финансирование разнесено по годам отдельными
+                               строками бюджета) — такая позиция никогда не попадёт в план
+                               report year (закупка состоялась раньше), поэтому её сумма за
+                               report year иначе выпала бы из отчёта незамеченной.
+  available_limit           — добавлено 2026-11-21 по запросу пользователя. Доступные лимиты:
+                               planned_annual - prior_years_obligations (сколько из годового
+                               назначения статьи реально свободно распределять, без учёта уже
+                               обязанного многолетними договорами/позициями прошлых планов).
+                               Отличается от `unassigned_limit` ниже — та дополнительно
+                               вычитает `allocated_limit` (то, что финансист уже довёл по
+                               подстатьям), а эта — нет.
+  allocated_limit           — доведённые лимиты: сумма ACTIVE записей DepartmentArticleLimit
+                               этой статьи/параграфа/года (держатель+подстатья — см.
+                               services/department_limits.py) — то, что финансист уже
+                               распределил по держателям лимита. До 2026-11-23 считалось по
+                               промежуточному уровню "подстатья целиком, department IS NULL" —
+                               этот уровень убран (0 записей в проде на момент переделки),
+                               теперь источник — сами записи держателей.
   unassigned_limit          — нераспределённые лимиты: planned_annual - prior_years_obligations
                                - allocated_limit (деньги статьи, которые Минфин выделил, но
                                финансист ещё не довёл НИ ПО ОДНОЙ подстатье).
@@ -37,7 +57,20 @@ ArticleQuarterlyAllocation, единственный источник "план�
                                committed_obligations - prior_years_obligations.
   remainder_with_actual     — остаток с учётом фактических расходов: planned_annual -
                                paid_actual (добавлено пользователем 2026-11-03).
-"""
+  is_calibrated             — распределение по держателям проведено хоть раз (решение по
+                               запросу фронтенда 2026-11-20, CurrentStatus.md): существует
+                               хотя бы одна ACTIVE запись DepartmentArticleLimit этой статьи/
+                               параграфа/года — НЕ то же самое, что allocated_limit != 0
+                               (легитимный случай: распределили, но вся сумма ушла в ноль по
+                               каким-то держателям) — фронту раньше приходилось угадывать это
+                               по allocated_limit == 0, что ломалось бы именно на таком
+                               легитимном нуле.
+
+Строки сортируются перед возвратом по числовым сегментам `economic_code` (см.
+`_economic_code_sort_key()`) — без этого порядок строк из БД не гарантирован (см. комментарий
+про отключённый `order_by()` в `compute_general_money_report()`), и фронту приходилось
+пересортировывать список на клиенте, чтобы сгруппировать строки по статье для подытогов
+(запрос фронтенда 2026-11-20)."""
 from decimal import Decimal
 
 from django.db.models import Q, Sum
@@ -46,7 +79,9 @@ from core.choices import PlanItemStatus
 from procurement.models import (
     ArticleQuarterlyAllocation, BudgetCosts, ContractItem, DepartmentArticleLimit, TreasuryPayment,
 )
-from procurement.services.multi_year_reservation import compute_reserved_amount_by_article
+from procurement.services.multi_year_reservation import (
+    compute_prior_years_budget_costs_by_article, compute_reserved_amount_by_article,
+)
 
 
 def compute_general_money_report(year):
@@ -61,7 +96,21 @@ def compute_general_money_report(year):
         year=year, status=PlanItemStatus.ACTIVE,
     ).order_by().values('functional_class_id', 'economic_class_id').distinct()
 
-    return [_compute_row(a['functional_class_id'], a['economic_class_id'], year) for a in articles]
+    rows = [_compute_row(a['functional_class_id'], a['economic_class_id'], year) for a in articles]
+    rows.sort(key=lambda r: _economic_code_sort_key(r['economic_code']))
+    return rows
+
+
+def _economic_code_sort_key(code):
+    """Сортировка по сегментам кода как по числам, не по строке целиком (`"1 10"` должен
+    идти раньше `"1 2"`, хотя лексикографически строка `"1 10"` меньше `"1 2"` по случайности
+    совпадения первого символа второго сегмента — см. docstring модуля). Каждый числовой
+    сегмент дополняется нулями слева до фиксированной ширины, чтобы сравнение оставалось
+    обычным строковым (без смешения `int`/`str` в одном ключе сортировки, которое упало бы
+    с `TypeError` на нечисловых сегментах, если они когда-нибудь появятся)."""
+    if not code:
+        return ''
+    return ' '.join(part.zfill(6) if part.isdigit() else part for part in str(code).split())
 
 
 def _compute_row(functional_class_id, economic_class_id, year):
@@ -72,12 +121,17 @@ def _compute_row(functional_class_id, economic_class_id, year):
     sample = allocation_qs.select_related('functional_class', 'economic_class').first()
     planned_annual = allocation_qs.aggregate(s=Sum('amount'))['s'] or Decimal('0')
 
-    prior_years_obligations = compute_reserved_amount_by_article(functional_class_id, economic_class_id, year)
+    prior_years_obligations = (
+        compute_reserved_amount_by_article(functional_class_id, economic_class_id, year)
+        + compute_prior_years_budget_costs_by_article(functional_class_id, economic_class_id, year)
+    )
 
-    allocated_limit = DepartmentArticleLimit.objects.filter(
+    department_limits = DepartmentArticleLimit.objects.filter(
         functional_class_id=functional_class_id, economic_class_id=economic_class_id,
-        year=year, department__isnull=True, status=PlanItemStatus.ACTIVE,
-    ).aggregate(s=Sum('amount'))['s'] or Decimal('0')
+        year=year, status=PlanItemStatus.ACTIVE,
+    )
+    allocated_limit = department_limits.aggregate(s=Sum('amount'))['s'] or Decimal('0')
+    is_calibrated = department_limits.exists()
 
     entered_into_plan = BudgetCosts.objects.filter(
         functional_class_id=functional_class_id, economic_class_id=economic_class_id,
@@ -99,12 +153,20 @@ def _compute_row(functional_class_id, economic_class_id, year):
         'functional_class_id': functional_class_id,
         'economic_class_id': economic_class_id,
         'functional_code': sample.functional_class.code_api if sample else None,
+        # Добавлено 2026-11-21 по запросу пользователя: один и тот же economic_code может
+        # встречаться НЕСКОЛЬКИМИ строками отчёта с разными суммами, если финансирование
+        # идёт по разным параграфам (functional_class) — без текста параграфа фронт не может
+        # показать, "какая 2.40.01.00 к чему относится" (слова пользователя). economic_code/
+        # economic_description такой неоднозначности не имеют (unique на ExternalEconomicCode).
+        'functional_description': sample.functional_class.description if sample else None,
         'economic_code': sample.economic_class.code_api if sample else None,
         'economic_description': sample.economic_class.description if sample else None,
         'year': year,
         'planned_annual': planned_annual,
         'prior_years_obligations': prior_years_obligations,
+        'available_limit': planned_annual - prior_years_obligations,
         'allocated_limit': allocated_limit,
+        'is_calibrated': is_calibrated,
         'unassigned_limit': planned_annual - prior_years_obligations - allocated_limit,
         'entered_into_plan': entered_into_plan,
         'committed_obligations': committed_obligations,

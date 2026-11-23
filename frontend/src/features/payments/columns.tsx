@@ -23,8 +23,12 @@ export const createColumns = (
   {
     id: "actions",
     size: 50,
+    // Строка целиком кликабельна (открывает тот же Drawer с полной
+    // информацией, см. payments.page.tsx `getRow`) — stopPropagation здесь
+    // не даёт клику по кнопкам "провалиться" в обработчик строки и, для
+    // корзины, случайно открыть Drawer вместо диалога подтверждения удаления.
     cell: ({ row }) => (
-      <DataTableCell>
+      <DataTableCell onClick={(e) => e.stopPropagation()}>
         <Button
           variant="ghost"
           size="icon"

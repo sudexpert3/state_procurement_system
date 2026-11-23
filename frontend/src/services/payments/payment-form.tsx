@@ -76,6 +76,12 @@ type Props = {
   open: boolean;
   item: TreasuryPayment | null;
   /**
+   * Режим просмотра (открыт кликом по строке реестра) — поля остаются как
+   * обычно, скрыта только кнопка «Сохранить» (переключиться в редактирование
+   * можно отдельно, карандашом в колонке действий списка).
+   */
+  readOnly?: boolean;
+  /**
    * Договор уже зафиксирован контекстом (таб «Платежи» на карточке позиции
    * плана, см. CurrentStatus.md) — переключатель режима и выбор договора
    * скрыты, платёж всегда создаётся/редактируется привязанным к этому договору.
@@ -88,6 +94,7 @@ type Props = {
 export const PaymentForm = ({
   open,
   item,
+  readOnly = false,
   fixedContract,
   onClose,
   onSuccess,
@@ -236,7 +243,11 @@ export const PaymentForm = ({
         ref={portalContainerRef}>
         <DrawerHeader>
           <DrawerTitle>
-            {isEdit ? "Редактировать платёж" : "Новый платёж"}
+            {readOnly
+              ? "Платёж"
+              : isEdit
+                ? "Редактировать платёж"
+                : "Новый платёж"}
           </DrawerTitle>
         </DrawerHeader>
 
@@ -641,15 +652,27 @@ export const PaymentForm = ({
         </form>
 
         <DrawerFooter>
-          <Button type="submit" form="payment-form" disabled={isPending}>
-            {isPending && <Loader2Icon size={16} className="animate-spin" />}
-            {isEdit ? "Сохранить" : "Добавить"}
-          </Button>
-          <DrawerClose asChild>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Отмена
-            </Button>
-          </DrawerClose>
+          {readOnly ? (
+            <DrawerClose asChild>
+              <Button type="button" variant="outline" onClick={onClose}>
+                Закрыть
+              </Button>
+            </DrawerClose>
+          ) : (
+            <>
+              <Button type="submit" form="payment-form" disabled={isPending}>
+                {isPending && (
+                  <Loader2Icon size={16} className="animate-spin" />
+                )}
+                {isEdit ? "Сохранить" : "Добавить"}
+              </Button>
+              <DrawerClose asChild>
+                <Button type="button" variant="outline" onClick={onClose}>
+                  Отмена
+                </Button>
+              </DrawerClose>
+            </>
+          )}
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

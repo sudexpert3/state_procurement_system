@@ -1,10 +1,9 @@
 import type { Table } from "@tanstack/react-table";
-import type { PlanItemShort } from "@/shared/api/schema";
+import type { Department, PlanItemShort } from "@/shared/api/schema";
 
 import { useMemo } from "react";
 
 import { rqClient } from "@/shared/api/instance";
-import { Checkbox } from "@/shared/components/ui/checkbox";
 import {
   Combobox,
   ComboboxContent,
@@ -13,6 +12,14 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@/shared/components/ui/combobox";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
 
 type FacetOption = { id: string; label: string };
 
@@ -103,22 +110,43 @@ const flattenLeaves = (nodes: InternalEconomicNode[]): FacetOption[] => {
 const sortOptions = (options: FacetOption[]) =>
   [...options].sort((a, b) => a.label.localeCompare(b.label, "ru"));
 
+// Узел дерева /api/departments/ — sub_departments в OpenAPI-схеме тоже
+// типизирован как string (тот же известный баг бэка, что и у sub_codes выше),
+// реально всегда массив узлов (см. cost-department-drawer.tsx — тот же приём).
+const flattenDepartments = (nodes: Department[]): Department[] =>
+  nodes.flatMap((node) => [
+    node,
+    ...flattenDepartments(
+      (node.sub_departments as unknown as Department[] | undefined) ?? [],
+    ),
+  ]);
+
+/** "unset" — пункт "Не определён" (`?buyer_unset=true`), "all" — без фильтра. */
+export type BuyerFilterValue = "all" | "unset" | number;
+export type DepartmentFilterValue = "all" | number;
+
 type RegistryFiltersProps = {
   table: Table<PlanItemShort>;
   /**
-   * Фильтр "исполнитель не определён" (`?buyer_unset=true`) — не привязан ни
-   * к одной отображаемой колонке реестра (колонки "Исполнитель" здесь нет),
-   * поэтому, в отличие от фильтров по кодам ЭКР выше, управляется явным
-   * пропом, а не через `table.getColumn(id).setFilterValue()`.
+   * Фильтр по исполнителю (`?buyer=<id>` / `?buyer_unset=true`) и по
+   * подразделению, для которого проводится закупка (`?department=<id>`) — ни
+   * один из них не привязан ни к одной отображаемой колонке реестра (колонки
+   * "Исполнитель"/"Подразделение" здесь нет), поэтому, в отличие от фильтров
+   * по кодам ЭКР выше, управляются явными пропами, а не через
+   * `table.getColumn(id).setFilterValue()`.
    */
-  buyerUnset: boolean;
-  onBuyerUnsetChange: (value: boolean) => void;
+  buyerFilter: BuyerFilterValue;
+  onBuyerFilterChange: (value: BuyerFilterValue) => void;
+  departmentFilter: DepartmentFilterValue;
+  onDepartmentFilterChange: (value: DepartmentFilterValue) => void;
 };
 
 export const RegistryFilters = ({
   table,
-  buyerUnset,
-  onBuyerUnsetChange,
+  buyerFilter,
+  onBuyerFilterChange,
+  departmentFilter,
+  onDepartmentFilterChange,
 }: RegistryFiltersProps) => {
   const { data: functionalCodes, isLoading: isFunctionalLoading } =
     rqClient.useQuery("get", "/api/functional_code/", {});
@@ -126,6 +154,21 @@ export const RegistryFilters = ({
     rqClient.useQuery("get", "/api/economic_code/", {});
   const { data: internalCodes, isLoading: isInternalLoading } =
     rqClient.useQuery("get", "/api/internal_economic_code/", {});
+  const { data: buyers, isLoading: isBuyersLoading } = rqClient.useQuery(
+    "get",
+    "/api/buyers/",
+    { params: { query: { is_active: true } } },
+  );
+  const { data: departmentsTree, isLoading: isDepartmentsLoading } =
+    rqClient.useQuery("get", "/api/departments/", {
+      params: { query: { is_active: true } },
+    });
+
+  const departments = useMemo(
+    () =>
+      flattenDepartments((departmentsTree ?? []) as unknown as Department[]),
+    [departmentsTree],
+  );
 
   const functionalCodeOptions = useMemo(
     () =>
@@ -181,13 +224,57 @@ export const RegistryFilters = ({
         placeholder="Код ЭКР внутренний..."
         inputClassName="w-[21rem] bg-white"
       />
-      <label className="flex items-center gap-2 text-sm whitespace-nowrap">
-        <Checkbox
-          checked={buyerUnset}
-          onCheckedChange={(checked) => onBuyerUnsetChange(checked === true)}
-        />
-        Исполнитель не определён
-      </label>
+      <Select
+        value={String(buyerFilter)}
+        onValueChange={(v) =>
+          onBuyerFilterChange(v === "all" || v === "unset" ? v : Number(v))
+        }>
+        <SelectTrigger className="w-56 bg-white">
+          <SelectValue placeholder="Исполнитель..." />
+        </SelectTrigger>
+        <SelectContent position="popper">
+          <SelectGroup>
+            <SelectItem value="all">Все исполнители</SelectItem>
+            <SelectItem value="unset">Не определён</SelectItem>
+            {isBuyersLoading ? (
+              <SelectItem value="loading" disabled>
+                Загрузка...
+              </SelectItem>
+            ) : (
+              (buyers ?? []).map((buyer) => (
+                <SelectItem key={buyer.id} value={String(buyer.id)}>
+                  {buyer.shot_name}
+                </SelectItem>
+              ))
+            )}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      <Select
+        value={String(departmentFilter)}
+        onValueChange={(v) =>
+          onDepartmentFilterChange(v === "all" ? v : Number(v))
+        }>
+        <SelectTrigger className="w-56 bg-white">
+          <SelectValue placeholder="Подразделение..." />
+        </SelectTrigger>
+        <SelectContent position="popper">
+          <SelectGroup>
+            <SelectItem value="all">Все подразделения</SelectItem>
+            {isDepartmentsLoading ? (
+              <SelectItem value="loading" disabled>
+                Загрузка...
+              </SelectItem>
+            ) : (
+              departments.map((department) => (
+                <SelectItem key={department.id} value={String(department.id)}>
+                  {department.short_name}
+                </SelectItem>
+              ))
+            )}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
     </>
   );
 };

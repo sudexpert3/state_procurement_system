@@ -4,6 +4,7 @@ import type { Supplier } from "@/shared/api/schema";
 import { ArrowUpDownIcon, PencilIcon } from "lucide-react";
 
 import { DeleteButton } from "@/shared/components/delete-button";
+import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 
 export const createColumns = (
@@ -53,5 +54,15 @@ export const createColumns = (
         УНП <ArrowUpDownIcon size={14} className="ml-1" />
       </Button>
     ),
+    cell: ({ getValue }) => {
+      const unp = getValue<string | null>();
+      return unp ? (
+        unp
+      ) : (
+        <Badge variant="destructive" className="text-sm">
+          нет УНП
+        </Badge>
+      );
+    },
   },
 ];

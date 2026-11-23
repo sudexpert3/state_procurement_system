@@ -22,7 +22,15 @@ import { useSupplierDelete } from "./use-supplier-delete";
 import { useSuppliers } from "./use-suppliers";
 
 const SuppliersPage = () => {
-  const { search, setSearch, data, isLoading, invalidate } = useSuppliers();
+  const {
+    search,
+    setSearch,
+    unpFilter,
+    setUnpFilter,
+    data,
+    isLoading,
+    invalidate,
+  } = useSuppliers();
 
   const { handleDelete, deletingId } = useSupplierDelete(invalidate);
 
@@ -64,7 +72,12 @@ const SuppliersPage = () => {
           fillAvailableHeight
           actions={() => (
             <div className="py-4">
-              <SuppliersToolbar search={search} onSearchChange={setSearch} />
+              <SuppliersToolbar
+                search={search}
+                onSearchChange={setSearch}
+                unpFilter={unpFilter}
+                onUnpFilterChange={setUnpFilter}
+              />
             </div>
           )}
         />

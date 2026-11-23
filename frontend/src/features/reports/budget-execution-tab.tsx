@@ -86,7 +86,7 @@ export const BudgetExecutionTab = () => {
             placeholder="Все подразделения"
             disabled={departmentsQuery.isLoading}
             showClear
-            className="w-64"
+            className="w-64 bg-white"
           />
           <ComboboxContent portalContainer={portalContainerRef}>
             <ComboboxEmpty>Подразделение не найдено</ComboboxEmpty>

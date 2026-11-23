@@ -6,7 +6,7 @@
 сгенерированная схема/типы не врали, что ответ — это `ChangeRequest` (drf-spectacular по
 умолчанию брал `serializer_class` вьюсета для любого кастомного action без аннотации).
 
-Форма ответа зависит от `ChangeRequest.kind` — 5 разных форм, см. docstring
+Форма ответа зависит от `ChangeRequest.kind` — 4 разных формы, см. docstring
 `compute_forecast()`. Используется как `PolymorphicProxySerializer` с дискриминатором `kind`
 (который `compute_forecast()` теперь добавляет в результат, см. change_requests.py).
 """
@@ -83,38 +83,3 @@ class BudgetLimitCorrectionForecastSerializer(serializers.Serializer):
     net_delta = serializers.DecimalField(max_digits=15, decimal_places=2)
 
 
-class DepartmentLimitSubarticleLineSerializer(serializers.Serializer):
-    internal_economic_class_id = serializers.IntegerField()
-    internal_economic_class_code = serializers.CharField()
-    amount = serializers.DecimalField(max_digits=15, decimal_places=2)
-
-
-class DepartmentLimitDepartmentLineSerializer(serializers.Serializer):
-    internal_economic_class_id = serializers.IntegerField()
-    internal_economic_class_code = serializers.CharField()
-    department = serializers.CharField()
-    amount = serializers.DecimalField(max_digits=15, decimal_places=2)
-
-
-class DepartmentLimitSubarticleBalanceSerializer(serializers.Serializer):
-    internal_economic_class_id = serializers.IntegerField()
-    internal_economic_class_code = serializers.CharField()
-    subarticle_total = serializers.DecimalField(max_digits=15, decimal_places=2)
-    departments_sum = serializers.DecimalField(max_digits=15, decimal_places=2)
-    diff = serializers.DecimalField(max_digits=15, decimal_places=2)
-
-
-class DepartmentLimitCalibrationForecastSerializer(serializers.Serializer):
-    kind = serializers.ChoiceField(choices=[ChangeRequestKind.DEPARTMENT_LIMIT_CALIBRATION.value])
-    functional_code = serializers.CharField(allow_null=True)
-    economic_code = serializers.CharField(allow_null=True)
-    year = serializers.IntegerField(allow_null=True)
-    article_total = serializers.DecimalField(max_digits=15, decimal_places=2)
-    prior_years_obligations = serializers.DecimalField(max_digits=15, decimal_places=2)
-    article_available = serializers.DecimalField(max_digits=15, decimal_places=2)
-    subarticle_sum = serializers.DecimalField(max_digits=15, decimal_places=2)
-    article_diff = serializers.DecimalField(max_digits=15, decimal_places=2)
-    subarticle_lines = DepartmentLimitSubarticleLineSerializer(many=True)
-    department_lines = DepartmentLimitDepartmentLineSerializer(many=True)
-    subarticle_balance = DepartmentLimitSubarticleBalanceSerializer(many=True)
-    is_balanced = serializers.BooleanField()

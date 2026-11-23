@@ -63,7 +63,8 @@ export const SupplierForm = ({ open, item, onClose, onSuccess }: Props) => {
         { params: { path: { id: item.id } }, body: values },
         {
           onSuccess: () => handleSuccess("Поставщик обновлён"),
-          onError: () => toast.error("Не удалось сохранить поставщика"),
+          onError: (error) =>
+            handleHttpError(error, "Не удалось сохранить поставщика", true),
         },
       );
     } else {

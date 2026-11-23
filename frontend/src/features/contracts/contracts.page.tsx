@@ -8,6 +8,7 @@ import { PlusIcon } from "lucide-react";
 import { useCurrentUser } from "@/services/auth";
 import { rqClient } from "@/shared/api/instance";
 import { DataTable } from "@/shared/components/data-table/data-table";
+import { DataTablePagination } from "@/shared/components/data-table/data-table-pagination";
 import { useServerPagination } from "@/shared/components/data-table/hooks/use-server-pagination";
 import { useServerSearch } from "@/shared/components/data-table/hooks/use-server-search";
 import { Button } from "@/shared/components/ui/button";
@@ -30,11 +31,19 @@ import { cn } from "@/shared/lib/utils";
 import { createColumns } from "./columns";
 import { ContractDetail } from "./contract-detail";
 import { ContractForm } from "./contract-form";
+import { ContractsMoneySummary } from "./contracts-money-summary";
 import {
   ContractsToolbar,
+  type DepartmentFilterValue,
   type ExpiringWithinDaysFilterValue,
   type HasPaymentsFilterValue,
 } from "./contracts-toolbar";
+
+// Сумма под таблицей считается по ПОЛНОМУ списку, подходящему под текущие
+// фильтры, не по текущей странице — отдельный запрос с большим limit без
+// среза по страницам, тот же приём, что и на "Реестре закупок" (см.
+// plans-items.page.tsx/FULL_YEAR_LIMIT).
+const FULL_LIST_LIMIT = 10000;
 
 const ContractsPage = () => {
   const { limit, offset, pagination, onPaginationChange } =
@@ -44,6 +53,8 @@ const ContractsPage = () => {
     useState<HasPaymentsFilterValue>("all");
   const [expiringFilter, setExpiringFilter] =
     useState<ExpiringWithinDaysFilterValue>("all");
+  const [departmentFilter, setDepartmentFilter] =
+    useState<DepartmentFilterValue>("all");
   const [selected, setSelected] = useState<Contract | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -70,10 +81,35 @@ const ContractsPage = () => {
               : hasPaymentsFilter === "true",
           expiring_within_days:
             expiringFilter === "all" ? undefined : Number(expiringFilter),
+          department: departmentFilter === "all" ? undefined : departmentFilter,
         },
       },
     },
     { placeholderData: keepPreviousData },
+  );
+
+  // Тот же набор условий, но без пагинации — только для суммы снизу.
+  // Специально без placeholderData: пока считается новая сумма, старая не
+  // должна молча выдаваться за актуальную — ContractsMoneySummary покажет
+  // "считается...".
+  const { data: fullFilteredData, isLoading: isSumLoading } = rqClient.useQuery(
+    "get",
+    "/api/contracts/",
+    {
+      params: {
+        query: {
+          limit: FULL_LIST_LIMIT,
+          search: debouncedSearch || undefined,
+          has_payments:
+            hasPaymentsFilter === "all"
+              ? undefined
+              : hasPaymentsFilter === "true",
+          expiring_within_days:
+            expiringFilter === "all" ? undefined : Number(expiringFilter),
+          department: departmentFilter === "all" ? undefined : departmentFilter,
+        },
+      },
+    },
   );
 
   const columns = useMemo(() => createColumns(setSelected), []);
@@ -111,6 +147,8 @@ const ContractsPage = () => {
                 onHasPaymentsFilterChange={setHasPaymentsFilter}
                 expiringFilter={expiringFilter}
                 onExpiringFilterChange={setExpiringFilter}
+                departmentFilter={departmentFilter}
+                onDepartmentFilterChange={setDepartmentFilter}
               />
             </div>
           )}
@@ -122,6 +160,17 @@ const ContractsPage = () => {
               rowCount: data?.count ?? 0,
               onChange: onPaginationChange,
             },
+            render: (table) => (
+              <DataTablePagination
+                table={table}
+                summary={
+                  <ContractsMoneySummary
+                    items={fullFilteredData?.results}
+                    isLoading={isSumLoading}
+                  />
+                }
+              />
+            ),
           }}
         />
       </CardContent>

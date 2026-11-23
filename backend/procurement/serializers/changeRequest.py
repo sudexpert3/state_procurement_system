@@ -45,10 +45,20 @@ class RedistributionCreateSerializer(serializers.Serializer):
     lines = RedistributionLineSerializer(many=True)
 
 
-class DepartmentLimitCalibrationCreateSerializer(serializers.Serializer):
-    """Вход для create_department_limit_calibration() — одна статья/год за раз (решение
-    пользователя 2026-11-03: калибровка всегда идёт по конкретной статье Минфина)."""
+class BudgetLimitCorrectionLineSerializer(serializers.Serializer):
+    """Одна строка (статья ЭКР x квартал) — тот же формат, что отдаёт предпросмотр
+    (см. BudgetLimitCorrectionPreviewLineSerializer), но без `*_detail` — расшифровка коду
+    не нужна на входе, только id."""
     functional_class = serializers.IntegerField()
     economic_class = serializers.IntegerField()
     year = serializers.IntegerField()
+    quarter = serializers.ChoiceField(choices=['Q1', 'Q2', 'Q3', 'Q4'])
+    amount = serializers.DecimalField(max_digits=15, decimal_places=2)
+
+
+class BudgetLimitCorrectionCreateSerializer(serializers.Serializer):
+    """Подтверждение предпросмотра (возможно, отредактированного на фронте) — создаёт
+    заявку kind=BUDGET_LIMIT_CORRECTION. Файл сюда не передаётся повторно, только уже
+    разобранные строки (см. views/changeRequest.py::budget_limit_correction_preview)."""
     reason = serializers.CharField(required=False, allow_blank=True, default='')
+    lines = BudgetLimitCorrectionLineSerializer(many=True)

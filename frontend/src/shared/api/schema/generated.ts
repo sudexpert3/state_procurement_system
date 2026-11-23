@@ -246,11 +246,18 @@ export interface paths {
      *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
      *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
      *
-     *     POST /change_requests/            — создать (plan_item, kind, reason)
-     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
-     *     POST /change_requests/{id}/approve/  — одобрить
-     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
-     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *     POST   /change_requests/            — создать (plan_item, kind, reason)
+     *     DELETE /change_requests/{id}/        — удалить черновик (только status=DRAFT, см. destroy())
+     *     POST   /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST   /change_requests/{id}/approve/  — одобрить
+     *     POST   /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET    /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *
+     *     Импорт корректировки лимитов (budget_limit_correction_preview/budget_limit_correction) —
+     *     единственная пара действий этого вьюсета с реальным ограничением доступа (решение
+     *     пользователя 2026-11-20): только роль "Финансист"/"Главный администратор", см.
+     *     get_permissions() и procurement/permissions.py::CAPABILITIES['budget_limit_correction'].
+     *     Остальные действия — AllowAny, как и весь остальной API (авторизация отложена, Этап 7).
      */
     get: operations["change_requests_list"];
     put?: never;
@@ -259,11 +266,18 @@ export interface paths {
      *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
      *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
      *
-     *     POST /change_requests/            — создать (plan_item, kind, reason)
-     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
-     *     POST /change_requests/{id}/approve/  — одобрить
-     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
-     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *     POST   /change_requests/            — создать (plan_item, kind, reason)
+     *     DELETE /change_requests/{id}/        — удалить черновик (только status=DRAFT, см. destroy())
+     *     POST   /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST   /change_requests/{id}/approve/  — одобрить
+     *     POST   /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET    /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *
+     *     Импорт корректировки лимитов (budget_limit_correction_preview/budget_limit_correction) —
+     *     единственная пара действий этого вьюсета с реальным ограничением доступа (решение
+     *     пользователя 2026-11-20): только роль "Финансист"/"Главный администратор", см.
+     *     get_permissions() и procurement/permissions.py::CAPABILITIES['budget_limit_correction'].
+     *     Остальные действия — AllowAny, как и весь остальной API (авторизация отложена, Этап 7).
      */
     post: operations["change_requests_create"];
     delete?: never;
@@ -284,11 +298,18 @@ export interface paths {
      *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
      *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
      *
-     *     POST /change_requests/            — создать (plan_item, kind, reason)
-     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
-     *     POST /change_requests/{id}/approve/  — одобрить
-     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
-     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *     POST   /change_requests/            — создать (plan_item, kind, reason)
+     *     DELETE /change_requests/{id}/        — удалить черновик (только status=DRAFT, см. destroy())
+     *     POST   /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST   /change_requests/{id}/approve/  — одобрить
+     *     POST   /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET    /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *
+     *     Импорт корректировки лимитов (budget_limit_correction_preview/budget_limit_correction) —
+     *     единственная пара действий этого вьюсета с реальным ограничением доступа (решение
+     *     пользователя 2026-11-20): только роль "Финансист"/"Главный администратор", см.
+     *     get_permissions() и procurement/permissions.py::CAPABILITIES['budget_limit_correction'].
+     *     Остальные действия — AllowAny, как и весь остальной API (авторизация отложена, Этап 7).
      */
     get: operations["change_requests_retrieve"];
     /**
@@ -296,24 +317,27 @@ export interface paths {
      *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
      *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
      *
-     *     POST /change_requests/            — создать (plan_item, kind, reason)
-     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
-     *     POST /change_requests/{id}/approve/  — одобрить
-     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
-     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *     POST   /change_requests/            — создать (plan_item, kind, reason)
+     *     DELETE /change_requests/{id}/        — удалить черновик (только status=DRAFT, см. destroy())
+     *     POST   /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST   /change_requests/{id}/approve/  — одобрить
+     *     POST   /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET    /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *
+     *     Импорт корректировки лимитов (budget_limit_correction_preview/budget_limit_correction) —
+     *     единственная пара действий этого вьюсета с реальным ограничением доступа (решение
+     *     пользователя 2026-11-20): только роль "Финансист"/"Главный администратор", см.
+     *     get_permissions() и procurement/permissions.py::CAPABILITIES['budget_limit_correction'].
+     *     Остальные действия — AllowAny, как и весь остальной API (авторизация отложена, Этап 7).
      */
     put: operations["change_requests_update"];
     post?: never;
     /**
-     * @description Общий движок одобрения изменений (Этап 2) — заявки на изменение/исключение позиции
-     *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
-     *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
-     *
-     *     POST /change_requests/            — создать (plan_item, kind, reason)
-     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
-     *     POST /change_requests/{id}/approve/  — одобрить
-     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
-     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     * @description Удалить черновик заявки (решение пользователя 2026-11-20) — не стандартный
+     *     ModelViewSet.destroy(): все дочерние DRAFT-строки ссылаются на ChangeRequest через
+     *     on_delete=PROTECT (см. docstring модели), поэтому "голый" DELETE уронил бы
+     *     ProtectedError. cr_service.delete_draft() удаляет дочерние строки в правильном
+     *     порядке и разрешает это только для status=DRAFT.
      */
     delete: operations["change_requests_destroy"];
     options?: never;
@@ -323,11 +347,18 @@ export interface paths {
      *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
      *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
      *
-     *     POST /change_requests/            — создать (plan_item, kind, reason)
-     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
-     *     POST /change_requests/{id}/approve/  — одобрить
-     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
-     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *     POST   /change_requests/            — создать (plan_item, kind, reason)
+     *     DELETE /change_requests/{id}/        — удалить черновик (только status=DRAFT, см. destroy())
+     *     POST   /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST   /change_requests/{id}/approve/  — одобрить
+     *     POST   /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET    /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *
+     *     Импорт корректировки лимитов (budget_limit_correction_preview/budget_limit_correction) —
+     *     единственная пара действий этого вьюсета с реальным ограничением доступа (решение
+     *     пользователя 2026-11-20): только роль "Финансист"/"Главный администратор", см.
+     *     get_permissions() и procurement/permissions.py::CAPABILITIES['budget_limit_correction'].
+     *     Остальные действия — AllowAny, как и весь остальной API (авторизация отложена, Этап 7).
      */
     patch: operations["change_requests_partial_update"];
     trace?: never;
@@ -346,11 +377,18 @@ export interface paths {
      *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
      *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
      *
-     *     POST /change_requests/            — создать (plan_item, kind, reason)
-     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
-     *     POST /change_requests/{id}/approve/  — одобрить
-     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
-     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *     POST   /change_requests/            — создать (plan_item, kind, reason)
+     *     DELETE /change_requests/{id}/        — удалить черновик (только status=DRAFT, см. destroy())
+     *     POST   /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST   /change_requests/{id}/approve/  — одобрить
+     *     POST   /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET    /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *
+     *     Импорт корректировки лимитов (budget_limit_correction_preview/budget_limit_correction) —
+     *     единственная пара действий этого вьюсета с реальным ограничением доступа (решение
+     *     пользователя 2026-11-20): только роль "Финансист"/"Главный администратор", см.
+     *     get_permissions() и procurement/permissions.py::CAPABILITIES['budget_limit_correction'].
+     *     Остальные действия — AllowAny, как и весь остальной API (авторизация отложена, Этап 7).
      */
     post: operations["change_requests_approve_create"];
     delete?: never;
@@ -371,11 +409,18 @@ export interface paths {
      *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
      *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
      *
-     *     POST /change_requests/            — создать (plan_item, kind, reason)
-     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
-     *     POST /change_requests/{id}/approve/  — одобрить
-     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
-     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *     POST   /change_requests/            — создать (plan_item, kind, reason)
+     *     DELETE /change_requests/{id}/        — удалить черновик (только status=DRAFT, см. destroy())
+     *     POST   /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST   /change_requests/{id}/approve/  — одобрить
+     *     POST   /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET    /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *
+     *     Импорт корректировки лимитов (budget_limit_correction_preview/budget_limit_correction) —
+     *     единственная пара действий этого вьюсета с реальным ограничением доступа (решение
+     *     пользователя 2026-11-20): только роль "Финансист"/"Главный администратор", см.
+     *     get_permissions() и procurement/permissions.py::CAPABILITIES['budget_limit_correction'].
+     *     Остальные действия — AllowAny, как и весь остальной API (авторизация отложена, Этап 7).
      */
     get: operations["change_requests_forecast_retrieve"];
     put?: never;
@@ -400,11 +445,18 @@ export interface paths {
      *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
      *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
      *
-     *     POST /change_requests/            — создать (plan_item, kind, reason)
-     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
-     *     POST /change_requests/{id}/approve/  — одобрить
-     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
-     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *     POST   /change_requests/            — создать (plan_item, kind, reason)
+     *     DELETE /change_requests/{id}/        — удалить черновик (только status=DRAFT, см. destroy())
+     *     POST   /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST   /change_requests/{id}/approve/  — одобрить
+     *     POST   /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET    /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *
+     *     Импорт корректировки лимитов (budget_limit_correction_preview/budget_limit_correction) —
+     *     единственная пара действий этого вьюсета с реальным ограничением доступа (решение
+     *     пользователя 2026-11-20): только роль "Финансист"/"Главный администратор", см.
+     *     get_permissions() и procurement/permissions.py::CAPABILITIES['budget_limit_correction'].
+     *     Остальные действия — AllowAny, как и весь остальной API (авторизация отложена, Этап 7).
      */
     post: operations["change_requests_reject_create"];
     delete?: never;
@@ -427,11 +479,18 @@ export interface paths {
      *     плана (и в будущем, Этап 3.4 — на корректировку лимита от Казначейства) проходят через
      *     один и тот же статусный цикл DRAFT -> ON_REVIEW -> APPROVED/REJECTED.
      *
-     *     POST /change_requests/            — создать (plan_item, kind, reason)
-     *     POST /change_requests/{id}/submit/   — отправить черновик на проверку
-     *     POST /change_requests/{id}/approve/  — одобрить
-     *     POST /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
-     *     GET  /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *     POST   /change_requests/            — создать (plan_item, kind, reason)
+     *     DELETE /change_requests/{id}/        — удалить черновик (только status=DRAFT, см. destroy())
+     *     POST   /change_requests/{id}/submit/   — отправить черновик на проверку
+     *     POST   /change_requests/{id}/approve/  — одобрить
+     *     POST   /change_requests/{id}/reject/   — отклонить (body: rejection_reason)
+     *     GET    /change_requests/{id}/forecast/ — прогноз последствий (read-only)
+     *
+     *     Импорт корректировки лимитов (budget_limit_correction_preview/budget_limit_correction) —
+     *     единственная пара действий этого вьюсета с реальным ограничением доступа (решение
+     *     пользователя 2026-11-20): только роль "Финансист"/"Главный администратор", см.
+     *     get_permissions() и procurement/permissions.py::CAPABILITIES['budget_limit_correction'].
+     *     Остальные действия — AllowAny, как и весь остальной API (авторизация отложена, Этап 7).
      */
     post: operations["change_requests_submit_create"];
     delete?: never;
@@ -440,7 +499,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/api/change_requests/calibrate_department_limits/": {
+  "/api/change_requests/budget_limit_correction/": {
     parameters: {
       query?: never;
       header?: never;
@@ -450,14 +509,34 @@ export interface paths {
     get?: never;
     put?: never;
     /**
-     * @description Создать заявку на калибровку разбивки статьи Минфина на подстатьи/держателей
-     *     лимита (kind=DEPARTMENT_LIMIT_CALIBRATION) — клонирует текущие ACTIVE строки
-     *     DepartmentArticleLimit этой статьи/года в черновик (см. cr_service.
-     *     create_department_limit_calibration). Дальше специалист правит строки через
-     *     /api/department_article_limits/ (change_request=этой заявки, status=DRAFT),
-     *     смотрит сверку через forecast/ и одобряет — как любую другую заявку.
+     * @description Подтверждение предпросмотра (возможно, отредактированного на фронте) — создаёт
+     *     заявку kind=BUDGET_LIMIT_CORRECTION с черновиками ArticleQuarterlyAllocation (см.
+     *     cr_service.create_budget_limit_correction). Файл сюда не передаётся повторно —
+     *     только уже разобранный список строк.
      */
-    post: operations["change_requests_calibrate_department_limits_create"];
+    post: operations["change_requests_budget_limit_correction_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/change_requests/budget_limit_correction_preview/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * @description Предпросмотр разбора fin_YYYY.xlsb от Казначейства (Этап 3.4/задание фронтенда
+     *     2026-11-19) — НЕ пишет в БД, только разбирает файл и возвращает строки +
+     *     несопоставленные статьи, чтобы специалист мог проверить/поправить перед сохранением
+     *     (см. budget_limit_correction/ для подтверждения).
+     */
+    post: operations["change_requests_budget_limit_correction_preview_create"];
     delete?: never;
     options?: never;
     head?: never;
@@ -612,16 +691,27 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * @description CRUD строк калибровки (подстатьи/держатели лимита) — черновик правится через этот
-     *     эндпоинт (status=DRAFT, change_request=<заявка>), сверка — через
-     *     /api/change_requests/{id}/forecast/.
+     * @description Переопределён, чтобы считать `plan_amount`/`paid_amount` ОДНИМ проходом на всю
+     *     страницу выдачи, а не отдельным запросом на каждую строку (см. docstring
+     *     DepartmentArticleLimitSerializer.get_plan_amount/get_paid_amount).
      */
     get: operations["department_article_limits_list"];
     put?: never;
     /**
-     * @description CRUD строк калибровки (подстатьи/держатели лимита) — черновик правится через этот
-     *     эндпоинт (status=DRAFT, change_request=<заявка>), сверка — через
-     *     /api/change_requests/{id}/forecast/.
+     * @description Страница «Распределение лимитов» (решение пользователя 2026-11-23) — прямой CRUD,
+     *     без согласования через ChangeRequest: доступ и так ограничен ролью (финансист/админ,
+     *     см. get_permissions()). Черновик (status=DRAFT) редактируется и удаляется свободно;
+     *     ACTIVE/ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.
+     *     validate()). Перевод в ACTIVE — через action `activate`, не через PATCH статуса.
+     *
+     *     GET  /department_article_limits/                     — список (фильтры ниже)
+     *     POST /department_article_limits/                      — создать черновик
+     *     PATCH/DELETE .../{id}/                                 — править/удалить черновик
+     *     POST .../{id}/activate/                                — DRAFT -> ACTIVE, архивирует
+     *                                                               прежнюю версию этой же связки
+     *     GET  .../article_availability/?functional_class=&economic_class=&year=&exclude=<id>
+     *                                                             — для живого предупреждения в модалке
+     *     GET  .../overspend_summary/?year=                     — для баннера перерасхода на странице
      */
     post: operations["department_article_limits_create"];
     delete?: never;
@@ -638,32 +728,145 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * @description CRUD строк калибровки (подстатьи/держатели лимита) — черновик правится через этот
-     *     эндпоинт (status=DRAFT, change_request=<заявка>), сверка — через
-     *     /api/change_requests/{id}/forecast/.
+     * @description Страница «Распределение лимитов» (решение пользователя 2026-11-23) — прямой CRUD,
+     *     без согласования через ChangeRequest: доступ и так ограничен ролью (финансист/админ,
+     *     см. get_permissions()). Черновик (status=DRAFT) редактируется и удаляется свободно;
+     *     ACTIVE/ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.
+     *     validate()). Перевод в ACTIVE — через action `activate`, не через PATCH статуса.
+     *
+     *     GET  /department_article_limits/                     — список (фильтры ниже)
+     *     POST /department_article_limits/                      — создать черновик
+     *     PATCH/DELETE .../{id}/                                 — править/удалить черновик
+     *     POST .../{id}/activate/                                — DRAFT -> ACTIVE, архивирует
+     *                                                               прежнюю версию этой же связки
+     *     GET  .../article_availability/?functional_class=&economic_class=&year=&exclude=<id>
+     *                                                             — для живого предупреждения в модалке
+     *     GET  .../overspend_summary/?year=                     — для баннера перерасхода на странице
      */
     get: operations["department_article_limits_retrieve"];
     /**
-     * @description CRUD строк калибровки (подстатьи/держатели лимита) — черновик правится через этот
-     *     эндпоинт (status=DRAFT, change_request=<заявка>), сверка — через
-     *     /api/change_requests/{id}/forecast/.
+     * @description Страница «Распределение лимитов» (решение пользователя 2026-11-23) — прямой CRUD,
+     *     без согласования через ChangeRequest: доступ и так ограничен ролью (финансист/админ,
+     *     см. get_permissions()). Черновик (status=DRAFT) редактируется и удаляется свободно;
+     *     ACTIVE/ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.
+     *     validate()). Перевод в ACTIVE — через action `activate`, не через PATCH статуса.
+     *
+     *     GET  /department_article_limits/                     — список (фильтры ниже)
+     *     POST /department_article_limits/                      — создать черновик
+     *     PATCH/DELETE .../{id}/                                 — править/удалить черновик
+     *     POST .../{id}/activate/                                — DRAFT -> ACTIVE, архивирует
+     *                                                               прежнюю версию этой же связки
+     *     GET  .../article_availability/?functional_class=&economic_class=&year=&exclude=<id>
+     *                                                             — для живого предупреждения в модалке
+     *     GET  .../overspend_summary/?year=                     — для баннера перерасхода на странице
      */
     put: operations["department_article_limits_update"];
     post?: never;
     /**
-     * @description CRUD строк калибровки (подстатьи/держатели лимита) — черновик правится через этот
-     *     эндпоинт (status=DRAFT, change_request=<заявка>), сверка — через
-     *     /api/change_requests/{id}/forecast/.
+     * @description Страница «Распределение лимитов» (решение пользователя 2026-11-23) — прямой CRUD,
+     *     без согласования через ChangeRequest: доступ и так ограничен ролью (финансист/админ,
+     *     см. get_permissions()). Черновик (status=DRAFT) редактируется и удаляется свободно;
+     *     ACTIVE/ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.
+     *     validate()). Перевод в ACTIVE — через action `activate`, не через PATCH статуса.
+     *
+     *     GET  /department_article_limits/                     — список (фильтры ниже)
+     *     POST /department_article_limits/                      — создать черновик
+     *     PATCH/DELETE .../{id}/                                 — править/удалить черновик
+     *     POST .../{id}/activate/                                — DRAFT -> ACTIVE, архивирует
+     *                                                               прежнюю версию этой же связки
+     *     GET  .../article_availability/?functional_class=&economic_class=&year=&exclude=<id>
+     *                                                             — для живого предупреждения в модалке
+     *     GET  .../overspend_summary/?year=                     — для баннера перерасхода на странице
      */
     delete: operations["department_article_limits_destroy"];
     options?: never;
     head?: never;
     /**
-     * @description CRUD строк калибровки (подстатьи/держатели лимита) — черновик правится через этот
-     *     эндпоинт (status=DRAFT, change_request=<заявка>), сверка — через
-     *     /api/change_requests/{id}/forecast/.
+     * @description Страница «Распределение лимитов» (решение пользователя 2026-11-23) — прямой CRUD,
+     *     без согласования через ChangeRequest: доступ и так ограничен ролью (финансист/админ,
+     *     см. get_permissions()). Черновик (status=DRAFT) редактируется и удаляется свободно;
+     *     ACTIVE/ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.
+     *     validate()). Перевод в ACTIVE — через action `activate`, не через PATCH статуса.
+     *
+     *     GET  /department_article_limits/                     — список (фильтры ниже)
+     *     POST /department_article_limits/                      — создать черновик
+     *     PATCH/DELETE .../{id}/                                 — править/удалить черновик
+     *     POST .../{id}/activate/                                — DRAFT -> ACTIVE, архивирует
+     *                                                               прежнюю версию этой же связки
+     *     GET  .../article_availability/?functional_class=&economic_class=&year=&exclude=<id>
+     *                                                             — для живого предупреждения в модалке
+     *     GET  .../overspend_summary/?year=                     — для баннера перерасхода на странице
      */
     patch: operations["department_article_limits_partial_update"];
+    trace?: never;
+  };
+  "/api/department_article_limits/{id}/activate/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * @description Страница «Распределение лимитов» (решение пользователя 2026-11-23) — прямой CRUD,
+     *     без согласования через ChangeRequest: доступ и так ограничен ролью (финансист/админ,
+     *     см. get_permissions()). Черновик (status=DRAFT) редактируется и удаляется свободно;
+     *     ACTIVE/ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.
+     *     validate()). Перевод в ACTIVE — через action `activate`, не через PATCH статуса.
+     *
+     *     GET  /department_article_limits/                     — список (фильтры ниже)
+     *     POST /department_article_limits/                      — создать черновик
+     *     PATCH/DELETE .../{id}/                                 — править/удалить черновик
+     *     POST .../{id}/activate/                                — DRAFT -> ACTIVE, архивирует
+     *                                                               прежнюю версию этой же связки
+     *     GET  .../article_availability/?functional_class=&economic_class=&year=&exclude=<id>
+     *                                                             — для живого предупреждения в модалке
+     *     GET  .../overspend_summary/?year=                     — для баннера перерасхода на странице
+     */
+    post: operations["department_article_limits_activate_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/department_article_limits/article_availability/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * @description Для живого предупреждения в модалке создания/редактирования — не блокирует,
+     *     только отдаёт цифры (перерасход разрешён, решение пользователя 2026-11-23).
+     */
+    get: operations["department_article_limits_article_availability_retrieve"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/department_article_limits/overspend_summary/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Баннер «по такой-то статье — перебор» на странице «Распределение лимитов». */
+    get: operations["department_article_limits_overspend_summary_list"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   "/api/departments/": {
@@ -1566,6 +1769,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /**
+     * @description Ответ `GET .../article_availability/` — для живого предупреждения о перерасходе в
+     *     модалке (см. views/departmentArticleLimit.py).
+     */
+    ArticleAvailability: {
+      functional_class: number;
+      economic_class: number;
+      year: number;
+      /** Format: decimal */
+      available_limit: string;
+      /** Format: decimal */
+      allocated_total: string;
+      /** Format: decimal */
+      remaining: string;
+    };
     BudgetCosts: {
       readonly id: number;
       /** Версия пункта плана */
@@ -1664,6 +1882,16 @@ export interface components {
       economic_code?: string | null;
       readonly internal_economic_class_detail: components["schemas"]["InternalEconomicClassifier"];
     };
+    /**
+     * @description Подтверждение предпросмотра (возможно, отредактированного на фронте) — создаёт
+     *     заявку kind=BUDGET_LIMIT_CORRECTION. Файл сюда не передаётся повторно, только уже
+     *     разобранные строки (см. views/changeRequest.py::budget_limit_correction_preview).
+     */
+    BudgetLimitCorrectionCreate: {
+      /** @default  */
+      reason: string;
+      lines: components["schemas"]["BudgetLimitCorrectionLine"][];
+    };
     BudgetLimitCorrectionForecast: {
       /**
        * @description discriminator enum property added by openapi-typescript
@@ -1690,6 +1918,59 @@ export interface components {
       new_amount: string;
       /** Format: decimal */
       delta: string;
+    };
+    /**
+     * @description Одна строка (статья ЭКР x квартал) — тот же формат, что отдаёт предпросмотр
+     *     (см. BudgetLimitCorrectionPreviewLineSerializer), но без `*_detail` — расшифровка коду
+     *     не нужна на входе, только id.
+     */
+    BudgetLimitCorrectionLine: {
+      functional_class: number;
+      economic_class: number;
+      year: number;
+      quarter: components["schemas"]["QuarterD45Enum"];
+      /** Format: decimal */
+      amount: string;
+    };
+    /**
+     * @description Статьи, исключённые правилом fin_file_parser.EXCLUDED_ARTICLES (решение пользователя,
+     *     не ошибка разбора) — сырые коды из файла, не сопоставленные со справочником.
+     */
+    BudgetLimitCorrectionPreviewExcludedLine: {
+      functional_raw_code: string;
+      economic_raw_code: string;
+    };
+    /**
+     * @description Та же форма, что принимает подтверждение (BudgetLimitCorrectionCreateSerializer),
+     *     плюс `*_detail` — расшифровка кодов для отображения на фронте без доп. запроса.
+     */
+    BudgetLimitCorrectionPreviewLine: {
+      functional_class: number;
+      readonly functional_class_detail: components["schemas"]["FunctionalCode"];
+      economic_class: number;
+      readonly economic_class_detail: components["schemas"]["ExternalEconomicCode"];
+      year: number;
+      quarter: string;
+      /** Format: decimal */
+      amount: string;
+    };
+    BudgetLimitCorrectionPreviewReport: {
+      rows_total: number;
+      matched_articles: number;
+      excluded: components["schemas"]["BudgetLimitCorrectionPreviewExcludedLine"][];
+      functional_not_found: string[];
+      economic_not_found: string[];
+    };
+    BudgetLimitCorrectionPreviewRequest: {
+      /** Format: uri */
+      file: string;
+      year: number;
+      /** @description По умолчанию — settings.DEFAULT_UNK (Центральный аппарат ГКСЭ). */
+      unk?: number | null;
+    };
+    BudgetLimitCorrectionPreviewResponse: {
+      lines: components["schemas"]["BudgetLimitCorrectionPreviewLine"][];
+      report: components["schemas"]["BudgetLimitCorrectionPreviewReport"];
     };
     /**
      * @description Read-эндпоинт для выбора существующих квартальных лимитов при перераспределении
@@ -1772,22 +2053,19 @@ export interface components {
       | components["schemas"]["PlanItemChangeForecast"]
       | components["schemas"]["PlanItemExclusionForecast"]
       | components["schemas"]["RedistributionForecast"]
-      | components["schemas"]["BudgetLimitCorrectionForecast"]
-      | components["schemas"]["DepartmentLimitCalibrationForecast"];
+      | components["schemas"]["BudgetLimitCorrectionForecast"];
     /**
      * @description * `PLAN_ITEM_CHANGE` - Изменение позиции плана
      *     * `PLAN_ITEM_EXCLUSION` - Исключение позиции плана
      *     * `LIMIT_REDISTRIBUTION` - Перераспределение лимита
      *     * `BUDGET_LIMIT_CORRECTION` - Корректировка лимита (Казначейство)
-     *     * `DEPARTMENT_LIMIT_CALIBRATION` - Калибровка лимитов по подразделениям
      * @enum {string}
      */
     ChangeRequestKindEnum:
       | "PLAN_ITEM_CHANGE"
       | "PLAN_ITEM_EXCLUSION"
       | "LIMIT_REDISTRIBUTION"
-      | "BUDGET_LIMIT_CORRECTION"
-      | "DEPARTMENT_LIMIT_CALIBRATION";
+      | "BUDGET_LIMIT_CORRECTION";
     /**
      * @description * `DRAFT` - Черновик
      *     * `ON_REVIEW` - На проверке
@@ -1866,6 +2144,9 @@ export interface components {
        * Format: decimal
        */
       contract_cost: string;
+      readonly department_detail: components["schemas"]["Department"];
+      readonly economic_class_detail: components["schemas"]["ExternalEconomicCode"];
+      readonly internal_economic_class_detail: components["schemas"]["InternalEconomicClassifier"];
     };
     /**
      * @description Квартальный план/факт договора (Этап 4.3) — специалист вручную корректирует
@@ -1919,107 +2200,68 @@ export interface components {
       readonly is_root: boolean;
     };
     /**
-     * @description CRUD черновика калибровки (Этап, kind=DEPARTMENT_LIMIT_CALIBRATION) — специалист
-     *     добавляет/правит/удаляет строки подстатей (department=null) и держателей (department
-     *     заполнен) через обычный REST, затем смотрит сверку через
-     *     /api/change_requests/{id}/forecast/ (переиспользует общий движок, Этап 2).
+     * @description CRUD строки распределения лимита по держателю (Этап «Распределение лимитов»,
+     *     2026-11-23) — прямое редактирование финансистом/админом, без согласования. Черновик
+     *     (status=DRAFT) редактируется целиком; ACTIVE/ARCHIVE — только `note`/`deactivated_at`
+     *     (см. ALWAYS_EDITABLE_FIELDS/validate()). Перевод DRAFT -> ACTIVE — отдельный action
+     *     `activate` (см. views/departmentArticleLimit.py), не через PATCH статуса.
      */
     DepartmentArticleLimit: {
       readonly id: number;
       /**
        * Статус
-       * @default ACTIVE
+       * @default DRAFT
        */
-      status: components["schemas"]["StatusBd6Enum"];
+      readonly status: components["schemas"]["DepartmentArticleLimitStatusEnum"];
+      readonly status_display: string;
       /** Функциональная классификация (раздел/параграф) */
       functional_class: number;
       readonly functional_code: string;
+      readonly functional_description: string;
       /** Статья ЭКР (внешняя, от Минфина/Казначейства) */
       economic_class: number;
       readonly economic_code: string;
+      readonly economic_description: string;
       /** Подстатья (внутренний классификатор ГКСЭ) */
       internal_economic_class: number;
       readonly internal_economic_class_code: string;
+      readonly internal_economic_class_name: string;
       /** Держатель лимита (подразделение) */
-      department?: number | null;
+      department: number;
       readonly department_name: string;
       /** Год */
       year: number;
       /**
-       * Сумма (BYN)
+       * Сумма лимита (BYN)
        * Format: decimal
        */
       amount?: string;
-      /** Заявка на изменение */
-      change_request?: number | null;
+      /** Примечание */
+      note?: string;
+      /**
+       * Дата записи
+       * Format: date
+       */
+      effective_date?: string;
+      /**
+       * Дата деактивации
+       * Format: date
+       */
+      deactivated_at?: string | null;
+      readonly plan_amount: string;
+      readonly paid_amount: string;
       /** Format: date-time */
       readonly created_at: string;
       /** Format: date-time */
       readonly changed_at: string;
     };
     /**
-     * @description Вход для create_department_limit_calibration() — одна статья/год за раз (решение
-     *     пользователя 2026-11-03: калибровка всегда идёт по конкретной статье Минфина).
-     */
-    DepartmentLimitCalibrationCreate: {
-      functional_class: number;
-      economic_class: number;
-      year: number;
-      /** @default  */
-      reason: string;
-    };
-    DepartmentLimitCalibrationForecast: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      kind: "DEPARTMENT_LIMIT_CALIBRATION";
-      functional_code: string | null;
-      economic_code: string | null;
-      year: number | null;
-      /** Format: decimal */
-      article_total: string;
-      /** Format: decimal */
-      prior_years_obligations: string;
-      /** Format: decimal */
-      article_available: string;
-      /** Format: decimal */
-      subarticle_sum: string;
-      /** Format: decimal */
-      article_diff: string;
-      subarticle_lines: components["schemas"]["DepartmentLimitSubarticleLine"][];
-      department_lines: components["schemas"]["DepartmentLimitDepartmentLine"][];
-      subarticle_balance: components["schemas"]["DepartmentLimitSubarticleBalance"][];
-      is_balanced: boolean;
-    };
-    /**
-     * @description * `DEPARTMENT_LIMIT_CALIBRATION` - DEPARTMENT_LIMIT_CALIBRATION
+     * @description * `DRAFT` - Черновик (изменения)
+     *     * `ACTIVE` - Актуальный (Доступен для договоров)
+     *     * `ARCHIVE` - В архиве
      * @enum {string}
      */
-    DepartmentLimitCalibrationForecastKindEnum: "DEPARTMENT_LIMIT_CALIBRATION";
-    DepartmentLimitDepartmentLine: {
-      internal_economic_class_id: number;
-      internal_economic_class_code: string;
-      department: string;
-      /** Format: decimal */
-      amount: string;
-    };
-    DepartmentLimitSubarticleBalance: {
-      internal_economic_class_id: number;
-      internal_economic_class_code: string;
-      /** Format: decimal */
-      subarticle_total: string;
-      /** Format: decimal */
-      departments_sum: string;
-      /** Format: decimal */
-      diff: string;
-    };
-    DepartmentLimitSubarticleLine: {
-      internal_economic_class_id: number;
-      internal_economic_class_code: string;
-      /** Format: decimal */
-      amount: string;
-    };
+    DepartmentArticleLimitStatusEnum: "DRAFT" | "ACTIVE" | "ARCHIVE";
     /** @description Рекурсивный сериализатор для автоматической сборки дерева подразделений ГКСЭ */
     DepartmentTree: {
       readonly id: number;
@@ -2092,6 +2334,23 @@ export interface components {
       title: string;
       /** Актуальный код */
       is_active?: boolean;
+    };
+    /**
+     * @description Одна строка ответа `GET .../overspend_summary/` — для баннера перерасхода на
+     *     странице «Распределение лимитов».
+     */
+    OverspendSummaryLine: {
+      functional_class: number;
+      functional_code: string | null;
+      economic_class: number;
+      economic_code: string | null;
+      year: number;
+      /** Format: decimal */
+      available_limit: string;
+      /** Format: decimal */
+      allocated_total: string;
+      /** Format: decimal */
+      overspend_amount: string;
     };
     PaginatedBudgetCostsList: {
       /** @example 123 */
@@ -2182,6 +2441,21 @@ export interface components {
        */
       previous?: string | null;
       results: components["schemas"]["DepartmentArticleLimit"][];
+    };
+    PaginatedOverspendSummaryLineList: {
+      /** @example 123 */
+      count: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=400&limit=100
+       */
+      next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?offset=200&limit=100
+       */
+      previous?: string | null;
+      results: components["schemas"]["OverspendSummaryLine"][];
     };
     PaginatedPlanItemDetailList: {
       /** @example 123 */
@@ -2478,39 +2752,56 @@ export interface components {
       readonly remainder_cost?: string;
     };
     /**
-     * @description CRUD черновика калибровки (Этап, kind=DEPARTMENT_LIMIT_CALIBRATION) — специалист
-     *     добавляет/правит/удаляет строки подстатей (department=null) и держателей (department
-     *     заполнен) через обычный REST, затем смотрит сверку через
-     *     /api/change_requests/{id}/forecast/ (переиспользует общий движок, Этап 2).
+     * @description CRUD строки распределения лимита по держателю (Этап «Распределение лимитов»,
+     *     2026-11-23) — прямое редактирование финансистом/админом, без согласования. Черновик
+     *     (status=DRAFT) редактируется целиком; ACTIVE/ARCHIVE — только `note`/`deactivated_at`
+     *     (см. ALWAYS_EDITABLE_FIELDS/validate()). Перевод DRAFT -> ACTIVE — отдельный action
+     *     `activate` (см. views/departmentArticleLimit.py), не через PATCH статуса.
      */
     PatchedDepartmentArticleLimit: {
       readonly id?: number;
       /**
        * Статус
-       * @default ACTIVE
+       * @default DRAFT
        */
-      status: components["schemas"]["StatusBd6Enum"];
+      readonly status: components["schemas"]["DepartmentArticleLimitStatusEnum"];
+      readonly status_display?: string;
       /** Функциональная классификация (раздел/параграф) */
       functional_class?: number;
       readonly functional_code?: string;
+      readonly functional_description?: string;
       /** Статья ЭКР (внешняя, от Минфина/Казначейства) */
       economic_class?: number;
       readonly economic_code?: string;
+      readonly economic_description?: string;
       /** Подстатья (внутренний классификатор ГКСЭ) */
       internal_economic_class?: number;
       readonly internal_economic_class_code?: string;
+      readonly internal_economic_class_name?: string;
       /** Держатель лимита (подразделение) */
-      department?: number | null;
+      department?: number;
       readonly department_name?: string;
       /** Год */
       year?: number;
       /**
-       * Сумма (BYN)
+       * Сумма лимита (BYN)
        * Format: decimal
        */
       amount?: string;
-      /** Заявка на изменение */
-      change_request?: number | null;
+      /** Примечание */
+      note?: string;
+      /**
+       * Дата записи
+       * Format: date
+       */
+      effective_date?: string;
+      /**
+       * Дата деактивации
+       * Format: date
+       */
+      deactivated_at?: string | null;
+      readonly plan_amount?: string;
+      readonly paid_amount?: string;
       /** Format: date-time */
       readonly created_at?: string;
       /** Format: date-time */
@@ -3209,6 +3500,14 @@ export interface components {
       at_updated?: string | null;
     };
     /**
+     * @description * `Q1` - Q1
+     *     * `Q2` - Q2
+     *     * `Q3` - Q3
+     *     * `Q4` - Q4
+     * @enum {string}
+     */
+    QuarterD45Enum: "Q1" | "Q2" | "Q3" | "Q4";
+    /**
      * @description * `Q1` - I Квартал
      *     * `Q2` - II Квартал
      *     * `Q3` - III Квартал
@@ -3251,18 +3550,10 @@ export interface components {
     RedistributionLine: {
       budget_cost: number;
       plan_share?: number | null;
-      quarter: components["schemas"]["RedistributionLineQuarterEnum"];
+      quarter: components["schemas"]["QuarterD45Enum"];
       /** Format: decimal */
       amount: string;
     };
-    /**
-     * @description * `Q1` - Q1
-     *     * `Q2` - Q2
-     *     * `Q3` - Q3
-     *     * `Q4` - Q4
-     * @enum {string}
-     */
-    RedistributionLineQuarterEnum: "Q1" | "Q2" | "Q3" | "Q4";
     Reject: {
       rejection_reason: string;
     };
@@ -4062,11 +4353,9 @@ export interface operations {
          *     * `PLAN_ITEM_EXCLUSION` - Исключение позиции плана
          *     * `LIMIT_REDISTRIBUTION` - Перераспределение лимита
          *     * `BUDGET_LIMIT_CORRECTION` - Корректировка лимита (Казначейство)
-         *     * `DEPARTMENT_LIMIT_CALIBRATION` - Калибровка лимитов по подразделениям
          */
         kind?:
           | "BUDGET_LIMIT_CORRECTION"
-          | "DEPARTMENT_LIMIT_CALIBRATION"
           | "LIMIT_REDISTRIBUTION"
           | "PLAN_ITEM_CHANGE"
           | "PLAN_ITEM_EXCLUSION";
@@ -4317,7 +4606,7 @@ export interface operations {
       };
     };
   };
-  change_requests_calibrate_department_limits_create: {
+  change_requests_budget_limit_correction_create: {
     parameters: {
       query?: never;
       header?: never;
@@ -4326,9 +4615,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["DepartmentLimitCalibrationCreate"];
-        "application/x-www-form-urlencoded": components["schemas"]["DepartmentLimitCalibrationCreate"];
-        "multipart/form-data": components["schemas"]["DepartmentLimitCalibrationCreate"];
+        "application/json": components["schemas"]["BudgetLimitCorrectionCreate"];
+        "application/x-www-form-urlencoded": components["schemas"]["BudgetLimitCorrectionCreate"];
+        "multipart/form-data": components["schemas"]["BudgetLimitCorrectionCreate"];
       };
     };
     responses: {
@@ -4338,6 +4627,29 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ChangeRequest"];
+        };
+      };
+    };
+  };
+  change_requests_budget_limit_correction_preview_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["BudgetLimitCorrectionPreviewRequest"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BudgetLimitCorrectionPreviewResponse"];
         };
       };
     };
@@ -4528,6 +4840,8 @@ export interface operations {
   contracts_list: {
     parameters: {
       query?: {
+        /** @description ID подразделения (через спецификацию договора) */
+        department?: number;
         /** @description Срок исполнения истекает в течение N дней (включая сегодня) */
         expiring_within_days?: number;
         /** @description Есть хотя бы одна оплата */
@@ -4685,39 +4999,20 @@ export interface operations {
   department_article_limits_list: {
     parameters: {
       query?: {
-        change_request?: number;
         department?: number;
         economic_class?: number;
         functional_class?: number;
+        internal_economic_class?: number;
         /** @description Number of results to return per page. */
         limit?: number;
         /** @description The initial index from which to return the results. */
         offset?: number;
         /**
-         * @description * `ACTIVE` - Актуальный (Доступен для договоров)
-         *     * `DRAFT` - Черновик (изменения)
-         *     * `EXCLUSION` - Черновик (исключение)
-         *     * `DRAFT_ON_REVIEW` - На проверке у финансиста (изменение)
-         *     * `EXCLUSION_ON_REVIEW` - На проверке у финансиста (исключение)
-         *     * `DRAFT_APPROVED` - Одобрен финансистом (изменение)
-         *     * `EXCLUSION_APPROVED` - Одобрен финансистом (исключение)
-         *     * `DRAFT_REJECTED` - Отклонен финансистом (изменение)
-         *     * `EXCLUSION_REJECTED` - Отклонен финансистом (исключение)
-         *     * `UPLOAD` - Загружен на площадку
+         * @description * `DRAFT` - Черновик (изменения)
+         *     * `ACTIVE` - Актуальный (Доступен для договоров)
          *     * `ARCHIVE` - В архиве
          */
-        status?:
-          | "ACTIVE"
-          | "ARCHIVE"
-          | "DRAFT"
-          | "DRAFT_APPROVED"
-          | "DRAFT_ON_REVIEW"
-          | "DRAFT_REJECTED"
-          | "EXCLUSION"
-          | "EXCLUSION_APPROVED"
-          | "EXCLUSION_ON_REVIEW"
-          | "EXCLUSION_REJECTED"
-          | "UPLOAD";
+        status?: "ACTIVE" | "ARCHIVE" | "DRAFT";
         year?: number;
       };
       header?: never;
@@ -4856,6 +5151,82 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["DepartmentArticleLimit"];
+        };
+      };
+    };
+  };
+  department_article_limits_activate_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this Лимит подразделения по подстатье. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DepartmentArticleLimit"];
+        };
+      };
+    };
+  };
+  department_article_limits_article_availability_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ArticleAvailability"];
+        };
+      };
+    };
+  };
+  department_article_limits_overspend_summary_list: {
+    parameters: {
+      query?: {
+        department?: number;
+        economic_class?: number;
+        functional_class?: number;
+        internal_economic_class?: number;
+        /** @description Number of results to return per page. */
+        limit?: number;
+        /** @description The initial index from which to return the results. */
+        offset?: number;
+        /**
+         * @description * `DRAFT` - Черновик (изменения)
+         *     * `ACTIVE` - Актуальный (Доступен для договоров)
+         *     * `ARCHIVE` - В архиве
+         */
+        status?: "ACTIVE" | "ARCHIVE" | "DRAFT";
+        year?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedOverspendSummaryLineList"];
         };
       };
     };
@@ -5844,6 +6215,10 @@ export interface operations {
         limit?: number;
         /** @description The initial index from which to return the results. */
         offset?: number;
+        /** @description Дата платежа с (включительно) */
+        payment_date_after?: string;
+        /** @description Дата платежа по (включительно) */
+        payment_date_before?: string;
         payment_year?: number;
         /**
          * @description * `Q1` - I Квартал
@@ -5852,6 +6227,8 @@ export interface operations {
          *     * `Q4` - IV Квартал
          */
         quarter?: "Q1" | "Q2" | "Q3" | "Q4";
+        /** @description A search term. */
+        search?: string;
       };
       header?: never;
       path?: never;

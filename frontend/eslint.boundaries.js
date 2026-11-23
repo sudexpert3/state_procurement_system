@@ -1,4 +1,4 @@
-import boundaries from "eslint-plugin-boundaries"
+import boundaries from "eslint-plugin-boundaries";
 
 export const eslintBoundariesConfig = {
   plugins: {
@@ -77,4 +77,4 @@ export const eslintBoundariesConfig = {
       },
     ],
   },
-}
+};

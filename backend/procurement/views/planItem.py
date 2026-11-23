@@ -166,6 +166,27 @@ class PlanItemViewSet(viewsets.ModelViewSet):
                     details__status=PlanItemStatus.ACTIVE, details__buyer__isnull=True,
                 ).distinct()
 
+            # Запрос фронтенда (CurrentStatus.md, 2026-11-21): конкретный исполнитель —
+            # select вместо чекбокса "не определён" (который остаётся через buyer_unset
+            # выше). Тот же JOIN ('details'), что и у buyer_unset.
+            buyer_id = params.get('buyer', None)
+            if buyer_id:
+                queryset = queryset.filter(
+                    details__status=PlanItemStatus.ACTIVE, details__buyer_id=buyer_id,
+                ).distinct()
+
+            # Запрос фронтенда (CurrentStatus.md, 2026-11-21): подразделение, для которого
+            # проводится закупка — позиция распределена на несколько подразделений через
+            # PlanShare (одна или несколько активных BudgetCosts), должна находиться по
+            # любому из них. Отдельный JOIN от фильтров по кодам ЭКР выше — свой distinct().
+            department_id = params.get('department', None)
+            if department_id:
+                queryset = queryset.filter(
+                    budget_costs__status=PlanItemStatus.ACTIVE,
+                    budget_costs__plan_shares__status=PlanItemStatus.ACTIVE,
+                    budget_costs__plan_shares__department_id=department_id,
+                ).distinct()
+
             return queryset
 
         if self.action == 'retrieve':

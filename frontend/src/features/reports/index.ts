@@ -1,1 +1,3 @@
-export const list = () => import("./reports.page");
+export const generalMoney = () => import("./general-money.page");
+
+export const budgetExecution = () => import("./budget-execution.page");

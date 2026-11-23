@@ -11,7 +11,7 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "lint:fix": "eslint --fix . && prettier --write .",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc -b",
     "prepare": "husky",
     "generate-types": "openapi-typescript http://localhost:8000/api/schema -o src/shared/api/schema/generated.ts"
   },

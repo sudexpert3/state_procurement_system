@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import models
 
 from core.choices import PlanItemStatus
@@ -9,29 +11,31 @@ from .department import Department
 
 class DepartmentArticleLimit(models.Model):
     """
-    Внутренняя разбивка укрупнённой статьи Минфина (`ArticleQuarterlyAllocation`,
-    functional_class+economic_class) — в два шага, как это реально делает финансист:
+    Распределение укрупнённой статьи Минфина (`ArticleQuarterlyAllocation`,
+    functional_class+economic_class) по держателям лимита (подразделениям) — один уровень:
+    каждая запись = доля ОДНОГО держателя по ОДНОЙ подстатье (внутренний классификатор ГКСЭ,
+    `internal_economic_class`) за год. Правится напрямую финансистом/админом (доступ —
+    `procurement.permissions.CAPABILITIES['department_limits']`), без согласования —
+    решение пользователя (2026-11-23): "Распределение лимитов не требует утверждения
+    финансиста, потому что только финансист (и администратор) могут корректировать лимиты".
 
-    1. Статья делится на ПОДСТАТЬИ — наш собственный внутренний классификатор
-       (`internal_economic_class`), `department=NULL` — сумма на подстатью целиком, ещё не
-       распределённая по держателям лимита.
-    2. Каждая подстатья делится между держателями лимита — та же подстатья,
-       `department` заполнен.
+    Раньше (Этап 9, до 2026-11-23) здесь было два уровня через общий движок `ChangeRequest`
+    (kind=DEPARTMENT_LIMIT_CALIBRATION): отдельная строка "подстатья целиком"
+    (department=NULL) и отдельные строки держателей. Второй уровень в проде не использовался
+    (0 записей на момент переделки) — убран, `department` теперь обязателен.
 
-    Правило сверки (проверяется сервисом калибровки при approve(), НЕ в clean() — черновик
-    по построению может быть временно "не сошедшимся", пока финансист его редактирует).
-    Блокируется только ПЕРЕРАСХОД, недораспределение — нормальное состояние (пользователь
-    сам привёл пример с положительным остатком "нераспределённых лимитов"):
-    - Сумма ACTIVE-записей с department=NULL по статье (year) НЕ должна превышать (план
-      ArticleQuarterlyAllocation статьи минус резерв многолетних обязательств прошлых лет).
-    - Для каждой подстатьи сумма ACTIVE-записей с department != NULL НЕ должна превышать
-      запись той же подстатьи с department=NULL.
+    Версионирование — через сами статусы записи, не через `ChangeRequest`:
+    - DRAFT — черновик, свободно редактируется целиком.
+    - ACTIVE — действующая запись; правится только `note`/`deactivated_at` (сумму/
+      подразделение/статью меняют новой записью, не правкой существующей — история
+      версий лимита должна сохраняться построчно, решение пользователя 2026-11-03).
+    - ARCHIVE — вытеснена более новой активной записью той же связки (держатель+статья+
+      параграф+подстатья+год) через `services.department_limits.activate_limit()`.
 
-    Версионирование — та же схема, что у BudgetQuarterlyLimit/ArticleQuarterlyAllocation:
-    корректировка создаётся как новый черновик (status=DRAFT, change_request=...,
-    kind=DEPARTMENT_LIMIT_CALIBRATION), старые ACTIVE-записи архивируются при одобрении —
-    история корректировок сохраняется автоматически (требование пользователя 2026-11-03:
-    "История таких корректировок должна храниться в обязательном порядке").
+    Перерасход (сумма ACTIVE-записей статьи/параграфа/года больше доступного по
+    `ArticleQuarterlyAllocation` минус резерв многолетних обязательств) НЕ блокируется —
+    только предупреждение на фронте (см. `DepartmentArticleLimitViewSet.article_availability`/
+    `overspend_summary`). Недораспределение — нормальное состояние.
 
     Доступный для новых договоров остаток лимита держателя считается ВНЕ этой модели
     (services/department_limits.py) — вычитанием уже зарезервированного через PlanShare
@@ -39,8 +43,10 @@ class DepartmentArticleLimit(models.Model):
     multi_year_reservation.py: "в BudgetCosts также находятся лимиты-части подразделений...
     суммы резервируются" (пользователь, 2026-11-03).
     """
-    status = models.CharField("Статус", max_length=20, choices=PlanItemStatus.choices,
-                              default=PlanItemStatus.ACTIVE, db_index=True)
+    status = models.CharField("Статус", max_length=20,
+                              choices=[(c.value, c.label) for c in
+                                       (PlanItemStatus.DRAFT, PlanItemStatus.ACTIVE, PlanItemStatus.ARCHIVE)],
+                              default=PlanItemStatus.DRAFT, db_index=True)
     functional_class = models.ForeignKey(FunctionalCode, on_delete=models.PROTECT,
                                          related_name='department_limits',
                                          verbose_name="Функциональная классификация (раздел/параграф)")
@@ -50,38 +56,33 @@ class DepartmentArticleLimit(models.Model):
     internal_economic_class = models.ForeignKey(InternalEconomicClassifier, on_delete=models.PROTECT,
                                                  related_name='department_limits',
                                                  verbose_name="Подстатья (внутренний классификатор ГКСЭ)")
-    # Null — сумма на подстатью целиком (ещё не распределена по держателям). Заполнено —
-    # доля конкретного держателя лимита.
     department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name='article_limits',
-                                   verbose_name="Держатель лимита (подразделение)", null=True, blank=True)
+                                   verbose_name="Держатель лимита (подразделение)")
     year = models.PositiveIntegerField("Год", db_index=True)
-    amount = models.DecimalField("Сумма (BYN)", max_digits=15, decimal_places=2, default=0)
+    amount = models.DecimalField("Сумма лимита (BYN)", max_digits=15, decimal_places=2, default=0)
+    note = models.TextField("Примечание", blank=True)
+    # Дата внесения/правки записи — бизнес-поле (не аудит-штамп), по умолчанию сегодня,
+    # редактируется пользователем (решение пользователя 2026-11-23).
+    effective_date = models.DateField("Дата записи", default=date.today)
+    # Заполняется вручную ИЛИ автоматически в activate_limit() при вытеснении более новой
+    # записью (если не задано) — не auto_now, это бизнес-дата, не аудит.
+    deactivated_at = models.DateField("Дата деактивации", null=True, blank=True)
 
-    change_request = models.ForeignKey(
-        'ChangeRequest', on_delete=models.PROTECT, related_name='draft_department_limits',
-        verbose_name="Заявка на изменение", null=True, blank=True,
-    )
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = "Лимит подразделения по подстатье"
         verbose_name_plural = "Лимиты подразделений по подстатьям"
-        ordering = ['year', 'economic_class_id', 'internal_economic_class_id']
+        ordering = ['-year', 'economic_class_id', 'internal_economic_class_id']
         constraints = [
             models.UniqueConstraint(
-                fields=['functional_class', 'economic_class', 'internal_economic_class', 'year'],
-                condition=models.Q(department__isnull=True, status=PlanItemStatus.ACTIVE),
-                name='unique_active_subarticle_total',
-            ),
-            models.UniqueConstraint(
-                fields=['internal_economic_class', 'department', 'year'],
-                condition=models.Q(department__isnull=False, status=PlanItemStatus.ACTIVE),
-                name='unique_active_subarticle_department_limit',
+                fields=['functional_class', 'economic_class', 'internal_economic_class', 'department', 'year'],
+                condition=models.Q(status=PlanItemStatus.ACTIVE),
+                name='unique_active_department_limit',
             ),
         ]
 
     def __str__(self):
-        target = self.department.short_name if self.department_id else "(подстатья целиком)"
         return (f"{self.economic_class.code_api} / {self.internal_economic_class.code} — "
-                f"{target}, {self.year} г.: {self.amount} BYN")
+                f"{self.department.short_name}, {self.year} г.: {self.amount} BYN")

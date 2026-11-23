@@ -9,12 +9,15 @@ export type GeneralMoneyRow = {
   functional_class_id: number;
   economic_class_id: number;
   functional_code: string;
+  functional_description: string;
   economic_code: string;
   economic_description: string;
   year: number;
   planned_annual: number;
   prior_years_obligations: number;
+  available_limit: number;
   allocated_limit: number;
+  is_calibrated: boolean;
   unassigned_limit: number;
   entered_into_plan: number;
   committed_obligations: number;

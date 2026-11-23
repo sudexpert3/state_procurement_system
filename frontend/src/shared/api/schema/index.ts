@@ -38,6 +38,12 @@ export type Buyer = ApiSchemas["Buyer"];
 export type Contract = ApiSchemas["Contract"];
 export type ContractItem = ApiSchemas["ContractItem"];
 
+export type DepartmentArticleLimit = ApiSchemas["DepartmentArticleLimit"];
+export type DepartmentArticleLimitStatus =
+  ApiSchemas["DepartmentArticleLimitStatusEnum"];
+export type ArticleAvailability = ApiSchemas["ArticleAvailability"];
+export type OverspendSummaryLine = ApiSchemas["OverspendSummaryLine"];
+
 // TODO: временный тип — убрать после доработки бэка.
 // Сейчас drf-spectacular отдаёт рекурсивное поле sub_departments как string,
 // хотя реально API возвращает массив таких же узлов. Когда схема будет
@@ -50,6 +56,8 @@ export type Department = Omit<
 };
 
 export type EconomicCode = ApiSchemas["ExternalEconomicCode"];
+
+export type FunctionalCode = ApiSchemas["FunctionalCode"];
 
 export type KindOfPayment = ApiSchemas["KindOfPayment"];
 
@@ -72,6 +80,7 @@ export type TypeEnum = ApiSchemas["TypeEnum"];
 export type PaginatedContractList = ApiSchemas["PaginatedContractList"];
 
 export type ProcurementMethodDetail = ApiSchemas["ProcurementMethodDetail"];
+export type ProgramCode = ApiSchemas["ProgramCode"];
 export type Purchase = ApiSchemas["Purchases"];
 
 export type Supplier = ApiSchemas["Supplier"];

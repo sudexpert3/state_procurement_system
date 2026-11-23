@@ -32,11 +32,9 @@ class ChangeRequestKind(models.TextChoices):
     # строится разбором файла (services/fin_file_parser.py), сумма не обязана быть нулевой
     # (в отличие от LIMIT_REDISTRIBUTION) — это полный снимок статей, а не перераспределение.
     BUDGET_LIMIT_CORRECTION = 'BUDGET_LIMIT_CORRECTION', 'Корректировка лимита (Казначейство)'
-    # Калибровка внутренней разбивки статьи Минфина на подстатьи (наш внутренний классификатор)
-    # и далее — на держателей лимита (подразделения). Два уровня сверки с нулевой разницей
-    # перед применением: (1) сумма по подстатьям == сумма ArticleQuarterlyAllocation статьи;
-    # (2) сумма по держателям подстатьи == сумма самой подстатьи. См. models/departmentArticleLimit.py.
-    DEPARTMENT_LIMIT_CALIBRATION = 'DEPARTMENT_LIMIT_CALIBRATION', 'Калибровка лимитов по подразделениям'
+    # Распределение лимитов по держателям (DepartmentArticleLimit) с 2026-11-23 правится
+    # напрямую (CRUD + статусы DRAFT/ACTIVE/ARCHIVE), не через этот движок — см.
+    # models/departmentArticleLimit.py, services/department_limits.py::activate_limit().
 
 
 class ChangeRequestStatus(models.TextChoices):

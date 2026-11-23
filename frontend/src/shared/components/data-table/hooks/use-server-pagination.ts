@@ -11,7 +11,7 @@ import { useSearchParams } from "react-router";
  * для `DataTable` в режиме `manual`.
  */
 export const useServerPagination = ({
-  defaultPageSize = 20,
+  defaultPageSize = 100,
 }: { defaultPageSize?: number } = {}) => {
   const [searchParams, setSearchParams] = useSearchParams();
 

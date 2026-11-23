@@ -2,7 +2,6 @@ import type {
   ChangeRequestForecast,
   ChangeRequestKind,
   ForecastBudgetLimitCorrection,
-  ForecastDepartmentLimitCalibration,
   ForecastLimitRedistribution,
   ForecastPlanItemChange,
   ForecastPlanItemExclusion,
@@ -161,73 +160,6 @@ const RedistributionLikeForecast = ({
   </div>
 );
 
-const DepartmentLimitCalibrationForecast = ({
-  data,
-}: {
-  data: ForecastDepartmentLimitCalibration;
-}) => (
-  <div className="flex flex-col gap-4">
-    <div className="flex flex-wrap gap-4 text-sm">
-      <span>
-        Статья: <span className="font-medium">{data.economic_code}</span>
-      </span>
-      <span>
-        Доступно (план − резерв прошлых лет):{" "}
-        <span className="font-medium">{formatByn(data.article_available)}</span>
-      </span>
-      <span>
-        Распределено по подстатьям:{" "}
-        <span className="font-medium">{formatByn(data.subarticle_sum)}</span>
-      </span>
-      <span>
-        Остаток статьи:{" "}
-        <span
-          className={
-            Number(data.article_diff) < 0
-              ? "text-destructive font-medium"
-              : "font-medium"
-          }>
-          {formatByn(data.article_diff)}
-        </span>
-      </span>
-      <Badge variant={data.is_balanced ? "secondary" : "destructive"}>
-        {data.is_balanced
-          ? "Перерасхода нет"
-          : "Перерасход — одобрение заблокировано"}
-      </Badge>
-    </div>
-
-    <div>
-      <p className="mb-2 text-sm font-medium">Сверка по подстатьям</p>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Внутренний код ЭКР</TableHead>
-            <TableHead>Сумма подстатьи</TableHead>
-            <TableHead>Распределено держателям</TableHead>
-            <TableHead>Остаток</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.subarticle_balance.map((line, i) => (
-            <TableRow key={i}>
-              <TableCell>{line.internal_economic_class_code}</TableCell>
-              <TableCell>{formatByn(line.subarticle_total)}</TableCell>
-              <TableCell>{formatByn(line.departments_sum)}</TableCell>
-              <TableCell
-                className={
-                  Number(line.diff) < 0 ? "text-destructive" : undefined
-                }>
-                {formatByn(line.diff)}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  </div>
-);
-
 type Props = {
   kind: ChangeRequestKind;
   data: ChangeRequestForecast;
@@ -248,12 +180,6 @@ export const ForecastView = ({ kind, data }: Props) => {
           data={
             data as ForecastLimitRedistribution | ForecastBudgetLimitCorrection
           }
-        />
-      );
-    case "DEPARTMENT_LIMIT_CALIBRATION":
-      return (
-        <DepartmentLimitCalibrationForecast
-          data={data as ForecastDepartmentLimitCalibration}
         />
       );
     default:

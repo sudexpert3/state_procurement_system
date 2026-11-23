@@ -30,7 +30,7 @@ from decimal import Decimal
 from django.db.models import Sum
 
 from core.choices import PlanItemStatus
-from procurement.models import ContractItem
+from procurement.models import BudgetCosts, ContractItem
 
 
 def compute_reserved_amount(plan_item, year, department_id=None):
@@ -59,6 +59,29 @@ def compute_reserved_amount_by_article(functional_class_id, economic_class_id, y
         plan_share__budget_cost__economic_class_id=economic_class_id,
     ).exclude(plan_share__budget_cost__year=year)
     return qs.aggregate(s=Sum('contract_cost'))['s'] or Decimal('0')
+
+
+def compute_prior_years_budget_costs_by_article(functional_class_id, economic_class_id, year):
+    """Второй, отдельный от `compute_reserved_amount_by_article()` случай многолетнего
+    финансирования (запрос пользователя 2026-11-21, отчёт "Общие деньги") — позиция плана,
+    опубликованная в ПРЕДЫДУЩЕМ годовом плане (`PlanItem.plan_purchase.year < year`), но
+    финансируемая несколькими отдельными строками `BudgetCosts` на разные годы (в отличие
+    от сценария выше, бюджетная строка `year` ГОДА ОТЧЁТА здесь уже существует — просто сама
+    позиция никогда не попадёт в план `year`, т.к. закупка состоялась раньше).
+
+    Пример: позиция `2026-102377498-117` опубликована в плане 2026 года, но имеет
+    `BudgetCosts(year=2026)` и `BudgetCosts(year=2027)` — при отчёте за 2027 год сумма
+    второй строки (300000) должна попасть в "принятые обязательства прошлых лет", хотя
+    позиции в плане 2027 года нет вообще.
+
+    Не пересекается с `compute_reserved_amount_by_article()`: тот явно ИСКЛЮЧАЕТ строки,
+    где `plan_share.budget_cost.year == year` (там резерв считается ДО появления строки
+    нужного года), а здесь считаются именно такие строки — разные `BudgetCosts`, не могут
+    задвоить одну и ту же сумму."""
+    return BudgetCosts.objects.filter(
+        functional_class_id=functional_class_id, economic_class_id=economic_class_id,
+        year=year, status=PlanItemStatus.ACTIVE, plan_item__plan_purchase__year__lt=year,
+    ).aggregate(s=Sum('cost'))['s'] or Decimal('0')
 
 
 def compute_available_for_distribution(budget_cost):

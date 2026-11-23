@@ -17,13 +17,10 @@
     целиком, без привязки к позиции плана — см. docstring модели, почему это ДРУГАЯ модель,
     не BudgetQuarterlyLimit). Денежная сумма НЕ обязана быть нулевой — Казначейство может
     реально добавить/урезать финансирование, не просто переносить между статьями.
-  - DEPARTMENT_LIMIT_CALIBRATION — калибровка внутренней разбивки статьи Минфина на подстатьи
-    (наш внутренний классификатор) и далее на держателей лимита (решение пользователя
-    2026-11-03): черновик — строки `DepartmentArticleLimit`. Применить (approve) НЕЛЬЗЯ только
-    при ПЕРЕРАСХОДЕ (сумма подстатей > доступно по статье; сумма держателей подстатьи > сумма
-    самой подстатьи) — недораспределение (остаются "нераспределённые лимиты") — нормальное,
-    допустимое состояние, не блокирует. См. compute_forecast()/_forecast_department_limits(),
-    is_balanced.
+
+Распределение лимитов по держателям (DepartmentArticleLimit) этим движком больше не
+обслуживается (с 2026-11-23) — правится напрямую через DepartmentArticleLimitViewSet со
+статусами DRAFT/ACTIVE/ARCHIVE, см. services/department_limits.py::activate_limit().
 """
 import copy
 from decimal import Decimal
@@ -36,9 +33,8 @@ from django.utils import timezone
 from core.choices import ChangeRequestKind, ChangeRequestStatus, PlanItemStatus
 from procurement.models import (
     ChangeRequest, PlanShare, BudgetCosts, ContractItem, BudgetQuarterlyLimit,
-    ArticleQuarterlyAllocation, DepartmentArticleLimit,
+    ArticleQuarterlyAllocation,
 )
-from procurement.services.multi_year_reservation import compute_reserved_amount_by_article
 
 
 def _clone(instance, **overrides):
@@ -160,7 +156,15 @@ def create_budget_limit_correction(lines, reason=''):
     `lines` — список словарей {'functional_class': id, 'economic_class': id, 'year': int,
     'quarter': 'Q1', 'amount': Decimal} — НОВАЯ сумма агрегата по статье на квартал. В отличие
     от create_redistribution() — сумма НЕ обязана быть нулевой (Казначейство реально меняет
-    объём финансирования, а не просто переносит между статьями)."""
+    объём финансирования, а не просто переносит между статьями).
+
+    Решение пользователя (2026-11-20): для этого вида заявки отдельное согласование
+    (submit -> ON_REVIEW -> approve) больше не нужно — доступ к самому импорту уже ограничен
+    ролью (финансист/админ, см. procurement/permissions.py::CAPABILITIES['budget_limit_correction']),
+    а предпросмотр перед сохранением выполняет ту же проверку, которую раньше делал
+    "второй" согласующий. Поэтому заявка создаётся, тут же отправляется на проверку и сразу
+    одобряется в одной транзакции — специалист загрузил файл, проверил предпросмотр, нажал
+    "сохранить", и корректировка уже действует (ArticleQuarterlyAllocation.status=ACTIVE)."""
     if not lines:
         raise ValidationError('Нет строк для создания корректировки лимита.')
 
@@ -175,33 +179,37 @@ def create_budget_limit_correction(lines, reason=''):
                 year=line['year'], quarter=line['quarter'], amount=Decimal(str(line['amount'])),
                 status=PlanItemStatus.DRAFT, change_request=change_request,
             )
+        submit(change_request)
+        approve(change_request)
 
     return change_request
 
 
-def create_department_limit_calibration(functional_class_id, economic_class_id, year, reason=''):
-    """Калибровка внутренней разбивки статьи Минфина на подстатьи и держателей лимита
-    (решение пользователя 2026-11-03, kind=DEPARTMENT_LIMIT_CALIBRATION).
+def delete_draft(change_request):
+    """Удаление черновика заявки (решение пользователя 2026-11-20: специалист должен иметь
+    возможность удалить заявку, которую начал готовить и передумал, не дожидаясь отклонения).
 
-    Клонирует ТЕКУЩИЕ ACTIVE записи `DepartmentArticleLimit` этой статьи/года в черновик —
-    чтобы специалисту не набирать разбивку с нуля при каждой новой корректировке Минфина
-    ("финансовому работнику нецелесообразно будет каждый раз... набирать с нуля"). Если
-    записей ещё нет (первая калибровка статьи) — черновик стартует пустым, специалист
-    добавит строки сам через обычный CRUD `DepartmentArticleLimitViewSet` с этим
-    change_request и status=DRAFT."""
+    Разрешено ТОЛЬКО для status=DRAFT — заявки, уже отправленные на проверку (ON_REVIEW) или
+    получившие решение (APPROVED/REJECTED), не удаляются: это уже история (см. docstring
+    reject() — "не удаляется, это и есть история"), для их отмены есть reject().
+
+    Черновик — это сама запись ChangeRequest плюс её дочерние DRAFT-строки (ровно один из
+    draft_details/draft_budget_costs/draft_plan_shares/draft_quarterly_limits/
+    draft_article_allocations, в зависимости от kind — см. docstring
+    модели ChangeRequest). Все FK на change_request — on_delete=PROTECT, поэтому удаляем
+    дочерние строки явно и в порядке, учитывающем зависимости между ними (BudgetQuarterlyLimit
+    ссылается на PlanShare и BudgetCosts, PlanShare — на BudgetCosts), и только потом саму
+    заявку."""
+    if change_request.status != ChangeRequestStatus.DRAFT:
+        raise ValidationError('Удалить можно только заявку в статусе "Черновик".')
+
     with transaction.atomic():
-        change_request = ChangeRequest.objects.create(
-            plan_item=None, kind=ChangeRequestKind.DEPARTMENT_LIMIT_CALIBRATION, reason=reason,
-            status=ChangeRequestStatus.DRAFT,
-        )
-        existing = DepartmentArticleLimit.objects.filter(
-            functional_class_id=functional_class_id, economic_class_id=economic_class_id,
-            year=year, status=PlanItemStatus.ACTIVE,
-        )
-        for row in existing:
-            _clone(row, status=PlanItemStatus.DRAFT, change_request=change_request)
-
-    return change_request
+        change_request.draft_quarterly_limits.all().delete()
+        change_request.draft_plan_shares.all().delete()
+        change_request.draft_budget_costs.all().delete()
+        change_request.draft_details.all().delete()
+        change_request.draft_article_allocations.all().delete()
+        change_request.delete()
 
 
 def submit(change_request):
@@ -219,8 +227,6 @@ def submit(change_request):
             change_request.draft_quarterly_limits.update(status=PlanItemStatus.DRAFT_ON_REVIEW)
         elif change_request.kind == ChangeRequestKind.BUDGET_LIMIT_CORRECTION:
             change_request.draft_article_allocations.update(status=PlanItemStatus.DRAFT_ON_REVIEW)
-        elif change_request.kind == ChangeRequestKind.DEPARTMENT_LIMIT_CALIBRATION:
-            change_request.draft_department_limits.update(status=PlanItemStatus.DRAFT_ON_REVIEW)
 
         change_request.status = ChangeRequestStatus.ON_REVIEW
         change_request.submitted_at = timezone.now()
@@ -245,8 +251,6 @@ def reject(change_request, rejection_reason):
             change_request.draft_quarterly_limits.update(status=PlanItemStatus.DRAFT_REJECTED)
         elif change_request.kind == ChangeRequestKind.BUDGET_LIMIT_CORRECTION:
             change_request.draft_article_allocations.update(status=PlanItemStatus.DRAFT_REJECTED)
-        elif change_request.kind == ChangeRequestKind.DEPARTMENT_LIMIT_CALIBRATION:
-            change_request.draft_department_limits.update(status=PlanItemStatus.DRAFT_REJECTED)
 
         change_request.status = ChangeRequestStatus.REJECTED
         change_request.rejection_reason = rejection_reason
@@ -267,21 +271,6 @@ def approve(change_request):
             _approve_quarterly_limits(change_request)
         elif change_request.kind == ChangeRequestKind.BUDGET_LIMIT_CORRECTION:
             _approve_article_allocations(change_request)
-        elif change_request.kind == ChangeRequestKind.DEPARTMENT_LIMIT_CALIBRATION:
-            # Применить можно только когда обе сверки "сошлись в ноль" (решение пользователя
-            # 2026-11-03: "когда все цифры сойдутся и загорятся зелёным можно будет изменения
-            # применить"). Пересчитываем сверку здесь же, а не доверяем значению, которое
-            # фронтенд видел при последнем вызове forecast — состояние черновика могло
-            # измениться между просмотром и нажатием "одобрить".
-            forecast = _forecast_department_limits(change_request)
-            if not forecast['is_balanced']:
-                raise ValidationError(
-                    'Нельзя применить калибровку — обнаружен перерасход (распределено больше, '
-                    'чем доступно). Недораспределение — это нормально, не блокирует. '
-                    f"Разница по статье: {forecast['article_diff']} BYN; "
-                    f"подстатьи с перерасходом: {[b for b in forecast['subarticle_balance'] if b['diff'] < 0]}"
-                )
-            _approve_department_limits(change_request)
         else:
             _approve_plan_item_change(change_request)
 
@@ -407,32 +396,6 @@ def _approve_article_allocations(change_request):
         draft.save()
 
 
-def _approve_department_limits(change_request):
-    """Полная замена действующего снимка разбивки ЭТОЙ статьи/года — та же full-snapshot
-    логика, что в _approve_article_allocations(): черновик калибровки всегда представляет
-    полную картину по затронутой статье (все подстатьи + все держатели), а не частичную
-    правку, поэтому любая ACTIVE-запись той же (статья, год), не подтверждённая черновиком,
-    считается устаревшей и архивируется."""
-    drafts = list(change_request.draft_department_limits.all())
-    if not drafts:
-        return
-
-    sample = drafts[0]
-    draft_pks = [d.pk for d in drafts]
-
-    stale = DepartmentArticleLimit.objects.filter(
-        functional_class_id=sample.functional_class_id, economic_class_id=sample.economic_class_id,
-        year=sample.year, status=PlanItemStatus.ACTIVE,
-    ).exclude(pk__in=draft_pks)
-    for old in stale:
-        old.status = PlanItemStatus.ARCHIVE
-        old.save(update_fields=['status', 'changed_at'])
-
-    for draft in drafts:
-        draft.status = PlanItemStatus.ACTIVE
-        draft.save()
-
-
 def compute_forecast(change_request):
     """«Прогноз последствий» (2.3) — read-only, ничего не сохраняет.
 
@@ -444,7 +407,7 @@ def compute_forecast(change_request):
     Для LIMIT_REDISTRIBUTION/BUDGET_LIMIT_CORRECTION: старое/новое значение и дельта по
     каждой затронутой строке.
 
-    Форма ответа зависит от `kind` (5 разных форм) — добавляем сам `kind` в результат, чтобы
+    Форма ответа зависит от `kind` (4 разных формы) — добавляем сам `kind` в результат, чтобы
     фронт/drf-spectacular могли выбрать нужную схему по дискриминатору (см.
     views/changeRequest.py::forecast, PolymorphicProxySerializer)."""
     if change_request.kind == ChangeRequestKind.PLAN_ITEM_EXCLUSION:
@@ -453,8 +416,6 @@ def compute_forecast(change_request):
         result = _forecast_redistribution(change_request)
     elif change_request.kind == ChangeRequestKind.BUDGET_LIMIT_CORRECTION:
         result = _forecast_article_allocations(change_request)
-    elif change_request.kind == ChangeRequestKind.DEPARTMENT_LIMIT_CALIBRATION:
-        result = _forecast_department_limits(change_request)
     else:
         result = _forecast_plan_item_change(change_request)
     result['kind'] = change_request.kind
@@ -499,98 +460,6 @@ def _forecast_article_allocations(change_request):
             'delta': draft.amount - old_amount,
         })
     return {'lines': lines, 'net_delta': sum((l['delta'] for l in lines), Decimal('0'))}
-
-
-def _forecast_department_limits(change_request):
-    """Две сверки, которые блокируют применение калибровки, если нарушены (решение
-    пользователя 2026-11-03) — ВАЖНО: блокируется только ПЕРЕРАСХОД (распределено больше,
-    чем есть), а не неполное распределение. Пользователь сам привёл пример, где после
-    калибровки остаётся 100000 "нераспределённых лимитов" (план 500000 − резерв 150000 −
-    доведено 250000) — это НОРМАЛЬНОЕ, ожидаемое конечное состояние, не ошибка. Требовать
-    точного нуля означало бы, что "нераспределённые лимиты" в отчёте "Общие деньги" были бы
-    всегда равны нулю после любой одобренной калибровки — противоречит самому отчёту.
-
-    1. article_diff = article_available (план минус резерв прошлых лет,
-       compute_reserved_amount_by_article) МИНУС сумма подстатей черновика (department IS
-       NULL). Должен быть >= 0 — отрицательный означает, что подстатьям раздали больше, чем
-       реально доступно статье.
-    2. Для каждой подстатьи: её сумма (department IS NULL) МИНУС сумма её держателей
-       (department IS NOT NULL) — должна быть >= 0 (держателям нельзя раздать больше, чем
-       есть в самой подстатье). См. subarticle_balance[i]['diff'].
-    is_balanced — True, если ОБЕ сверки >= 0 по всем строкам (недораспределение — это ОК,
-    переРАСпределение — блокирующая ошибка)."""
-    drafts = list(change_request.draft_department_limits.select_related(
-        'functional_class', 'economic_class', 'internal_economic_class', 'department',
-    ))
-    if not drafts:
-        return {
-            'functional_code': None, 'economic_code': None, 'year': None,
-            'article_total': Decimal('0'), 'prior_years_obligations': Decimal('0'),
-            'article_available': Decimal('0'), 'subarticle_sum': Decimal('0'), 'article_diff': Decimal('0'),
-            'subarticle_lines': [], 'department_lines': [], 'subarticle_balance': [], 'is_balanced': True,
-        }
-
-    sample = drafts[0]
-    fc, ec, year = sample.functional_class, sample.economic_class, sample.year
-
-    article_total = ArticleQuarterlyAllocation.objects.filter(
-        functional_class=fc, economic_class=ec, year=year, status=PlanItemStatus.ACTIVE,
-    ).aggregate(s=Sum('amount'))['s'] or Decimal('0')
-    prior_years_obligations = compute_reserved_amount_by_article(fc.pk, ec.pk, year)
-    article_available = article_total - prior_years_obligations
-
-    subarticle_totals = [d for d in drafts if d.department_id is None]
-    subarticle_sum = sum((d.amount for d in subarticle_totals), Decimal('0'))
-
-    department_lines = []
-    dept_sum_by_subarticle = {}
-    for d in drafts:
-        if d.department_id is None:
-            continue
-        dept_sum_by_subarticle[d.internal_economic_class_id] = (
-            dept_sum_by_subarticle.get(d.internal_economic_class_id, Decimal('0')) + d.amount
-        )
-        department_lines.append({
-            'internal_economic_class_id': d.internal_economic_class_id,
-            'internal_economic_class_code': d.internal_economic_class.code,
-            'department': d.department.short_name,
-            'amount': d.amount,
-        })
-
-    is_balanced = (article_available - subarticle_sum) >= Decimal('0')
-    subarticle_lines, subarticle_balance = [], []
-    for d in subarticle_totals:
-        dept_sum = dept_sum_by_subarticle.get(d.internal_economic_class_id, Decimal('0'))
-        diff = d.amount - dept_sum
-        if diff < Decimal('0'):
-            is_balanced = False
-        subarticle_lines.append({
-            'internal_economic_class_id': d.internal_economic_class_id,
-            'internal_economic_class_code': d.internal_economic_class.code,
-            'amount': d.amount,
-        })
-        subarticle_balance.append({
-            'internal_economic_class_id': d.internal_economic_class_id,
-            'internal_economic_class_code': d.internal_economic_class.code,
-            'subarticle_total': d.amount,
-            'departments_sum': dept_sum,
-            'diff': diff,
-        })
-
-    return {
-        'functional_code': fc.code_api,
-        'economic_code': ec.code_api,
-        'year': year,
-        'article_total': article_total,
-        'prior_years_obligations': prior_years_obligations,
-        'article_available': article_available,
-        'subarticle_sum': subarticle_sum,
-        'article_diff': article_available - subarticle_sum,
-        'subarticle_lines': subarticle_lines,
-        'department_lines': department_lines,
-        'subarticle_balance': subarticle_balance,
-        'is_balanced': is_balanced,
-    }
 
 
 def _forecast_plan_item_change(change_request):

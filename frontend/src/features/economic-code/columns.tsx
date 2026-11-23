@@ -8,6 +8,19 @@ import { DeleteButton } from "@/shared/components/delete-button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 
+// Исторически `description` у части записей (импорт) дублирует код той же
+// строки через точку впереди текста ("1.10.06.00 Оплата услуг связи") —
+// раньше здесь слепо отрезался первый "токен" по пробелу, что ломалось на
+// описаниях без такого префикса (например, введённых вручную без кода:
+// "Капитальное строительство" теряло слово "Капитальное"). Срезаем префикс,
+// только если он РОВНО совпадает с кодом этой же строки в точечном формате —
+// иначе показываем описание как есть, ничего не теряя.
+const stripRedundantCodePrefix = (description: string, codeApi: string) => {
+  const dottedCode = codeApi.trim().split(/\s+/).join(".");
+  const [firstToken, ...rest] = description.split(" ");
+  return firstToken === dottedCode ? rest.join(" ") : description;
+};
+
 export const createColumns = (
   onEdit: (item: EconomicCode) => void,
   onDelete: (id: number) => void,
@@ -57,11 +70,28 @@ export const createColumns = (
         Наименование <ArrowUpDownIcon size={14} className="ml-1" />
       </Button>
     ),
-    cell: ({ getValue }) => (
-      <DataTableCell className="wrap-break-word whitespace-normal">
-        {getValue<string>().split(" ").slice(1).join(" ")}
-      </DataTableCell>
-    ),
+    cell: ({ row, getValue }) => {
+      const description = stripRedundantCodePrefix(
+        getValue<string>(),
+        row.original.code_api,
+      );
+      // Решение пользователя (2026-11-19): та же подсветка "Новый код из
+      // API:", что уже есть у функциональных/программных кодов — ещё не
+      // выверенная вручную запись после синхронизации с goszakupki.by.
+      const isUnverified = description.includes("Новый код из API:");
+
+      return (
+        <DataTableCell className="wrap-break-word whitespace-normal">
+          {isUnverified ? (
+            <Badge variant="destructive" className="text-sm">
+              {description}
+            </Badge>
+          ) : (
+            description
+          )}
+        </DataTableCell>
+      );
+    },
   },
   {
     accessorKey: "is_active",

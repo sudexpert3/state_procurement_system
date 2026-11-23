@@ -44,6 +44,7 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { useLocalStorageState } from "@/shared/lib/react/use-local-storage-state";
+import { cn } from "@/shared/lib/utils";
 
 import { DataTablePagination } from "./data-table-pagination";
 
@@ -52,6 +53,8 @@ type DataTableProps<TData> = {
   columns: ColumnDef<TData, unknown>[];
   isLoading?: boolean;
   getRow?: (row: TData) => void;
+  /** Доп. классы на строку (например, подсветка строки промежуточного итога) */
+  getRowClassName?: (row: TData) => string | undefined;
   /** Вложенные строки (expanding): вернуть дочерние узлы строки */
   getSubRows?: (row: TData) => TData[] | undefined;
   /** Принудительно раскрыть все группы (например, на время поиска) */
@@ -67,6 +70,9 @@ type DataTableProps<TData> = {
   /** Серверный поиск/фильтрация: строки уже отфильтрованы бэкендом, повторно не фильтровать */
   manualFiltering?: boolean;
   cellClassName?: string;
+  /** Доп. классы на ячейки шапки — например, перенос длинных заголовков в 2-4 строки
+   *  (whitespace-normal), чтобы ширину колонки диктовали данные, а не заголовок */
+  headerClassName?: string;
   actions?: (table: ReactTable<TData>) => React.ReactNode;
   /** Строка итогов под телом таблицы (например, "ИТОГО" по числовым колонкам) */
   footer?: (table: ReactTable<TData>) => React.ReactNode;
@@ -178,6 +184,14 @@ export const DataTable = <TData,>({
       (props.onGlobalFilterChange ?? setInnerGlobalFilter)(next);
     },
     ...(props.manualFiltering && { manualFiltering: true }),
+    // Дефолт "Показывать по" — 100 на всех страницах (решение пользователя);
+    // только для клиентской пагинации — серверная берёт pageSize из
+    // `manualPagination.pageSize` (controlled через `state` ниже), initialState
+    // тут бы просто проигнорировался.
+    ...(pagination &&
+      !manualPagination && {
+        initialState: { pagination: { pageSize: 100 } },
+      }),
     state: {
       sorting,
       columnFilters,
@@ -235,7 +249,7 @@ export const DataTable = <TData,>({
                           ? { width: header.getSize() }
                           : undefined
                       }
-                      className={props.cellClassName}>
+                      className={props.headerClassName ?? props.cellClassName}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -265,7 +279,10 @@ export const DataTable = <TData,>({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   onClick={() => props.getRow?.(row.original)}
-                  className={props.getRow ? "cursor-pointer" : undefined}>
+                  className={cn(
+                    props.getRow && "cursor-pointer",
+                    props.getRowClassName?.(row.original),
+                  )}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
