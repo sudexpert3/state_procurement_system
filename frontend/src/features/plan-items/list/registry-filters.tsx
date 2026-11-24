@@ -125,13 +125,36 @@ const flattenDepartments = (nodes: Department[]): Department[] =>
 export type BuyerFilterValue = "all" | "unset" | number;
 export type DepartmentFilterValue = "all" | number;
 
+/**
+ * Категория позиций плана (`?status_category=`, backend — CurrentStatus.md,
+ * запись 2026-11-24). "active" — значение по умолчанию, при нём параметр в
+ * запрос не отправляется вовсе (совпадает с поведением бэкенда без параметра).
+ */
+export type StatusCategoryFilterValue =
+  | "all"
+  | "active"
+  | "public"
+  | "non_public"
+  | "excluded";
+
+const STATUS_CATEGORY_OPTIONS: {
+  value: StatusCategoryFilterValue;
+  label: string;
+}[] = [
+  { value: "all", label: "Все" },
+  { value: "active", label: "Активная" },
+  { value: "public", label: "Публикуемая" },
+  { value: "non_public", label: "Не публикуемая" },
+  { value: "excluded", label: "Исключена" },
+];
+
 type RegistryFiltersProps = {
   table: Table<PlanItemShort>;
   /**
-   * Фильтр по исполнителю (`?buyer=<id>` / `?buyer_unset=true`) и по
-   * подразделению, для которого проводится закупка (`?department=<id>`) — ни
-   * один из них не привязан ни к одной отображаемой колонке реестра (колонки
-   * "Исполнитель"/"Подразделение" здесь нет), поэтому, в отличие от фильтров
+   * Фильтр по исполнителю (`?buyer=<id>` / `?buyer_unset=true`), по
+   * подразделению, для которого проводится закупка (`?department=<id>`), и
+   * по категории позиции (`?status_category=`) — ни один из них не привязан
+   * ни к одной отображаемой колонке реестра, поэтому, в отличие от фильтров
    * по кодам ЭКР выше, управляются явными пропами, а не через
    * `table.getColumn(id).setFilterValue()`.
    */
@@ -139,6 +162,8 @@ type RegistryFiltersProps = {
   onBuyerFilterChange: (value: BuyerFilterValue) => void;
   departmentFilter: DepartmentFilterValue;
   onDepartmentFilterChange: (value: DepartmentFilterValue) => void;
+  statusCategoryFilter: StatusCategoryFilterValue;
+  onStatusCategoryFilterChange: (value: StatusCategoryFilterValue) => void;
 };
 
 export const RegistryFilters = ({
@@ -147,6 +172,8 @@ export const RegistryFilters = ({
   onBuyerFilterChange,
   departmentFilter,
   onDepartmentFilterChange,
+  statusCategoryFilter,
+  onStatusCategoryFilterChange,
 }: RegistryFiltersProps) => {
   const { data: functionalCodes, isLoading: isFunctionalLoading } =
     rqClient.useQuery("get", "/api/functional_code/", {});
@@ -272,6 +299,24 @@ export const RegistryFilters = ({
                 </SelectItem>
               ))
             )}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      <Select
+        value={statusCategoryFilter}
+        onValueChange={(v) =>
+          onStatusCategoryFilterChange(v as StatusCategoryFilterValue)
+        }>
+        <SelectTrigger className="w-56 bg-white">
+          <SelectValue placeholder="Категория позиции..." />
+        </SelectTrigger>
+        <SelectContent position="popper">
+          <SelectGroup>
+            {STATUS_CATEGORY_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
           </SelectGroup>
         </SelectContent>
       </Select>

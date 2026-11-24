@@ -88,6 +88,7 @@ services:
     volumes:
       - ./backend/static:/app/static
       - ./backend/media:/app/media
+      - ./backend/logs:/app/logs
     depends_on:
       - db
     command: >

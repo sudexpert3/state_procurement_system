@@ -199,6 +199,64 @@ FILE_UPLOAD_HANDLERS = [
 GPZ_USERNAME = os.getenv('GPZ_USERNAME')
 GPZ_PASSWORD = os.getenv('GPZ_PASSWORD')
 
+# Логирование в файл (2026-11-24): синхронизация плана закупок с goszakupki.by даёт
+# HTTP 500 на одном рабочем хосте и успешно проходит на другом (без VPN) — чтобы
+# разобраться без доступа к той машине, нужен подробный лог прямо на сервере.
+# Пишем в backend/logs/ (volume в docker-compose.yml у сервиса backend, чтобы файл
+# не пропал при пересборке контейнера); секреты (пароль/токен) в лог никогда не попадают —
+# логируются только URL/параметры запросов и тела/коды ответов goszakupki.by.
+LOGS_DIR = BASE_DIR / 'logs'
+LOGS_DIR.mkdir(exist_ok=True)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} {levelname} {name} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'goszakupki_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'goszakupki_sync.log',
+            'maxBytes': 10 * 1024 * 1024,
+            'backupCount': 5,
+            'encoding': 'utf-8',
+            'formatter': 'verbose',
+        },
+        'django_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'django_errors.log',
+            'maxBytes': 10 * 1024 * 1024,
+            'backupCount': 5,
+            'encoding': 'utf-8',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        # Неотловленные 500 (трейсбек Django по умолчанию идёт только в консоль/почту) —
+        # дублируем в файл, чтобы они не терялись между перезапусками контейнера.
+        'django.request': {
+            'handlers': ['console', 'django_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        # Вся цепочка синхронизации с goszakupki.by (api/api.py, views/get_data_from_goszakupki.py,
+        # services/goszakupki_sync.py, services/goszakupki_push.py).
+        'goszakupki': {
+            'handlers': ['console', 'goszakupki_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
+
 
 # Глобальные настройки генератора схемы под FullHD экраны и фронтенд
 SPECTACULAR_SETTINGS = {

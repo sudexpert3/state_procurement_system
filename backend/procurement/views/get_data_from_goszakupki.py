@@ -1,3 +1,5 @@
+import logging
+
 from django.db import transaction
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -9,6 +11,8 @@ from api.api import GoszakupkiAPI
 from procurement.models import Purchases
 from procurement.serializers import PurchasesImportSerializer
 from procurement.services.goszakupki_sync import fetch_purchase_items_from_api, sync_plan_items_from_data
+
+logger = logging.getLogger('goszakupki')
 
 
 @api_view(['GET'])
@@ -131,6 +135,7 @@ def get_purchases_items(request, purchase_id):
     try:
         result_data = fetch_purchase_items_from_api(purchase_id)
     except Exception as e:
+        logger.exception("Синхронизация плана %s: сбой при получении позиций с goszakupki.by", purchase_id)
         return Response(
             {"error": f"Сбой при получении позиций плана {purchase_id} с goszakupki.by: {e}"},
             status=status.HTTP_502_BAD_GATEWAY
@@ -142,7 +147,21 @@ def get_purchases_items(request, purchase_id):
             status=status.HTTP_200_OK
         )
 
-    stats = sync_plan_items_from_data(purchase_master, result_data, log=print)
+    try:
+        stats = sync_plan_items_from_data(purchase_master, result_data, log=logger.info)
+    except Exception as e:
+        # До этой правки (2026-11-24) исключение здесь улетало как обычный Django 500
+        # без контекста (purchase_id, сколько позиций получено) — только голый трейсбек
+        # в консоли. Теперь он идёт в тот же файловый лог, что и весь остальной путь
+        # синхронизации (см. LOGGING в core/settings.py), плюс понятный ответ фронту.
+        logger.exception(
+            "Синхронизация плана %s: сбой при сохранении в БД (получено %s позиций с портала)",
+            purchase_id, len(result_data),
+        )
+        return Response(
+            {"error": f"Сбой при сохранении позиций плана {purchase_id} в БД: {e}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
     return Response({
         "status": "success",

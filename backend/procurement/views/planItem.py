@@ -105,10 +105,31 @@ class PlanItemViewSet(viewsets.ModelViewSet):
                 else:
                     return PlanItem.objects.none()
 
-            if params.get('is_active', 'true').strip().lower() == 'false':
-                queryset = queryset.filter(plan_purchase_id=purchase_id)
+            queryset = queryset.filter(plan_purchase_id=purchase_id)
+
+            # Запрос пользователя (CurrentStatus.md, 2026-11-24): селект категорий пунктов
+            # плана для реестра закупок — "все/активная/публикуемая/не публикуемая/
+            # исключена", по умолчанию "активная" (= is_active=True независимо от is_public,
+            # тот же смысл, что раньше был у дефолта старого булевого `is_active`, который
+            # этот параметр заменяет собой; `is_active` оставлен ниже для обратной
+            # совместимости, если его где-то уже дёргают вручную — curl/скрипты).
+            status_category = params.get('status_category', None)
+            if status_category:
+                status_category = status_category.strip().lower()
+                if status_category == 'public':
+                    queryset = queryset.filter(is_active=True, is_public=True)
+                elif status_category == 'non_public':
+                    queryset = queryset.filter(is_active=True, is_public=False)
+                elif status_category == 'excluded':
+                    queryset = queryset.filter(is_active=False)
+                elif status_category == 'all':
+                    pass
+                else:  # 'active' и любое нераспознанное значение — безопасный дефолт
+                    queryset = queryset.filter(is_active=True)
+            elif params.get('is_active', 'true').strip().lower() == 'false':
+                pass  # старый параметр: is_active=false — без фильтра (эквивалент 'all')
             else:
-                queryset = queryset.filter(plan_purchase_id=purchase_id, is_active=True)
+                queryset = queryset.filter(is_active=True)  # старый дефолт и дефолт нового параметра совпадают
 
             # Фильтры по кодам ЭКР запрошены фронтендом для реестра закупок —
             # бьём по активным BudgetCosts позиции (несколько строк бюджета на

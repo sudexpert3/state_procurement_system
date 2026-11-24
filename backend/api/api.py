@@ -1,3 +1,5 @@
+import logging
+
 import requests
 import urllib3
 from django.core.cache import cache
@@ -5,6 +7,8 @@ from django.conf import settings
 
 # Отключаем предупреждения SSL в консоли Docker
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+logger = logging.getLogger('goszakupki')
 
 
 class GoszakupkiAPI:
@@ -38,20 +42,34 @@ class GoszakupkiAPI:
 
     def _login(self):
         url = f"{self.BASE_URL}/auth/login"
+        # НЕ логировать payload целиком — там пароль из GPZ_PASSWORD.
         payload = {"username": self.username, "password": self.password}
+        logger.debug("POST %s (login, username=%s)", url, self.username)
 
         try:
             response = self.session.post(url, json=payload, timeout=self.TIMEOUT, verify=True)
         except requests.exceptions.SSLError:
+            logger.warning("SSL verify=True не прошёл на %s — повтор с verify=False", url)
             response = self.session.post(url, json=payload, timeout=self.TIMEOUT, verify=False)
+        except requests.exceptions.RequestException:
+            logger.exception("Сетевой сбой при POST %s (login)", url)
+            raise
 
         # ВЫВОД ДЕТАЛЕЙ ОШИБКИ 400:
         if response.status_code == 400:
-            print("Детали ошибки 400 от сервера:", response.text)  # Или используйте logging.error()
+            logger.error("Login 400 от goszakupki.by: %s", response.text[:2000])
 
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            logger.exception(
+                "Login упал: status=%s body=%s", response.status_code, response.text[:2000],
+            )
+            raise
+
         data = response.json()
         self._save_tokens(data['token'], data['refresh_token'])
+        logger.info("Login на goszakupki.by успешен (username=%s)", self.username)
         return data['token']
 
     def _refresh_tokens(self, refresh_token):
@@ -59,12 +77,22 @@ class GoszakupkiAPI:
         url = f"{self.BASE_URL}/auth/refresh-token"
         payload = {"refresh_token": refresh_token}
 
-        response = self.session.post(url, json=payload, timeout=self.TIMEOUT, verify=False)
+        try:
+            response = self.session.post(url, json=payload, timeout=self.TIMEOUT, verify=False)
+        except requests.exceptions.RequestException:
+            logger.exception("Сетевой сбой при POST %s (refresh-token)", url)
+            return self._login()
+
         if response.status_code == 200:
             data = response.json()
             self._save_tokens(data['token'], data['refresh_token'])
+            logger.debug("Токен обновлён через refresh-token")
             return data['token']
 
+        logger.warning(
+            "refresh-token вернул status=%s body=%s — повторный login",
+            response.status_code, response.text[:2000],
+        )
         return self._login()
 
     def _save_tokens(self, token, refresh_token):
@@ -76,22 +104,37 @@ class GoszakupkiAPI:
         """Универсальный метод для выполнения защищенных GET-запросов."""
         url = f"{self.BASE_URL}{endpoint}"
         headers = self._get_auth_headers()
+        logger.debug("GET %s params=%s", url, params)
 
         try:
             response = self.session.get(url, headers=headers, params=params, timeout=self.TIMEOUT, verify=False)
-        except requests.exceptions.RequestException:
+        except requests.exceptions.RequestException as e:
             # Было `except requests.exceptions:` — это модуль, а не класс исключения,
             # такой except никогда не перехватывал ошибку сети и просто падал с TypeError.
             # Одна повторная попытка на случай единичного сетевого сбоя.
-            response = self.session.get(url, headers=headers, params=params, timeout=self.TIMEOUT, verify=False)
+            logger.warning("Сетевой сбой при GET %s (%s) — повтор", url, e)
+            try:
+                response = self.session.get(url, headers=headers, params=params, timeout=self.TIMEOUT, verify=False)
+            except requests.exceptions.RequestException:
+                logger.exception("Повторный GET %s тоже упал сетевым сбоем", url)
+                raise
 
         # Если токен устарел (401), сбрасываем кэш и пробуем повторно
         if response.status_code == 401:
+            logger.info("401 на GET %s — сбрасываем токен и повторяем запрос", url)
             cache.delete('gz_token')
             headers = self._get_auth_headers()
             response = self.session.get(url, headers=headers, params=params, timeout=self.TIMEOUT, verify=False)
 
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            logger.exception(
+                "GET %s params=%s упал: status=%s body=%s",
+                url, params, response.status_code, response.text[:2000],
+            )
+            raise
+
         return response.json(), response.headers
 
     def _write(self, method, endpoint, json_body=None):
@@ -100,18 +143,33 @@ class GoszakupkiAPI:
         url = f"{self.BASE_URL}{endpoint}"
         headers = self._get_auth_headers()
         request_func = getattr(self.session, method)
+        logger.debug("%s %s body=%s", method.upper(), url, json_body)
 
         try:
             response = request_func(url, json=json_body, headers=headers, timeout=self.TIMEOUT, verify=False)
-        except requests.exceptions.RequestException:
-            response = request_func(url, json=json_body, headers=headers, timeout=self.TIMEOUT, verify=False)
+        except requests.exceptions.RequestException as e:
+            logger.warning("Сетевой сбой при %s %s (%s) — повтор", method.upper(), url, e)
+            try:
+                response = request_func(url, json=json_body, headers=headers, timeout=self.TIMEOUT, verify=False)
+            except requests.exceptions.RequestException:
+                logger.exception("Повторный %s %s тоже упал сетевым сбоем", method.upper(), url)
+                raise
 
         if response.status_code == 401:
+            logger.info("401 на %s %s — сбрасываем токен и повторяем запрос", method.upper(), url)
             cache.delete('gz_token')
             headers = self._get_auth_headers()
             response = request_func(url, json=json_body, headers=headers, timeout=self.TIMEOUT, verify=False)
 
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            logger.exception(
+                "%s %s упал: status=%s body=%s",
+                method.upper(), url, response.status_code, response.text[:2000],
+            )
+            raise
+
         return response.json(), response.headers
 
     def post_data(self, endpoint, json_body=None):

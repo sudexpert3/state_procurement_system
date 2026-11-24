@@ -12,11 +12,15 @@
   - management/commands/sync_goszakupki_from_file.py — офлайн-синхронизация из выгруженного
     файла, когда прямого доступа к api.goszakupki.by нет (см. export_goszakupki_plan.py).
 """
+import logging
+
 from django.db import transaction
 
 from core.choices import PlanItemStatus
 from procurement.models import PlanItem, PlanItemDetail, BudgetCosts
 from procurement.serializers import PlanItemDetailImportSerializer, BudgetCostsImportSerializer
+
+logger = logging.getLogger('goszakupki')
 
 
 def fetch_purchase_items_from_api(purchase_id, limit=None):
@@ -35,6 +39,7 @@ def fetch_purchase_items_from_api(purchase_id, limit=None):
     from api.api import GoszakupkiAPI
 
     client = GoszakupkiAPI()
+    logger.info("Синхронизация плана %s: начинаем постраничный обход /purchase/items/%s", purchase_id, purchase_id)
 
     item_refs = []
     page = 1
@@ -56,6 +61,7 @@ def fetch_purchase_items_from_api(purchase_id, limit=None):
             break
         page += 1
 
+    logger.info("Синхронизация плана %s: %s позиций в списке, запрашиваем детали каждой", purchase_id, len(item_refs))
     result = []
     for ref in item_refs:
         item_id = ref.get('id')
@@ -63,6 +69,7 @@ def fetch_purchase_items_from_api(purchase_id, limit=None):
             continue
         detail, _headers = client.get_data(f'/purchase/view-item/{item_id}')
         result.append(detail)
+    logger.info("Синхронизация плана %s: детали получены на %s позиций", purchase_id, len(result))
     return result
 
 
@@ -105,7 +112,13 @@ def sync_plan_items_from_data(purchase_master, result_data, log=None):
             external_item['plan_item'] = local_plan_item.id
             external_item['purchases_item_id'] = purchases_item_id
             plan_item_serializer = PlanItemDetailImportSerializer(data=external_item)
-            plan_item_serializer.is_valid(raise_exception=True)
+            if not plan_item_serializer.is_valid():
+                logger.error(
+                    "Синхронизация: PlanItemDetail не прошёл валидацию, num=%s purchases_item_id=%s "
+                    "errors=%s raw_item=%s",
+                    num, purchases_item_id, plan_item_serializer.errors, external_item,
+                )
+                plan_item_serializer.is_valid(raise_exception=True)
             plan_item_serializer.save()
 
             budget_costs_data = external_item.get('budget_costs') or []
@@ -113,7 +126,13 @@ def sync_plan_items_from_data(purchase_master, result_data, log=None):
                 for bc_item in budget_costs_data:
                     bc_item['plan_item'] = local_plan_item.id
                 bc_serializer = BudgetCostsImportSerializer(data=budget_costs_data, many=True)
-                bc_serializer.is_valid(raise_exception=True)
+                if not bc_serializer.is_valid():
+                    logger.error(
+                        "Синхронизация: BudgetCosts не прошёл валидацию, num=%s purchases_item_id=%s "
+                        "errors=%s budget_costs_data=%s",
+                        num, purchases_item_id, bc_serializer.errors, budget_costs_data,
+                    )
+                    bc_serializer.is_valid(raise_exception=True)
                 saved_bc_objects = bc_serializer.save()
                 for bc_obj in saved_bc_objects:
                     if bc_obj.created_at == bc_obj.changed_at:

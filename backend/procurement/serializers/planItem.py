@@ -40,8 +40,17 @@ class PlanItemShortSerializer(serializers.ModelSerializer):
         ]
 
     def _get_active_detail(self, obj):
+        """2026-11-24: баг — `active_pids[0]` падал `IndexError` для позиций без
+        НИ ОДНОЙ активной `PlanItemDetail` (архивные/исключённые позиции, см. новый
+        `?status_category=excluded` в views/planItem.py). Префетч в этом случае —
+        ПУСТОЙ список (`[]`, не `None`), поэтому старая проверка `is None` его
+        не отличала от "префетча вообще не было" и лезла в индекс несуществующего
+        элемента."""
         active_pids = getattr(obj, 'active_plan_item_detail_prefetched', None)
-        obj._cached_active_detail = obj.details.filter(status=PlanItemStatus.ACTIVE).first() if active_pids is None else active_pids[0]
+        if active_pids is None:
+            obj._cached_active_detail = obj.details.filter(status=PlanItemStatus.ACTIVE).first()
+        else:
+            obj._cached_active_detail = active_pids[0] if active_pids else None
         return obj._cached_active_detail
 
     @extend_schema_field(serializers.CharField())

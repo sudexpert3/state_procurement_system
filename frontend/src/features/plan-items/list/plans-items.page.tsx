@@ -29,6 +29,7 @@ import {
   type BuyerFilterValue,
   type DepartmentFilterValue,
   RegistryFilters,
+  type StatusCategoryFilterValue,
 } from "./registry-filters";
 import { RegistryMoneySummary } from "./registry-money-summary";
 import { TableActions } from "./table-actions";
@@ -93,9 +94,11 @@ const PlansItemsPage = () => {
     internalEconomicCode?: string;
     buyerFilter: BuyerFilterValue;
     departmentFilter: DepartmentFilterValue;
+    statusCategoryFilter: StatusCategoryFilterValue;
   }>("plan-items-list:filters", {
     buyerFilter: "all",
     departmentFilter: "all",
+    statusCategoryFilter: "active",
   });
 
   const functionalCode =
@@ -123,6 +126,15 @@ const PlansItemsPage = () => {
     departmentParam != null
       ? Number(departmentParam)
       : storedFilters.departmentFilter;
+
+  // "active" — дефолт и на бэкенде (без параметра в запросе), и здесь, в т.ч.
+  // как откат для уже существующих значений в localStorage, сохранённых до
+  // появления этого фильтра (где ключа statusCategoryFilter ещё не было).
+  const statusCategoryParam = searchParams.get("status_category");
+  const statusCategoryFilter: StatusCategoryFilterValue =
+    (statusCategoryParam as StatusCategoryFilterValue | null) ??
+    storedFilters.statusCategoryFilter ??
+    "active";
 
   // Колоночные фильтры (функц./эконом./внутренний ЭКР код) передаются в
   // DataTable как controlled columnFilters — их значения нужны и снаружи,
@@ -213,6 +225,22 @@ const PlansItemsPage = () => {
     });
   };
 
+  const handleStatusCategoryFilterChange = (
+    value: StatusCategoryFilterValue,
+  ) => {
+    setStoredFilters((prev) => ({ ...prev, statusCategoryFilter: value }));
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      if (value === "active") {
+        params.delete("status_category");
+      } else {
+        params.set("status_category", value);
+      }
+      params.set("offset", "0");
+      return params;
+    });
+  };
+
   const handleSelectYear = (purchaseId: number) => {
     setStoredPurchaseId(purchaseId);
     // Выбранные коды привязаны к конкретному году — в другом году они почти
@@ -260,6 +288,8 @@ const PlansItemsPage = () => {
           buyer_unset: buyerFilter === "unset" || undefined,
           buyer: typeof buyerFilter === "number" ? buyerFilter : undefined,
           department: departmentFilter !== "all" ? departmentFilter : undefined,
+          status_category:
+            statusCategoryFilter !== "active" ? statusCategoryFilter : undefined,
         },
       },
     },
@@ -291,6 +321,8 @@ const PlansItemsPage = () => {
           buyer_unset: buyerFilter === "unset" || undefined,
           buyer: typeof buyerFilter === "number" ? buyerFilter : undefined,
           department: departmentFilter !== "all" ? departmentFilter : undefined,
+          status_category:
+            statusCategoryFilter !== "active" ? statusCategoryFilter : undefined,
         },
       },
     },
@@ -357,6 +389,8 @@ const PlansItemsPage = () => {
                 onBuyerFilterChange={handleBuyerFilterChange}
                 departmentFilter={departmentFilter}
                 onDepartmentFilterChange={handleDepartmentFilterChange}
+                statusCategoryFilter={statusCategoryFilter}
+                onStatusCategoryFilterChange={handleStatusCategoryFilterChange}
               />
             </div>
           )}
