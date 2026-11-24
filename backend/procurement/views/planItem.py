@@ -9,6 +9,18 @@ from procurement.models import Purchases, PlanItem, PlanItemDetail, BudgetCosts,
 from procurement.serializers import PlanItemSerializer, PlanItemShortSerializer, PlanItemFullSerializer
 
 
+def _parse_id(raw_value):
+    """int(float(x)) вместо int(x) — ?buyer=5.0 (не наш случай, но на всякий) не упадёт,
+    а нечисловое значение (например "NaN", "undefined") трактуется как "параметр не
+    задан", а не как 500 от ORM на FK-лукапе."""
+    if raw_value is None or str(raw_value).strip() == '':
+        return None
+    try:
+        return int(float(raw_value))
+    except (TypeError, ValueError):
+        return None
+
+
 class PlanItemViewSet(viewsets.ModelViewSet):
     """
     Эндпоинт управления неизменяемыми мастер-записями позиций годового плана ГПЗ.
@@ -190,8 +202,15 @@ class PlanItemViewSet(viewsets.ModelViewSet):
             # Запрос фронтенда (CurrentStatus.md, 2026-11-21): конкретный исполнитель —
             # select вместо чекбокса "не определён" (который остаётся через buyer_unset
             # выше). Тот же JOIN ('details'), что и у buyer_unset.
-            buyer_id = params.get('buyer', None)
-            if buyer_id:
+            #
+            # 2026-11-24: оба параметра (buyer/department) раньше шли в .filter(...=value)
+            # как есть — фронт иногда присылает не число (напр. "NaN", когда Select
+            # временно без валидного значения), ORM лезет в int(value) на FK-лукапе и
+            # падает НЕОБРАБОТАННЫМ 500 (см. CurrentStatus.md, разбор django_errors.log).
+            # _parse_id трактует нечисловое значение как "фильтр не задан", а не как
+            # ошибку — тот же эффект, что и при отсутствующем параметре.
+            buyer_id = _parse_id(params.get('buyer', None))
+            if buyer_id is not None:
                 queryset = queryset.filter(
                     details__status=PlanItemStatus.ACTIVE, details__buyer_id=buyer_id,
                 ).distinct()
@@ -200,8 +219,8 @@ class PlanItemViewSet(viewsets.ModelViewSet):
             # проводится закупка — позиция распределена на несколько подразделений через
             # PlanShare (одна или несколько активных BudgetCosts), должна находиться по
             # любому из них. Отдельный JOIN от фильтров по кодам ЭКР выше — свой distinct().
-            department_id = params.get('department', None)
-            if department_id:
+            department_id = _parse_id(params.get('department', None))
+            if department_id is not None:
                 queryset = queryset.filter(
                     budget_costs__status=PlanItemStatus.ACTIVE,
                     budget_costs__plan_shares__status=PlanItemStatus.ACTIVE,

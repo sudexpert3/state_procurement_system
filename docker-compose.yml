@@ -91,9 +91,15 @@ services:
       - ./backend/logs:/app/logs
     depends_on:
       - db
+    # --timeout 300 (2026-11-24): синхронизация плана с goszakupki.by (/api/gosakupki/
+    # get_purchases_items/<id>/) делает ~1500+ ПОСЛЕДОВАТЕЛЬНЫХ HTTP-запросов к внешнему
+    # API внутри одного Django-запроса (без параллелизма) — на дефолтных 30с (sync-воркер
+    # gunicorn) это реально отрабатывает только на хосте с быстрой сетью до api.goszakupki.by.
+    # На хосте с бОльшей задержкой (VPN и т.п.) worker убивается по таймауту ДО того, как
+    # Django успевает что-либо залогировать — см. разбор в CurrentStatus.md.
     command: >
       sh -c "python manage.py migrate --noinput &&
-      gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+      gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 300"
 
   # prod и backend-dev нужен один и тот же собранный фронтенд, но с разным VITE_API_URL
   # (разные origin backend-а) — поэтому это ДВА разных сервиса с разными build-args,
