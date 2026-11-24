@@ -103,10 +103,16 @@ export const createColumns = (
   {
     id: "internal_economic_class",
     header: "Внутренний код ЭКР",
+    // Фиксированная ширина + перенос строки: `internal_economic_class_name`
+    // (`name` в модели — TextField, длина не ограничена) раньше рисовался в
+    // одну строку и растягивал колонку (и всю таблицу) настолько, что
+    // появлялся горизонтальный скролл — см. тот же приём в
+    // internal-economic-code/columns.tsx.
+    size: 220,
     cell: ({ row }) => (
-      <DataTableCell className="flex flex-col items-start text-left">
+      <DataTableCell className="flex max-w-55 flex-col text-left">
         <span>{row.original.internal_economic_class_code}</span>
-        <span className="text-muted-foreground text-xs">
+        <span className="text-muted-foreground text-xs wrap-break-word whitespace-normal">
           {row.original.internal_economic_class_name}
         </span>
       </DataTableCell>
@@ -145,8 +151,11 @@ export const createColumns = (
   {
     accessorKey: "note",
     header: "Примечание",
+    // `note` — тоже TextField без ограничения длины (как и имя ЭКР внутреннего
+    // кода выше), по той же причине ограничиваем ширину и переносим строки.
+    size: 160,
     cell: ({ getValue }) => (
-      <DataTableCell className="text-left">
+      <DataTableCell className="max-w-40 text-left wrap-break-word whitespace-normal">
         {getValue<string>() || "—"}
       </DataTableCell>
     ),
