@@ -46,13 +46,15 @@ export const createColumns = (
           onClick={() => onEdit(row.original)}>
           <PencilIcon size={16} className="text-muted-foreground" />
         </Button>
-        {row.original.status === "DRAFT" && (
-          <DeleteButton
-            onConfirm={() => onDelete(row.original.id)}
-            isPending={deletingId === row.original.id}
-            description="Черновик записи будет удалён безвозвратно."
-          />
-        )}
+        <DeleteButton
+          onConfirm={() => onDelete(row.original.id)}
+          isPending={deletingId === row.original.id}
+          description={
+            row.original.status === "DRAFT"
+              ? "Черновик записи будет удалён безвозвратно."
+              : "Запись истории лимита будет удалена безвозвратно, включая её влияние на суммы по статье/подразделению."
+          }
+        />
       </DataTableCell>
     ),
     enableSorting: false,
@@ -70,8 +72,9 @@ export const createColumns = (
         </Badge>
         {/* effective_date — дата, с которой запись реально действует: для
             DRAFT ещё не значима (запись не действует), для ACTIVE/ARCHIVE
-            это и есть фактическая дата активации (поле блокируется сразу
-            после активации, см. department-limit-form.tsx/isLocked). */}
+            это и есть фактическая дата активации (поле редактируется для
+            ACTIVE, блокируется только для ARCHIVE — см.
+            department-limit-form.tsx/isArchiveLocked). */}
         {row.original.status === "ACTIVE" && (
           <span className="text-muted-foreground text-xs">
             {formatDate(row.original.effective_date)}

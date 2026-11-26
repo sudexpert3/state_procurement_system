@@ -4,19 +4,22 @@ from core.choices import PlanItemStatus
 from procurement.models import DepartmentArticleLimit
 from procurement.services import department_limits as dl_service
 
-# Поля, которые можно менять ВСЕГДА (на любом статусе) — остальные поля у записи со
-# статусом не DRAFT редактировать нельзя (решение пользователя 2026-11-23: смену суммы/
-# подразделения/статьи у уже принятого решения делают новой записью + "Активировать", не
-# правкой существующей — история версий лимита сохраняется построчно).
+# Поля, которые можно менять ВСЕГДА (на любом статусе) — ARCHIVE-записи (застывшая история)
+# редактировать больше нельзя ничем другим. Для ACTIVE-записей (решение пользователя
+# 2026-11-26) ограничение шире не нужно: любое поле правится свободно НА УРОВНЕ сериализатора
+# — конкретно amount-смена версионируется (архив старой + создание новой ACTIVE) в
+# services/department_limits.py::edit_active_limit(), вызываемой из view, а не здесь.
 ALWAYS_EDITABLE_FIELDS = {'note', 'deactivated_at'}
 
 
 class DepartmentArticleLimitSerializer(serializers.ModelSerializer):
     """CRUD строки распределения лимита по держателю (Этап «Распределение лимитов»,
-    2026-11-23) — прямое редактирование финансистом/админом, без согласования. Черновик
-    (status=DRAFT) редактируется целиком; ACTIVE/ARCHIVE — только `note`/`deactivated_at`
-    (см. ALWAYS_EDITABLE_FIELDS/validate()). Перевод DRAFT -> ACTIVE — отдельный action
-    `activate` (см. views/departmentArticleLimit.py), не через PATCH статуса."""
+    2026-11-23, доработано 2026-11-26) — прямое редактирование финансистом/админом, без
+    согласования. DRAFT — редактируется целиком; ACTIVE — любое поле, кроме суммы (смену
+    `amount` версионирует `dl_service.edit_active_limit()`, вызывается из view.update(), не
+    отсюда); ARCHIVE — только `note`/`deactivated_at` (см. ALWAYS_EDITABLE_FIELDS/validate()).
+    Перевод DRAFT -> ACTIVE — отдельный action `activate` (см. views/departmentArticleLimit.py),
+    не через PATCH статуса."""
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     functional_code = serializers.CharField(source='functional_class.code_api', read_only=True)
     functional_description = serializers.CharField(source='functional_class.description', read_only=True)
@@ -47,6 +50,16 @@ class DepartmentArticleLimitSerializer(serializers.ModelSerializer):
             'created_at', 'changed_at',
         ]
         read_only_fields = ['status', 'created_at', 'changed_at']
+        # DRF авто-генерирует UniqueTogetherValidator из UniqueConstraint('unique_active_
+        # department_limit') — он проверяет условие `status=ACTIVE` ПО ЗНАЧЕНИЮ ИЗ ATTRS, а
+        # `status` у нас read_only (меняется только через activate()/edit_active_limit()), из-
+        # за чего валидатор видит значение по умолчанию модели (DRAFT), а не реальный статус
+        # правящейся записи — ложно пропускает или ложно блокирует коллизию в разных сценариях.
+        # Уникальность ACTIVE-связки проверяется вручную в services/department_limits.py
+        # (`edit_active_limit`/`activate_limit`, через full_clean()/IntegrityError с понятным
+        # сообщением) — здесь он не нужен и мешает архивации+созданию новой версии при смене
+        # суммы (см. CurrentStatus.md, 2026-11-26).
+        validators = []
 
     def get_plan_amount(self, obj):
         plan_map = self.context.get('plan_amount_map')
@@ -64,7 +77,7 @@ class DepartmentArticleLimitSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         instance = self.instance
-        if instance is not None and instance.status != PlanItemStatus.DRAFT:
+        if instance is not None and instance.status == PlanItemStatus.ARCHIVE:
             changed = {
                 field for field, value in attrs.items()
                 if getattr(instance, field, None) != value
@@ -72,9 +85,11 @@ class DepartmentArticleLimitSerializer(serializers.ModelSerializer):
             if changed:
                 raise serializers.ValidationError(
                     f"Запись в статусе «{instance.get_status_display()}» — менять можно только "
-                    f"«Примечание»/«Дата деактивации». Для изменения суммы/подразделения/статьи "
-                    f"создайте новую запись и активируйте её."
+                    f"«Примечание»/«Дата деактивации», это архивная история версии лимита."
                 )
+        # DRAFT — редактируется целиком, как и раньше. ACTIVE — тоже любое поле, но смену
+        # amount обрабатывает edit_active_limit() на уровне view/сервиса (архивация старой +
+        # создание новой ACTIVE), не этот сериализатор.
         return attrs
 
 

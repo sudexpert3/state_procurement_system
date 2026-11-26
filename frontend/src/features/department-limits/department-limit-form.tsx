@@ -147,6 +147,14 @@ const AmountInput = ({
     });
   };
 
+  // При фокусе на пустом поле (значение 0) выделяем "0" целиком, чтобы
+  // первая набранная цифра заменила его, а не вставлялась после него.
+  const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+    if (value === 0) {
+      event.currentTarget.select();
+    }
+  };
+
   return (
     <Input
       id={id}
@@ -154,6 +162,7 @@ const AmountInput = ({
       inputMode="decimal"
       value={display}
       onChange={handleChange}
+      onFocus={handleFocus}
       disabled={disabled}
       aria-invalid={invalid}
     />
@@ -181,9 +190,13 @@ export const DepartmentLimitForm = ({
 }: Props) => {
   const portalContainerRef = useRef<HTMLDivElement | null>(null);
   const isEdit = item !== null;
-  // ACTIVE/ARCHIVE — бэкенд принимает PATCH только по note/deactivated_at,
-  // остальные поля меняют новой записью + активацией (см. CurrentStatus.md).
-  const isLocked = item !== null && item.status !== "DRAFT";
+  // ARCHIVE — застывшая история версий, бэкенд принимает PATCH только по
+  // note/deactivated_at. ACTIVE теперь редактируется полностью: бэкенд сам
+  // решает, править запись на месте или заархивировать старую версию и
+  // создать новую (зависит от того, меняется ли amount) — см. CurrentStatus.md
+  // (2026-11-26).
+  const isArchiveLocked = item !== null && item.status === "ARCHIVE";
+  const isActive = item !== null && item.status === "ACTIVE";
 
   const functionalCodeQuery = rqClient.useQuery(
     "get",
@@ -362,7 +375,17 @@ export const DepartmentLimitForm = ({
     });
   });
 
-  // ACTIVE/ARCHIVE — редактируются только note/deactivated_at, остальные
+  // ACTIVE — обычный PATCH со всеми полями формы, без activate (запись уже
+  // действует). Бэкенд сам решит: если amount не менялся — правит эту же
+  // запись на месте; если amount изменился (в одиночку или вместе с другими
+  // полями) — архивирует текущую версию и возвращает НОВУЮ запись с другим
+  // id (см. CurrentStatus.md, 2026-11-26). Реакция на ответ не завязана на
+  // id — handleSuccess просто закрывает дроер и рефетчит список.
+  const handleSaveActive = handleSubmit((values) => {
+    saveLimit(values, () => handleSuccess("Запись сохранена"));
+  });
+
+  // ARCHIVE — редактируются только note/deactivated_at, остальные
   // поля бэкенд всё равно отклонит (400).
   const handleSaveLocked = handleSubmit((values) => {
     if (!item) return;
@@ -416,7 +439,7 @@ export const DepartmentLimitForm = ({
               name="effective_date"
               label="Дата записи"
               placeholder="Выберите дату"
-              disabled={isLocked}
+              disabled={isArchiveLocked}
             />
             <DatePickerField
               control={control}
@@ -431,7 +454,7 @@ export const DepartmentLimitForm = ({
             name="year"
             label="Год"
             type="number"
-            disabled={isLocked}
+            disabled={isArchiveLocked}
             className="w-32"
           />
 
@@ -455,7 +478,7 @@ export const DepartmentLimitForm = ({
                   itemToStringValue={(c) => (c ? String(c.id) : "")}>
                   <ComboboxInput
                     placeholder="Поиск по коду..."
-                    disabled={isLocked || functionalCodeQuery.isLoading}
+                    disabled={isArchiveLocked || functionalCodeQuery.isLoading}
                     showClear
                     aria-invalid={fieldState.invalid}
                   />
@@ -497,7 +520,7 @@ export const DepartmentLimitForm = ({
                   itemToStringValue={(c) => (c ? String(c.id) : "")}>
                   <ComboboxInput
                     placeholder="Поиск по коду..."
-                    disabled={isLocked || economicCodeQuery.isLoading}
+                    disabled={isArchiveLocked || economicCodeQuery.isLoading}
                     showClear
                     aria-invalid={fieldState.invalid}
                   />
@@ -535,7 +558,7 @@ export const DepartmentLimitForm = ({
                   itemToStringValue={(c) => (c ? String(c.id) : "")}>
                   <ComboboxInput
                     placeholder="Поиск по коду/наименованию..."
-                    disabled={isLocked || internalCodeQuery.isLoading}
+                    disabled={isArchiveLocked || internalCodeQuery.isLoading}
                     showClear
                     aria-invalid={fieldState.invalid}
                   />
@@ -571,7 +594,7 @@ export const DepartmentLimitForm = ({
                   itemToStringValue={(d) => (d ? String(d.id) : "")}>
                   <ComboboxInput
                     placeholder="Поиск подразделения..."
-                    disabled={isLocked || departmentsQuery.isLoading}
+                    disabled={isArchiveLocked || departmentsQuery.isLoading}
                     showClear
                     aria-invalid={fieldState.invalid}
                   />
@@ -605,7 +628,7 @@ export const DepartmentLimitForm = ({
                   id="field-amount"
                   value={field.value}
                   onChange={field.onChange}
-                  disabled={isLocked}
+                  disabled={isArchiveLocked}
                   invalid={fieldState.invalid}
                 />
                 {fieldState.invalid && (
@@ -647,10 +670,18 @@ export const DepartmentLimitForm = ({
         </form>
 
         <DrawerFooter>
-          {isLocked ? (
+          {isArchiveLocked ? (
             <Button
               type="button"
               onClick={handleSaveLocked}
+              disabled={isPending}>
+              {isPending && <Loader2Icon size={16} className="animate-spin" />}
+              Сохранить
+            </Button>
+          ) : isActive ? (
+            <Button
+              type="button"
+              onClick={handleSaveActive}
               disabled={isPending}>
               {isPending && <Loader2Icon size={16} className="animate-spin" />}
               Сохранить

@@ -1292,15 +1292,6 @@ class DepartmentArticleLimitDirectEditTestCase(TestCase):
         response = self.client.post(f"/api/department_article_limits/{data['id']}/activate/")
         self.assertEqual(response.status_code, 400)
 
-    def test_patch_amount_on_active_record_rejected(self):
-        data = self._create_draft(self.dept1, Decimal('200000.00'))
-        self.client.post(f"/api/department_article_limits/{data['id']}/activate/")
-
-        response = self.client.patch(
-            f"/api/department_article_limits/{data['id']}/", {'amount': '999999.00'}, format='json',
-        )
-        self.assertEqual(response.status_code, 400)
-
     def test_patch_note_on_active_record_allowed(self):
         data = self._create_draft(self.dept1, Decimal('200000.00'))
         self.client.post(f"/api/department_article_limits/{data['id']}/activate/")
@@ -1311,15 +1302,180 @@ class DepartmentArticleLimitDirectEditTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['note'], 'уточнение')
 
-    def test_delete_allowed_only_for_draft(self):
+    def test_patch_statya_on_active_record_without_amount_change_edits_in_place(self):
+        """Решение пользователя (2026-11-26): исправление ошибочно выбранной статьи/
+        параграфа/подразделения/примечания на ACTIVE-записи, БЕЗ изменения суммы — правится
+        на месте, тот же id, запись остаётся ACTIVE (не версионируется)."""
+        from procurement.models import DepartmentArticleLimit, ExternalEconomicCode
+
+        other_econ = ExternalEconomicCode.objects.create(code_api='1 10 04 00', description='Другая статья')
         data = self._create_draft(self.dept1, Decimal('200000.00'))
-        response = self.client.delete(f"/api/department_article_limits/{data['id']}/")
+        self.client.post(f"/api/department_article_limits/{data['id']}/activate/")
+
+        response = self.client.patch(
+            f"/api/department_article_limits/{data['id']}/",
+            {
+                'economic_class': other_econ.pk, 'department': self.dept2.pk,
+                'note': 'исправлена ошибочная статья/подразделение',
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(response.data['id'], data['id'])
+        self.assertEqual(response.data['status'], PlanItemStatus.ACTIVE)
+        self.assertEqual(response.data['economic_class'], other_econ.pk)
+        self.assertEqual(response.data['department'], self.dept2.pk)
+        self.assertEqual(Decimal(response.data['amount']), Decimal('200000.00'))
+
+        record = DepartmentArticleLimit.objects.get(pk=data['id'])
+        self.assertEqual(record.status, PlanItemStatus.ACTIVE)
+        self.assertEqual(record.economic_class_id, other_econ.pk)
+        self.assertEqual(record.department_id, self.dept2.pk)
+
+    def test_patch_amount_only_on_active_record_versions_as_new_record(self):
+        """Решение пользователя (2026-11-26): если меняется ТОЛЬКО сумма — старая запись
+        архивируется, создаётся новая ACTIVE со всеми прочими полями без изменений."""
+        from procurement.models import DepartmentArticleLimit
+
+        data = self._create_draft(self.dept1, Decimal('200000.00'))
+        self.client.post(f"/api/department_article_limits/{data['id']}/activate/")
+
+        response = self.client.patch(
+            f"/api/department_article_limits/{data['id']}/", {'amount': '250000.00'}, format='json',
+        )
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertNotEqual(response.data['id'], data['id'])
+        self.assertEqual(response.data['status'], PlanItemStatus.ACTIVE)
+        self.assertEqual(Decimal(response.data['amount']), Decimal('250000.00'))
+        self.assertEqual(response.data['department'], self.dept1.pk)
+        self.assertEqual(response.data['economic_class'], self.econ.pk)
+
+        old = DepartmentArticleLimit.objects.get(pk=data['id'])
+        self.assertEqual(old.status, PlanItemStatus.ARCHIVE)
+        self.assertIsNotNone(old.deactivated_at)
+        self.assertEqual(old.amount, Decimal('200000.00'))
+
+        self.assertEqual(
+            DepartmentArticleLimit.objects.filter(
+                department=self.dept1, economic_class=self.econ, status=PlanItemStatus.ACTIVE,
+            ).count(),
+            1,
+        )
+
+    def test_patch_amount_and_department_together_on_active_record_versions_with_both_changes(self):
+        """Смешанный случай (решение пользователя 2026-11-26): сумма и подразделение меняются
+        одновременно — версионируется целиком, новая ACTIVE-запись несёт ОБА новых значения,
+        не разбивается на два отдельных шага."""
+        from procurement.models import DepartmentArticleLimit
+
+        data = self._create_draft(self.dept1, Decimal('200000.00'))
+        self.client.post(f"/api/department_article_limits/{data['id']}/activate/")
+
+        response = self.client.patch(
+            f"/api/department_article_limits/{data['id']}/",
+            {'amount': '300000.00', 'department': self.dept2.pk},
+            format='json',
+        )
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertNotEqual(response.data['id'], data['id'])
+        self.assertEqual(response.data['status'], PlanItemStatus.ACTIVE)
+        self.assertEqual(Decimal(response.data['amount']), Decimal('300000.00'))
+        self.assertEqual(response.data['department'], self.dept2.pk)
+
+        old = DepartmentArticleLimit.objects.get(pk=data['id'])
+        self.assertEqual(old.status, PlanItemStatus.ARCHIVE)
+
+    def test_patch_amount_change_colliding_with_other_active_combo_archives_both(self):
+        """Смешанный случай, где новая связка (после смены подразделения) совпадает с уже
+        существующей ДРУГОЙ ACTIVE-записью — та тоже должна архивироваться (unique-
+        ограничение одна ACTIVE-запись на связку), а не привести к IntegrityError."""
+        from procurement.models import DepartmentArticleLimit
+
+        first = self._create_draft(self.dept1, Decimal('200000.00'))
+        self.client.post(f"/api/department_article_limits/{first['id']}/activate/")
+        second = self._create_draft(self.dept2, Decimal('100000.00'))
+        self.client.post(f"/api/department_article_limits/{second['id']}/activate/")
+
+        response = self.client.patch(
+            f"/api/department_article_limits/{first['id']}/",
+            {'amount': '250000.00', 'department': self.dept2.pk},
+            format='json',
+        )
+        self.assertEqual(response.status_code, 200, response.data)
+        new_id = response.data['id']
+
+        self.assertEqual(
+            DepartmentArticleLimit.objects.get(pk=first['id']).status, PlanItemStatus.ARCHIVE,
+        )
+        self.assertEqual(
+            DepartmentArticleLimit.objects.get(pk=second['id']).status, PlanItemStatus.ARCHIVE,
+        )
+        new_record = DepartmentArticleLimit.objects.get(pk=new_id)
+        self.assertEqual(new_record.status, PlanItemStatus.ACTIVE)
+        self.assertEqual(new_record.department_id, self.dept2.pk)
+        self.assertEqual(new_record.amount, Decimal('250000.00'))
+
+    def test_patch_statya_colliding_with_other_active_record_rejected(self):
+        """Правка БЕЗ смены суммы (на месте) не должна позволять создать дубль ACTIVE-связки —
+        если после правки связка совпадает с уже существующей ACTIVE-записью другого
+        держателя/статьи, сервер должен отклонить с понятной ошибкой, а не упасть 500."""
+        first = self._create_draft(self.dept1, Decimal('200000.00'))
+        self.client.post(f"/api/department_article_limits/{first['id']}/activate/")
+        second = self._create_draft(self.dept2, Decimal('100000.00'))
+        self.client.post(f"/api/department_article_limits/{second['id']}/activate/")
+
+        response = self.client.patch(
+            f"/api/department_article_limits/{second['id']}/",
+            {'department': self.dept1.pk},
+            format='json',
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_patch_statya_and_amount_on_archive_record_rejected(self):
+        """ARCHIVE — застывшая история, правится только note/deactivated_at, как и раньше.
+        Запись архивируется ЧЕРЕЗ смену суммы (edit_active_limit), затем пробуем править уже
+        архивную старую запись."""
+        data = self._create_draft(self.dept1, Decimal('200000.00'))
+        self.client.post(f"/api/department_article_limits/{data['id']}/activate/")
+        # Смена суммы архивирует старую запись `data['id']` (создаёт новую ACTIVE отдельно).
+        self.client.patch(
+            f"/api/department_article_limits/{data['id']}/", {'amount': '250000.00'}, format='json',
+        )
+
+        response = self.client.patch(
+            f"/api/department_article_limits/{data['id']}/", {'department': self.dept2.pk}, format='json',
+        )
+        self.assertEqual(response.status_code, 400)
+
+        response = self.client.patch(
+            f"/api/department_article_limits/{data['id']}/",
+            {'note': 'архивная правка допустима'}, format='json',
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_delete_allowed_for_financier_on_any_status(self):
+        """Решение пользователя (2026-11-26): финансист/админ могут удалять записи о
+        лимитах — не только черновики, но и действующие/архивные."""
+        from procurement.models import DepartmentArticleLimit
+
+        draft = self._create_draft(self.dept1, Decimal('200000.00'))
+        response = self.client.delete(f"/api/department_article_limits/{draft['id']}/")
         self.assertEqual(response.status_code, 204)
 
-        data2 = self._create_draft(self.dept1, Decimal('200000.00'))
-        self.client.post(f"/api/department_article_limits/{data2['id']}/activate/")
-        response = self.client.delete(f"/api/department_article_limits/{data2['id']}/")
-        self.assertEqual(response.status_code, 400)
+        active = self._create_draft(self.dept1, Decimal('200000.00'))
+        self.client.post(f"/api/department_article_limits/{active['id']}/activate/")
+        response = self.client.delete(f"/api/department_article_limits/{active['id']}/")
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(DepartmentArticleLimit.objects.filter(pk=active['id']).exists())
+
+        archived_source = self._create_draft(self.dept1, Decimal('150000.00'))
+        self.client.post(f"/api/department_article_limits/{archived_source['id']}/activate/")
+        promoted = self._create_draft(self.dept1, Decimal('175000.00'))
+        self.client.post(f"/api/department_article_limits/{promoted['id']}/activate/")
+        archived_now = DepartmentArticleLimit.objects.get(pk=archived_source['id'])
+        self.assertEqual(archived_now.status, PlanItemStatus.ARCHIVE)
+        response = self.client.delete(f"/api/department_article_limits/{archived_source['id']}/")
+        self.assertEqual(response.status_code, 204)
 
     def test_overspend_does_not_block_activation(self):
         """Перерасход разрешён — только предупреждение на фронте, не блокировка (решение

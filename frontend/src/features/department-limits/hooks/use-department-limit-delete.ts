@@ -5,8 +5,8 @@ import { toast } from "sonner";
 import { rqClient } from "@/shared/api/instance";
 import { handleHttpError } from "@/shared/lib/helpers/handle-http-error";
 
-// Удаление разрешено бэкендом только для status=DRAFT (400 на остальных) —
-// в columns.tsx кнопка удаления скрыта для не-черновиков, см. CurrentStatus.md.
+// Удаление разрешено бэкендом для любого статуса (DRAFT/ACTIVE/ARCHIVE) —
+// см. CurrentStatus.md (2026-11-26); отдельная проверка статуса на фронте не нужна.
 export const useDepartmentLimitDelete = (invalidate: () => void) => {
   const { mutate } = rqClient.useMutation(
     "delete",

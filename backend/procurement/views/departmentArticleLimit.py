@@ -17,13 +17,24 @@ from procurement.services import department_limits as dl_service
 class DepartmentArticleLimitViewSet(viewsets.ModelViewSet):
     """Страница «Распределение лимитов» (решение пользователя 2026-11-23) — прямой CRUD,
     без согласования через ChangeRequest: доступ и так ограничен ролью (финансист/админ,
-    см. get_permissions()). Черновик (status=DRAFT) редактируется и удаляется свободно;
-    ACTIVE/ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.
-    validate()). Перевод в ACTIVE — через action `activate`, не через PATCH статуса.
+    см. get_permissions()). Перевод DRAFT -> ACTIVE — через action `activate`, не PATCH.
+
+    Правка PATCH/PUT (решение пользователя 2026-11-26, задача «корректировка действующего
+    лимита»):
+    - DRAFT — редактируется целиком, как и раньше;
+    - ACTIVE — любое поле редактируется напрямую, КРОМЕ суммы: смена `amount` (одна или
+      вместе с другими полями) версионируется — старая запись архивируется, в ответе
+      возвращается НОВАЯ ACTIVE-запись с другим `id` (см. update()/dl_service.edit_active_limit);
+      чистая правка статьи/параграфа/подразделения/подстатьи/примечания без смены суммы
+      правит запись НА МЕСТЕ, тот же `id`;
+    - ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.validate()).
+
+    DELETE — разрешён на ЛЮБОМ статусе (решение пользователя 2026-11-26: финансист/админ
+    могут удалять записи о лимитах) — доступ и так ограничен ролью на уровне всего viewset.
 
     GET  /department_article_limits/                     — список (фильтры ниже)
     POST /department_article_limits/                      — создать черновик
-    PATCH/DELETE .../{id}/                                 — править/удалить черновик
+    PATCH/DELETE .../{id}/                                 — править/удалить запись
     POST .../{id}/activate/                                — DRAFT -> ACTIVE, архивирует
                                                               прежнюю версию этой же связки
     GET  .../article_availability/?functional_class=&economic_class=&year=&exclude=<id>
@@ -60,13 +71,28 @@ class DepartmentArticleLimitViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         return Response(serializer.data)
 
-    def destroy(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
+        """DRAFT — обычная правка сериализатором. ACTIVE — делегируется
+        `dl_service.edit_active_limit()` (решение пользователя 2026-11-26): если сумма не
+        меняется, правит запись НА МЕСТЕ (включая статью/параграф/подразделение/подстатью —
+        исправление ошибочно выбранного поля); если сумма меняется (одна или вместе с
+        другими полями) — архивирует старую запись и возвращает НОВУЮ ACTIVE-запись (другой
+        `id`!) — версия лимита со старой суммой остаётся в истории. ARCHIVE — как и раньше,
+        только `note`/`deactivated_at` (отклоняется сериализатором)."""
+        partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        if instance.status != PlanItemStatus.DRAFT:
-            return Response(
-                {'detail': 'Удалить можно только черновик.'}, status=status.HTTP_400_BAD_REQUEST,
-            )
-        return super().destroy(request, *args, **kwargs)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+
+        if instance.status == PlanItemStatus.ACTIVE:
+            try:
+                result = dl_service.edit_active_limit(instance, serializer.validated_data)
+            except DjangoValidationError as exc:
+                return Response({'detail': _error_message(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(self.get_serializer(result).data)
+
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
     @extend_schema(request=None, responses=DepartmentArticleLimitSerializer)
     @action(detail=True, methods=['post'])
