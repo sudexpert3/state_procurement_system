@@ -66,6 +66,34 @@ services:
     depends_on:
       - db
 
+  # Ежедневная резервная копия БД по расписанию (cron внутри контейнера, см.
+  # docker/backup/) — решение пользователя 2026-11-26: "ежедневно в 20:00",
+  # хранить не более 30 дней, старше — удалять автоматически (docker/backup/backup.sh).
+  # В тех же профилях, что db/adminer — какой бы профиль ни был поднят, это
+  # ВСЕГДА один и тот же физический контейнер `db` (один container_name, один
+  # volume postgres_data), поэтому бэкап должен быть доступен везде, а не
+  # только в prod. Пишет в ту же папку, что уже используется для ручных
+  # дампов (`backend/db/backups`, см. файлы before_*.dump там) — продолжение
+  # уже сложившейся привычки, не новое место.
+  backup:
+    build: ./docker/backup
+    container_name: backup_sps
+    profiles: ["prod", "backend-dev", "frontend-dev", "db-only"]
+    networks:
+      - sps_app_net
+    restart: always
+    environment:
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - BACKUP_RETENTION_DAYS=30
+    volumes:
+      - ./backend/db/backups:/backups
+    depends_on:
+      - db
+
   backend:
     build: ./backend
     container_name: backend_sps

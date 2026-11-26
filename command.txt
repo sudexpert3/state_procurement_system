@@ -8,6 +8,9 @@ python manage.py migrate
     2.2 Создайте новую, пустую базу данных командой: psql -U sps -d postgres -c "CREATE DATABASE sps_db ENCODING 'UTF8';"
     2.3. Восстанавливаем командой: psql -U sps -d sps_db -f /var/lib/postgresql/backups/sps_db_backup.sql
 
+Восстановление из копии (на случай аварии):
+docker exec -i db pg_restore -U sps -d sps_db --clean --if-exists /var/lib/postgresql/backups/sps_db_backup_<дата_время>.dump
+
 
 Как запускать:
 docker compose --profile prod up -d --build          # db+adminer+backend+frontend+nginx, вход на :80

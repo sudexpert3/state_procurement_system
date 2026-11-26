@@ -1,0 +1,4 @@
+# Ежедневно в 20:00 (локальное время контейнера — см. TZ в Dockerfile).
+# Вывод скрипта перенаправлен в stdout/stderr PID 1 контейнера (/proc/1/fd/*),
+# чтобы `docker logs backup_sps` показывал результат без отдельного volume под лог.
+0 20 * * * /app/backup.sh >> /proc/1/fd/1 2>> /proc/1/fd/2
