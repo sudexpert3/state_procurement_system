@@ -27,7 +27,11 @@ import {
 import { usePaymentsDelete } from "./hooks/use-payments-delete";
 import { createColumns } from "./columns";
 import { PaymentsMoneySummary } from "./payments-money-summary";
-import { PaymentsToolbar, type QuarterFilterValue } from "./payments-toolbar";
+import {
+  type ClassFilterValue,
+  PaymentsToolbar,
+  type QuarterFilterValue,
+} from "./payments-toolbar";
 
 // Сумма под таблицей считается по ПОЛНОМУ списку, подходящему под текущие
 // фильтры, не по текущей странице — тот же приём, что и на "Реестре закупок"
@@ -42,6 +46,13 @@ const PaymentsPage = () => {
   const [quarterFilter, setQuarterFilter] = useState<QuarterFilterValue>("all");
   const [yearFilter, setYearFilter] = useState<number | "all">("all");
   const [kindFilter, setKindFilter] = useState<number | "all">("all");
+  const [economicClassFilter, setEconomicClassFilter] =
+    useState<ClassFilterValue>("all");
+  const [functionalClassFilter, setFunctionalClassFilter] =
+    useState<ClassFilterValue>("all");
+  const [internalEconomicClassFilter, setInternalEconomicClassFilter] =
+    useState<ClassFilterValue>("all");
+  const [departmentsFilter, setDepartmentsFilter] = useState<number[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<TreasuryPayment | null>(null);
   // Клик по строке открывает ту же карточку в режиме просмотра (readOnly) —
@@ -74,6 +85,15 @@ const PaymentsPage = () => {
           quarter: quarterFilter !== "all" ? quarterFilter : undefined,
           payment_year: yearFilter !== "all" ? yearFilter : undefined,
           kind: kindFilter !== "all" ? kindFilter : undefined,
+          economic_class:
+            economicClassFilter !== "all" ? economicClassFilter : undefined,
+          functional_class:
+            functionalClassFilter !== "all" ? functionalClassFilter : undefined,
+          internal_economic_class:
+            internalEconomicClassFilter !== "all"
+              ? internalEconomicClassFilter
+              : undefined,
+          departments: departmentsFilter.length ? departmentsFilter : undefined,
           ...dateRangeParams,
         },
       },
@@ -96,6 +116,15 @@ const PaymentsPage = () => {
           quarter: quarterFilter !== "all" ? quarterFilter : undefined,
           payment_year: yearFilter !== "all" ? yearFilter : undefined,
           kind: kindFilter !== "all" ? kindFilter : undefined,
+          economic_class:
+            economicClassFilter !== "all" ? economicClassFilter : undefined,
+          functional_class:
+            functionalClassFilter !== "all" ? functionalClassFilter : undefined,
+          internal_economic_class:
+            internalEconomicClassFilter !== "all"
+              ? internalEconomicClassFilter
+              : undefined,
+          departments: departmentsFilter.length ? departmentsFilter : undefined,
           ...dateRangeParams,
         },
       },
@@ -169,6 +198,16 @@ const PaymentsPage = () => {
                 kindFilter={kindFilter}
                 onKindFilterChange={setKindFilter}
                 kindOptions={kindOfPaymentQuery.data ?? []}
+                economicClassFilter={economicClassFilter}
+                onEconomicClassFilterChange={setEconomicClassFilter}
+                functionalClassFilter={functionalClassFilter}
+                onFunctionalClassFilterChange={setFunctionalClassFilter}
+                internalEconomicClassFilter={internalEconomicClassFilter}
+                onInternalEconomicClassFilterChange={
+                  setInternalEconomicClassFilter
+                }
+                departmentsFilter={departmentsFilter}
+                onDepartmentsFilterChange={setDepartmentsFilter}
               />
             </div>
           )}

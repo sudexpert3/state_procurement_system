@@ -18,8 +18,13 @@ class TreasuryPaymentFilter(django_filters.FilterSet):
 
     class Meta:
         model = TreasuryPayment
+        # Запрос пользователя (2026-11-26): фильтры по статье ЭКР (economic_class), параграфу
+        # (functional_class) и внутреннему коду ЭКР (internal_economic_class) — страница
+        # «Платежи» (`departments` уже был, добавлены оставшиеся три по той же модели, точное
+        # совпадение по id через авто-генерируемый django-filter `ModelChoiceFilter`).
         fields = [
             'contract', 'payment_year', 'quarter', 'kind', 'departments',
+            'economic_class', 'functional_class', 'internal_economic_class',
             'payment_date_after', 'payment_date_before',
         ]
 

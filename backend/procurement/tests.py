@@ -764,6 +764,51 @@ class TreasuryPaymentSearchAndDateRangeFilterTestCase(TestCase):
         self.assertIn(self.p2, qs)
 
 
+class TreasuryPaymentCodeFilterTestCase(TestCase):
+    """Запрос пользователя (2026-11-26): на странице «Платежи» нужны фильтры по статье ЭКР
+    (`economic_class`), параграфу (`functional_class`) и внутреннему коду ЭКР
+    (`internal_economic_class`) — все три — прямые FK на `TreasuryPayment`, доводятся
+    авто-генерируемым `django_filters.FilterSet` (точное совпадение по id), по той же схеме,
+    что уже был фильтр `departments` (M2M)."""
+
+    def setUp(self):
+        from procurement.models import FunctionalCode, ExternalEconomicCode
+
+        kind = KindOfPayment.objects.create(name='Тестовый платёж (фильтр по кодам)')
+        self.func_a = FunctionalCode.objects.create(code_api='03 12 00 039', description='Параграф A')
+        self.func_b = FunctionalCode.objects.create(code_api='03 12 00 042', description='Параграф Б')
+        self.econ_a = ExternalEconomicCode.objects.create(code_api='1 10 10 99', description='Статья A')
+        self.econ_b = ExternalEconomicCode.objects.create(code_api='2 40 01 00', description='Статья Б')
+        self.iec_a = InternalEconomicClassifier.objects.create(code='1101008173', name='Внутр. код A')
+        self.iec_b = InternalEconomicClassifier.objects.create(code='1101008999', name='Внутр. код Б')
+
+        self.payment_a = TreasuryPayment.objects.create(
+            amount=Decimal('10.00'), kind=kind, payment_date='2026-01-15', program_class=None,
+            functional_class=self.func_a, economic_class=self.econ_a, internal_economic_class=self.iec_a,
+        )
+        self.payment_b = TreasuryPayment.objects.create(
+            amount=Decimal('20.00'), kind=kind, payment_date='2026-01-16', program_class=None,
+            functional_class=self.func_b, economic_class=self.econ_b, internal_economic_class=self.iec_b,
+        )
+
+    def _ids(self, **query):
+        response = self.client.get('/api/payments/', query)
+        self.assertEqual(response.status_code, 200)
+        return {row['id'] for row in response.json()['results']}
+
+    def test_filter_by_functional_class(self):
+        self.assertEqual(self._ids(functional_class=self.func_a.id), {self.payment_a.id})
+
+    def test_filter_by_economic_class(self):
+        self.assertEqual(self._ids(economic_class=self.econ_b.id), {self.payment_b.id})
+
+    def test_filter_by_internal_economic_class(self):
+        self.assertEqual(self._ids(internal_economic_class=self.iec_a.id), {self.payment_a.id})
+
+    def test_no_filter_returns_both(self):
+        self.assertEqual(self._ids(), {self.payment_a.id, self.payment_b.id})
+
+
 class TreasuryPaymentAutoRecomputeTestCase(TestCase):
     """Этап 4.3: автоматический пересчёт факта квартального плана договора по платёжкам."""
 
@@ -1064,6 +1109,81 @@ class ContractDepartmentFilterTestCase(TestCase):
         self.assertEqual(
             self._ids(), {self.contract_1.id, self.contract_2.id, self.contract_3.id},
         )
+
+
+class ContractCodeFilterTestCase(TestCase):
+    """Запрос пользователя (2026-11-26): на странице «Договоры» нужны фильтры по статье
+    ЭКР/параграфу/внутреннему коду ЭКР — та же цепочка `items__plan_share__budget_cost__...`,
+    что уже был `department` (через `items__plan_share__department`), см.
+    `ContractDepartmentFilterTestCase` выше."""
+
+    def _make_contract_item(self, contract, *, num_suffix, purchases_items_id,
+                             functional_class=None, economic_class=None, internal_economic_class=None):
+        purchases = Purchases.objects.create(year=2026)
+        plan_item = PlanItem.objects.create(plan_purchase=purchases, num=f'2026-TEST-CC-{num_suffix}', is_public=True)
+        PlanItemDetail.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, num=f'2026-TEST-CC-{num_suffix}',
+            title='Тест фильтра по кодам ЭКР', okrb='00.00.00.000', val_amount=Decimal('1'),
+        )
+        budget_cost = BudgetCosts.objects.create(
+            plan_item=plan_item, status=PlanItemStatus.ACTIVE, purchases_items_id=purchases_items_id,
+            cost=Decimal('100.00'), year=2026,
+            functional_class=functional_class, economic_class=economic_class,
+            internal_economic_class=internal_economic_class,
+        )
+        plan_share = PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=budget_cost, department=self.dept,
+            shared_amount=Decimal('1'), shared_cost=Decimal('100.00'),
+        )
+        return ContractItem.objects.create(
+            contract=contract, plan_share=plan_share, year=2026,
+            contract_amount=Decimal('1'), contract_cost=Decimal('100.00'),
+        )
+
+    def setUp(self):
+        from procurement.models import FunctionalCode, ExternalEconomicCode
+
+        supplier = Supplier.objects.create(name='Тестовый поставщик code-filter')
+        self.dept = Department.objects.create(full_name='Управление CC', short_name='CC')
+        self.func_a = FunctionalCode.objects.create(code_api='03 12 00 039', description='Параграф A')
+        self.func_b = FunctionalCode.objects.create(code_api='03 12 00 042', description='Параграф Б')
+        self.econ_a = ExternalEconomicCode.objects.create(code_api='1 10 10 99', description='Статья A')
+        self.econ_b = ExternalEconomicCode.objects.create(code_api='2 40 01 00', description='Статья Б')
+        self.iec_a = InternalEconomicClassifier.objects.create(code='1101008173', name='Внутр. код A')
+        self.iec_b = InternalEconomicClassifier.objects.create(code='1101008999', name='Внутр. код Б')
+
+        self.contract_a = Contract.objects.create(
+            number='T-CC-1', supplier=supplier, total_cost=Decimal('100.00'), planned_delivery_date='2026-12-31',
+        )
+        self._make_contract_item(
+            self.contract_a, num_suffix=1, purchases_items_id=401,
+            functional_class=self.func_a, economic_class=self.econ_a, internal_economic_class=self.iec_a,
+        )
+
+        self.contract_b = Contract.objects.create(
+            number='T-CC-2', supplier=supplier, total_cost=Decimal('200.00'), planned_delivery_date='2026-12-31',
+        )
+        self._make_contract_item(
+            self.contract_b, num_suffix=2, purchases_items_id=402,
+            functional_class=self.func_b, economic_class=self.econ_b, internal_economic_class=self.iec_b,
+        )
+
+    def _ids(self, **query):
+        response = self.client.get('/api/contracts/', query)
+        self.assertEqual(response.status_code, 200)
+        return {row['id'] for row in response.json()['results']}
+
+    def test_filter_by_functional_class(self):
+        self.assertEqual(self._ids(functional_class=self.func_a.id), {self.contract_a.id})
+
+    def test_filter_by_economic_class(self):
+        self.assertEqual(self._ids(economic_class=self.econ_b.id), {self.contract_b.id})
+
+    def test_filter_by_internal_economic_class(self):
+        self.assertEqual(self._ids(internal_economic_class=self.iec_a.id), {self.contract_a.id})
+
+    def test_no_filter_returns_all(self):
+        self.assertEqual(self._ids(), {self.contract_a.id, self.contract_b.id})
 
 
 class BackfillContractBuyerCommandTestCase(TestCase):
@@ -1875,9 +1995,21 @@ class PlanItemCodeFilterTestCase(TestCase):
     реестр года и фильтровать на клиенте."""
 
     def setUp(self):
+        from procurement.models import FunctionalCode, ExternalEconomicCode
+
         self.purchases = Purchases.objects.create(year=2026)
         self.iec_a = InternalEconomicClassifier.objects.create(code='1101008173', name='Статья А')
         self.iec_b = InternalEconomicClassifier.objects.create(code='1101008999', name='Статья Б')
+        # 2026-11-26: фильтр переведён на FK (functional_class__code_api/economic_class__
+        # code_api) — см. CurrentStatus.md, баг "2026-INTERNAL-..." — поэтому фикстуры
+        # теперь заполняют И денормализованную строку (как раньше), И связанный FK (как при
+        # реальной синхронизации через BudgetCostsImportSerializer.validate(), который
+        # всегда выставляет оба поля вместе — отдельный тест на случай "FK есть, строки
+        # нет" см. PlanItemCodeFilterMatchesInternalItemsTestCase).
+        self.func_039 = FunctionalCode.objects.create(code_api='03 12 00 039', description='Параграф 039')
+        self.func_042 = FunctionalCode.objects.create(code_api='03 12 00 042', description='Параграф 042')
+        self.econ_1 = ExternalEconomicCode.objects.create(code_api='1 10 10 99', description='Статья 1 10 10 99')
+        self.econ_2 = ExternalEconomicCode.objects.create(code_api='2 40 01 00', description='Статья 2 40 01 00')
 
         self.item_a = PlanItem.objects.create(plan_purchase=self.purchases, num='2026-TEST-F-1', is_public=True)
         PlanItemDetail.objects.create(
@@ -1887,7 +2019,8 @@ class PlanItemCodeFilterTestCase(TestCase):
         BudgetCosts.objects.create(
             plan_item=self.item_a, status=PlanItemStatus.ACTIVE, purchases_items_id=101,
             cost=Decimal('1000.00'), year=2026, functional_code='03 12 00 039',
-            economic_code='1 10 10 99', internal_economic_class=self.iec_a,
+            functional_class=self.func_039, economic_code='1 10 10 99', economic_class=self.econ_1,
+            internal_economic_class=self.iec_a,
         )
 
         self.item_b = PlanItem.objects.create(plan_purchase=self.purchases, num='2026-TEST-F-2', is_public=True)
@@ -1898,7 +2031,8 @@ class PlanItemCodeFilterTestCase(TestCase):
         BudgetCosts.objects.create(
             plan_item=self.item_b, status=PlanItemStatus.ACTIVE, purchases_items_id=102,
             cost=Decimal('2000.00'), year=2026, functional_code='03 12 00 042',
-            economic_code='2 40 01 00', internal_economic_class=self.iec_b,
+            functional_class=self.func_042, economic_code='2 40 01 00', economic_class=self.econ_2,
+            internal_economic_class=self.iec_b,
         )
 
         # Вторая, уже архивная строка бюджета позиции A с ДРУГИМ кодом — не должна попадать
@@ -1906,7 +2040,8 @@ class PlanItemCodeFilterTestCase(TestCase):
         BudgetCosts.objects.create(
             plan_item=self.item_a, status=PlanItemStatus.ARCHIVE, purchases_items_id=101,
             cost=Decimal('900.00'), year=2025, functional_code='03 12 00 042',
-            economic_code='2 40 01 00', internal_economic_class=self.iec_b,
+            functional_class=self.func_042, economic_code='2 40 01 00', economic_class=self.econ_2,
+            internal_economic_class=self.iec_b,
         )
 
     def _ids(self, **query):
@@ -1935,6 +2070,146 @@ class PlanItemCodeFilterTestCase(TestCase):
     def test_combined_filters_do_not_duplicate_rows(self):
         ids = self._ids(functional_code='03 12 00 039', economic_code='1 10 10 99')
         self.assertEqual(ids, {self.item_a.id})
+
+
+class PlanItemInternalBudgetCostDisplayAndFilterTestCase(TestCase):
+    """Баг пользователя (2026-11-26): позиции вида "2026-INTERNAL-00001" (строки реестра,
+    созданные `import_reestr26.py::create_budget_cost_for_item()`, минуя синхронизацию с
+    goszakupki.by) показывали прочерк в колонках "Функциональный код"/"Экономический код"
+    реестра закупок, хотя на карточке позиции (`/plan-items/<id>`) те же данные были видны.
+    Причина — такие строки `BudgetCosts` заполняют каноническую FK (`functional_class`/
+    `economic_class`), но НЕ денормализованную строку "как с портала" (`functional_code`/
+    `economic_code` — её заполняет только `BudgetCostsImportSerializer`, см. docstring
+    `BudgetCostsForShortItemSerializer`). Этот тест воспроизводит именно такую строку (FK
+    есть, строка — NULL) и проверяет и отображение, и фильтр по коду."""
+
+    def setUp(self):
+        from procurement.models import FunctionalCode, ExternalEconomicCode
+
+        self.purchases = Purchases.objects.create(year=2026)
+        self.func = FunctionalCode.objects.create(code_api='03 12 00 039', description='Параграф 039')
+        self.econ = ExternalEconomicCode.objects.create(code_api='1 10 10 99', description='Статья 1 10 10 99')
+
+        self.item = PlanItem.objects.create(plan_purchase=self.purchases, num='2026-INTERNAL-00001', is_public=False)
+        PlanItemDetail.objects.create(
+            plan_item=self.item, status=PlanItemStatus.ACTIVE, num='2026-INTERNAL-00001',
+            title='Внутренняя позиция', okrb='00.00.00.000', val_amount=Decimal('1'),
+        )
+        # Ключевая деталь воспроизведения: functional_code/economic_code (строки) — NOT SET
+        # (остаются NULL по умолчанию модели), только FK.
+        self.budget_cost = BudgetCosts.objects.create(
+            plan_item=self.item, status=PlanItemStatus.ACTIVE, purchases_items_id=0,
+            cost=Decimal('138000.00'), year=2026,
+            functional_class=self.func, economic_class=self.econ,
+        )
+
+    def test_registry_list_shows_codes_via_fk_fallback(self):
+        response = self.client.get('/api/plan_items/', {'purchase': self.purchases.id})
+        self.assertEqual(response.status_code, 200)
+        row = next(r for r in response.json()['results'] if r['id'] == self.item.id)
+        self.assertEqual(len(row['economic_details']), 1)
+        detail = row['economic_details'][0]
+        self.assertEqual(detail['functional_code'], '03 12 00 039')
+        self.assertEqual(detail['economic_code'], '1 10 10 99')
+
+    def test_filter_by_functional_code_matches_fk_only_record(self):
+        response = self.client.get(
+            '/api/plan_items/', {'purchase': self.purchases.id, 'functional_code': '03 12 00 039'},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual({r['id'] for r in response.json()['results']}, {self.item.id})
+
+    def test_filter_by_economic_code_matches_fk_only_record(self):
+        response = self.client.get(
+            '/api/plan_items/', {'purchase': self.purchases.id, 'economic_code': '1 10 10 99'},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual({r['id'] for r in response.json()['results']}, {self.item.id})
+
+
+class PlanItemPlanSharesUnsetFilterTestCase(TestCase):
+    """Запрос пользователя (2026-11-26): фильтр реестра закупок "Сведения о финансировании
+    подразделений не добавлены" — позиции, у которых есть активное финансирование
+    (`BudgetCosts`), но ни у одной его строки нет ни одной активной `PlanShare`."""
+
+    def setUp(self):
+        self.purchases = Purchases.objects.create(year=2026)
+        self.dept = Department.objects.create(full_name='Управление 1', short_name='У1')
+
+        # Позиция A: финансирование есть, распределения по подразделениям НЕТ.
+        self.item_a = PlanItem.objects.create(plan_purchase=self.purchases, num='2026-TEST-PS-1', is_public=True)
+        PlanItemDetail.objects.create(
+            plan_item=self.item_a, status=PlanItemStatus.ACTIVE, num='2026-TEST-PS-1',
+            title='Позиция A', okrb='00.00.00.000', val_amount=Decimal('1'),
+        )
+        BudgetCosts.objects.create(
+            plan_item=self.item_a, status=PlanItemStatus.ACTIVE, purchases_items_id=301,
+            cost=Decimal('100.00'), year=2026,
+        )
+
+        # Позиция B: финансирование есть И распределено (хотя бы одна активная PlanShare).
+        self.item_b = PlanItem.objects.create(plan_purchase=self.purchases, num='2026-TEST-PS-2', is_public=True)
+        PlanItemDetail.objects.create(
+            plan_item=self.item_b, status=PlanItemStatus.ACTIVE, num='2026-TEST-PS-2',
+            title='Позиция Б', okrb='00.00.00.000', val_amount=Decimal('1'),
+        )
+        bc_b = BudgetCosts.objects.create(
+            plan_item=self.item_b, status=PlanItemStatus.ACTIVE, purchases_items_id=302,
+            cost=Decimal('200.00'), year=2026,
+        )
+        PlanShare.objects.create(
+            status=PlanItemStatus.ACTIVE, budget_cost=bc_b, department=self.dept,
+            shared_amount=Decimal('1'), shared_cost=Decimal('200.00'),
+        )
+
+        # Позиция C: у позиции ВООБЩЕ нет активного финансирования — не должна считаться
+        # "распределение не добавлено" (нет самих "Сведения о финансировании", о которых
+        # идёт речь в запросе пользователя).
+        self.item_c = PlanItem.objects.create(plan_purchase=self.purchases, num='2026-TEST-PS-3', is_public=True)
+        PlanItemDetail.objects.create(
+            plan_item=self.item_c, status=PlanItemStatus.ACTIVE, num='2026-TEST-PS-3',
+            title='Позиция В', okrb='00.00.00.000', val_amount=Decimal('1'),
+        )
+
+        # Позиция D: ЕСТЬ активное финансирование, но PlanShare у него только АРХИВНАЯ —
+        # должна считаться "не распределено" (архивная доля — не действующее распределение).
+        self.item_d = PlanItem.objects.create(plan_purchase=self.purchases, num='2026-TEST-PS-4', is_public=True)
+        PlanItemDetail.objects.create(
+            plan_item=self.item_d, status=PlanItemStatus.ACTIVE, num='2026-TEST-PS-4',
+            title='Позиция Г', okrb='00.00.00.000', val_amount=Decimal('1'),
+        )
+        bc_d = BudgetCosts.objects.create(
+            plan_item=self.item_d, status=PlanItemStatus.ACTIVE, purchases_items_id=304,
+            cost=Decimal('400.00'), year=2026,
+        )
+        PlanShare.objects.create(
+            status=PlanItemStatus.ARCHIVE, budget_cost=bc_d, department=self.dept,
+            shared_amount=Decimal('1'), shared_cost=Decimal('400.00'),
+        )
+
+    def _ids(self, **query):
+        query.setdefault('purchase', self.purchases.id)
+        response = self.client.get('/api/plan_items/', query)
+        self.assertEqual(response.status_code, 200)
+        return {row['id'] for row in response.json()['results']}
+
+    def test_plan_shares_unset_filters_to_items_without_any_active_share(self):
+        self.assertEqual(self._ids(plan_shares_unset='true'), {self.item_a.id, self.item_d.id})
+
+    def test_plan_shares_unset_excludes_item_with_active_share(self):
+        ids = self._ids(plan_shares_unset='true')
+        self.assertNotIn(self.item_b.id, ids)
+
+    def test_plan_shares_unset_excludes_item_without_any_financing_at_all(self):
+        # У C вообще нет BudgetCosts — не то же самое, что "финансирование есть, но без
+        # распределения по подразделениям".
+        ids = self._ids(plan_shares_unset='true')
+        self.assertNotIn(self.item_c.id, ids)
+
+    def test_without_filter_returns_all_four(self):
+        self.assertEqual(
+            self._ids(), {self.item_a.id, self.item_b.id, self.item_c.id, self.item_d.id},
+        )
 
 
 class PlanItemBuyerDepartmentFilterTestCase(TestCase):

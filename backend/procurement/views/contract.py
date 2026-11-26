@@ -46,10 +46,29 @@ class ContractFilter(django_filters.FilterSet):
         field_name='items__plan_share__department',
         label='ID подразделения (через спецификацию договора)',
     )
+    # Запрос пользователя (2026-11-26): фильтры по статье ЭКР/параграфу/внутреннему коду
+    # ЭКР — та же цепочка, что и у department выше (у Contract нет своих полей
+    # классификации, они на BudgetCosts строки плана через спецификацию договора).
+    # "Хотя бы одна строка спецификации подходит" — та же семантика, что у department.
+    economic_class = django_filters.NumberFilter(
+        field_name='items__plan_share__budget_cost__economic_class',
+        label='ID статьи ЭКР (через спецификацию договора)',
+    )
+    functional_class = django_filters.NumberFilter(
+        field_name='items__plan_share__budget_cost__functional_class',
+        label='ID параграфа (через спецификацию договора)',
+    )
+    internal_economic_class = django_filters.NumberFilter(
+        field_name='items__plan_share__budget_cost__internal_economic_class',
+        label='ID внутреннего кода ЭКР (через спецификацию договора)',
+    )
 
     class Meta:
         model = Contract
-        fields = ['supplier', 'plan_item', 'has_payments', 'expiring_within_days', 'department']
+        fields = [
+            'supplier', 'plan_item', 'has_payments', 'expiring_within_days', 'department',
+            'economic_class', 'functional_class', 'internal_economic_class',
+        ]
 
     def filter_has_payments(self, queryset, name, value):
         if value:

@@ -700,13 +700,24 @@ export interface paths {
     /**
      * @description Страница «Распределение лимитов» (решение пользователя 2026-11-23) — прямой CRUD,
      *     без согласования через ChangeRequest: доступ и так ограничен ролью (финансист/админ,
-     *     см. get_permissions()). Черновик (status=DRAFT) редактируется и удаляется свободно;
-     *     ACTIVE/ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.
-     *     validate()). Перевод в ACTIVE — через action `activate`, не через PATCH статуса.
+     *     см. get_permissions()). Перевод DRAFT -> ACTIVE — через action `activate`, не PATCH.
+     *
+     *     Правка PATCH/PUT (решение пользователя 2026-11-26, задача «корректировка действующего
+     *     лимита»):
+     *     - DRAFT — редактируется целиком, как и раньше;
+     *     - ACTIVE — любое поле редактируется напрямую, КРОМЕ суммы: смена `amount` (одна или
+     *       вместе с другими полями) версионируется — старая запись архивируется, в ответе
+     *       возвращается НОВАЯ ACTIVE-запись с другим `id` (см. update()/dl_service.edit_active_limit);
+     *       чистая правка статьи/параграфа/подразделения/подстатьи/примечания без смены суммы
+     *       правит запись НА МЕСТЕ, тот же `id`;
+     *     - ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.validate()).
+     *
+     *     DELETE — разрешён на ЛЮБОМ статусе (решение пользователя 2026-11-26: финансист/админ
+     *     могут удалять записи о лимитах) — доступ и так ограничен ролью на уровне всего viewset.
      *
      *     GET  /department_article_limits/                     — список (фильтры ниже)
      *     POST /department_article_limits/                      — создать черновик
-     *     PATCH/DELETE .../{id}/                                 — править/удалить черновик
+     *     PATCH/DELETE .../{id}/                                 — править/удалить запись
      *     POST .../{id}/activate/                                — DRAFT -> ACTIVE, архивирует
      *                                                               прежнюю версию этой же связки
      *     GET  .../article_availability/?functional_class=&economic_class=&year=&exclude=<id>
@@ -730,13 +741,24 @@ export interface paths {
     /**
      * @description Страница «Распределение лимитов» (решение пользователя 2026-11-23) — прямой CRUD,
      *     без согласования через ChangeRequest: доступ и так ограничен ролью (финансист/админ,
-     *     см. get_permissions()). Черновик (status=DRAFT) редактируется и удаляется свободно;
-     *     ACTIVE/ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.
-     *     validate()). Перевод в ACTIVE — через action `activate`, не через PATCH статуса.
+     *     см. get_permissions()). Перевод DRAFT -> ACTIVE — через action `activate`, не PATCH.
+     *
+     *     Правка PATCH/PUT (решение пользователя 2026-11-26, задача «корректировка действующего
+     *     лимита»):
+     *     - DRAFT — редактируется целиком, как и раньше;
+     *     - ACTIVE — любое поле редактируется напрямую, КРОМЕ суммы: смена `amount` (одна или
+     *       вместе с другими полями) версионируется — старая запись архивируется, в ответе
+     *       возвращается НОВАЯ ACTIVE-запись с другим `id` (см. update()/dl_service.edit_active_limit);
+     *       чистая правка статьи/параграфа/подразделения/подстатьи/примечания без смены суммы
+     *       правит запись НА МЕСТЕ, тот же `id`;
+     *     - ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.validate()).
+     *
+     *     DELETE — разрешён на ЛЮБОМ статусе (решение пользователя 2026-11-26: финансист/админ
+     *     могут удалять записи о лимитах) — доступ и так ограничен ролью на уровне всего viewset.
      *
      *     GET  /department_article_limits/                     — список (фильтры ниже)
      *     POST /department_article_limits/                      — создать черновик
-     *     PATCH/DELETE .../{id}/                                 — править/удалить черновик
+     *     PATCH/DELETE .../{id}/                                 — править/удалить запись
      *     POST .../{id}/activate/                                — DRAFT -> ACTIVE, архивирует
      *                                                               прежнюю версию этой же связки
      *     GET  .../article_availability/?functional_class=&economic_class=&year=&exclude=<id>
@@ -745,33 +767,37 @@ export interface paths {
      */
     get: operations["department_article_limits_retrieve"];
     /**
-     * @description Страница «Распределение лимитов» (решение пользователя 2026-11-23) — прямой CRUD,
-     *     без согласования через ChangeRequest: доступ и так ограничен ролью (финансист/админ,
-     *     см. get_permissions()). Черновик (status=DRAFT) редактируется и удаляется свободно;
-     *     ACTIVE/ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.
-     *     validate()). Перевод в ACTIVE — через action `activate`, не через PATCH статуса.
-     *
-     *     GET  /department_article_limits/                     — список (фильтры ниже)
-     *     POST /department_article_limits/                      — создать черновик
-     *     PATCH/DELETE .../{id}/                                 — править/удалить черновик
-     *     POST .../{id}/activate/                                — DRAFT -> ACTIVE, архивирует
-     *                                                               прежнюю версию этой же связки
-     *     GET  .../article_availability/?functional_class=&economic_class=&year=&exclude=<id>
-     *                                                             — для живого предупреждения в модалке
-     *     GET  .../overspend_summary/?year=                     — для баннера перерасхода на странице
+     * @description DRAFT — обычная правка сериализатором. ACTIVE — делегируется
+     *     `dl_service.edit_active_limit()` (решение пользователя 2026-11-26): если сумма не
+     *     меняется, правит запись НА МЕСТЕ (включая статью/параграф/подразделение/подстатью —
+     *     исправление ошибочно выбранного поля); если сумма меняется (одна или вместе с
+     *     другими полями) — архивирует старую запись и возвращает НОВУЮ ACTIVE-запись (другой
+     *     `id`!) — версия лимита со старой суммой остаётся в истории. ARCHIVE — как и раньше,
+     *     только `note`/`deactivated_at` (отклоняется сериализатором).
      */
     put: operations["department_article_limits_update"];
     post?: never;
     /**
      * @description Страница «Распределение лимитов» (решение пользователя 2026-11-23) — прямой CRUD,
      *     без согласования через ChangeRequest: доступ и так ограничен ролью (финансист/админ,
-     *     см. get_permissions()). Черновик (status=DRAFT) редактируется и удаляется свободно;
-     *     ACTIVE/ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.
-     *     validate()). Перевод в ACTIVE — через action `activate`, не через PATCH статуса.
+     *     см. get_permissions()). Перевод DRAFT -> ACTIVE — через action `activate`, не PATCH.
+     *
+     *     Правка PATCH/PUT (решение пользователя 2026-11-26, задача «корректировка действующего
+     *     лимита»):
+     *     - DRAFT — редактируется целиком, как и раньше;
+     *     - ACTIVE — любое поле редактируется напрямую, КРОМЕ суммы: смена `amount` (одна или
+     *       вместе с другими полями) версионируется — старая запись архивируется, в ответе
+     *       возвращается НОВАЯ ACTIVE-запись с другим `id` (см. update()/dl_service.edit_active_limit);
+     *       чистая правка статьи/параграфа/подразделения/подстатьи/примечания без смены суммы
+     *       правит запись НА МЕСТЕ, тот же `id`;
+     *     - ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.validate()).
+     *
+     *     DELETE — разрешён на ЛЮБОМ статусе (решение пользователя 2026-11-26: финансист/админ
+     *     могут удалять записи о лимитах) — доступ и так ограничен ролью на уровне всего viewset.
      *
      *     GET  /department_article_limits/                     — список (фильтры ниже)
      *     POST /department_article_limits/                      — создать черновик
-     *     PATCH/DELETE .../{id}/                                 — править/удалить черновик
+     *     PATCH/DELETE .../{id}/                                 — править/удалить запись
      *     POST .../{id}/activate/                                — DRAFT -> ACTIVE, архивирует
      *                                                               прежнюю версию этой же связки
      *     GET  .../article_availability/?functional_class=&economic_class=&year=&exclude=<id>
@@ -784,13 +810,24 @@ export interface paths {
     /**
      * @description Страница «Распределение лимитов» (решение пользователя 2026-11-23) — прямой CRUD,
      *     без согласования через ChangeRequest: доступ и так ограничен ролью (финансист/админ,
-     *     см. get_permissions()). Черновик (status=DRAFT) редактируется и удаляется свободно;
-     *     ACTIVE/ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.
-     *     validate()). Перевод в ACTIVE — через action `activate`, не через PATCH статуса.
+     *     см. get_permissions()). Перевод DRAFT -> ACTIVE — через action `activate`, не PATCH.
+     *
+     *     Правка PATCH/PUT (решение пользователя 2026-11-26, задача «корректировка действующего
+     *     лимита»):
+     *     - DRAFT — редактируется целиком, как и раньше;
+     *     - ACTIVE — любое поле редактируется напрямую, КРОМЕ суммы: смена `amount` (одна или
+     *       вместе с другими полями) версионируется — старая запись архивируется, в ответе
+     *       возвращается НОВАЯ ACTIVE-запись с другим `id` (см. update()/dl_service.edit_active_limit);
+     *       чистая правка статьи/параграфа/подразделения/подстатьи/примечания без смены суммы
+     *       правит запись НА МЕСТЕ, тот же `id`;
+     *     - ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.validate()).
+     *
+     *     DELETE — разрешён на ЛЮБОМ статусе (решение пользователя 2026-11-26: финансист/админ
+     *     могут удалять записи о лимитах) — доступ и так ограничен ролью на уровне всего viewset.
      *
      *     GET  /department_article_limits/                     — список (фильтры ниже)
      *     POST /department_article_limits/                      — создать черновик
-     *     PATCH/DELETE .../{id}/                                 — править/удалить черновик
+     *     PATCH/DELETE .../{id}/                                 — править/удалить запись
      *     POST .../{id}/activate/                                — DRAFT -> ACTIVE, архивирует
      *                                                               прежнюю версию этой же связки
      *     GET  .../article_availability/?functional_class=&economic_class=&year=&exclude=<id>
@@ -812,13 +849,24 @@ export interface paths {
     /**
      * @description Страница «Распределение лимитов» (решение пользователя 2026-11-23) — прямой CRUD,
      *     без согласования через ChangeRequest: доступ и так ограничен ролью (финансист/админ,
-     *     см. get_permissions()). Черновик (status=DRAFT) редактируется и удаляется свободно;
-     *     ACTIVE/ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.
-     *     validate()). Перевод в ACTIVE — через action `activate`, не через PATCH статуса.
+     *     см. get_permissions()). Перевод DRAFT -> ACTIVE — через action `activate`, не PATCH.
+     *
+     *     Правка PATCH/PUT (решение пользователя 2026-11-26, задача «корректировка действующего
+     *     лимита»):
+     *     - DRAFT — редактируется целиком, как и раньше;
+     *     - ACTIVE — любое поле редактируется напрямую, КРОМЕ суммы: смена `amount` (одна или
+     *       вместе с другими полями) версионируется — старая запись архивируется, в ответе
+     *       возвращается НОВАЯ ACTIVE-запись с другим `id` (см. update()/dl_service.edit_active_limit);
+     *       чистая правка статьи/параграфа/подразделения/подстатьи/примечания без смены суммы
+     *       правит запись НА МЕСТЕ, тот же `id`;
+     *     - ARCHIVE — только `note`/`deactivated_at` (см. DepartmentArticleLimitSerializer.validate()).
+     *
+     *     DELETE — разрешён на ЛЮБОМ статусе (решение пользователя 2026-11-26: финансист/админ
+     *     могут удалять записи о лимитах) — доступ и так ограничен ролью на уровне всего viewset.
      *
      *     GET  /department_article_limits/                     — список (фильтры ниже)
      *     POST /department_article_limits/                      — создать черновик
-     *     PATCH/DELETE .../{id}/                                 — править/удалить черновик
+     *     PATCH/DELETE .../{id}/                                 — править/удалить запись
      *     POST .../{id}/activate/                                — DRAFT -> ACTIVE, архивирует
      *                                                               прежнюю версию этой же связки
      *     GET  .../article_availability/?functional_class=&economic_class=&year=&exclude=<id>
@@ -1876,10 +1924,8 @@ export interface components {
       year?: number;
       /** Format: decimal */
       readonly full_cost: string;
-      /** Функциональный код goszakupki.by */
-      functional_code?: string | null;
-      /** Экономический код goszakupki.by */
-      economic_code?: string | null;
+      readonly functional_code: string | null;
+      readonly economic_code: string | null;
       readonly internal_economic_class_detail: components["schemas"]["InternalEconomicClassifier"];
     };
     /**
@@ -2201,17 +2247,16 @@ export interface components {
     };
     /**
      * @description CRUD строки распределения лимита по держателю (Этап «Распределение лимитов»,
-     *     2026-11-23) — прямое редактирование финансистом/админом, без согласования. Черновик
-     *     (status=DRAFT) редактируется целиком; ACTIVE/ARCHIVE — только `note`/`deactivated_at`
-     *     (см. ALWAYS_EDITABLE_FIELDS/validate()). Перевод DRAFT -> ACTIVE — отдельный action
-     *     `activate` (см. views/departmentArticleLimit.py), не через PATCH статуса.
+     *     2026-11-23, доработано 2026-11-26) — прямое редактирование финансистом/админом, без
+     *     согласования. DRAFT — редактируется целиком; ACTIVE — любое поле, кроме суммы (смену
+     *     `amount` версионирует `dl_service.edit_active_limit()`, вызывается из view.update(), не
+     *     отсюда); ARCHIVE — только `note`/`deactivated_at` (см. ALWAYS_EDITABLE_FIELDS/validate()).
+     *     Перевод DRAFT -> ACTIVE — отдельный action `activate` (см. views/departmentArticleLimit.py),
+     *     не через PATCH статуса.
      */
     DepartmentArticleLimit: {
       readonly id: number;
-      /**
-       * Статус
-       * @default DRAFT
-       */
+      /** Статус */
       readonly status: components["schemas"]["DepartmentArticleLimitStatusEnum"];
       readonly status_display: string;
       /** Функциональная классификация (раздел/параграф) */
@@ -2753,18 +2798,17 @@ export interface components {
     };
     /**
      * @description CRUD строки распределения лимита по держателю (Этап «Распределение лимитов»,
-     *     2026-11-23) — прямое редактирование финансистом/админом, без согласования. Черновик
-     *     (status=DRAFT) редактируется целиком; ACTIVE/ARCHIVE — только `note`/`deactivated_at`
-     *     (см. ALWAYS_EDITABLE_FIELDS/validate()). Перевод DRAFT -> ACTIVE — отдельный action
-     *     `activate` (см. views/departmentArticleLimit.py), не через PATCH статуса.
+     *     2026-11-23, доработано 2026-11-26) — прямое редактирование финансистом/админом, без
+     *     согласования. DRAFT — редактируется целиком; ACTIVE — любое поле, кроме суммы (смену
+     *     `amount` версионирует `dl_service.edit_active_limit()`, вызывается из view.update(), не
+     *     отсюда); ARCHIVE — только `note`/`deactivated_at` (см. ALWAYS_EDITABLE_FIELDS/validate()).
+     *     Перевод DRAFT -> ACTIVE — отдельный action `activate` (см. views/departmentArticleLimit.py),
+     *     не через PATCH статуса.
      */
     PatchedDepartmentArticleLimit: {
       readonly id?: number;
-      /**
-       * Статус
-       * @default DRAFT
-       */
-      readonly status: components["schemas"]["DepartmentArticleLimitStatusEnum"];
+      /** Статус */
+      readonly status?: components["schemas"]["DepartmentArticleLimitStatusEnum"];
       readonly status_display?: string;
       /** Функциональная классификация (раздел/параграф) */
       functional_class?: number;
@@ -4842,10 +4886,16 @@ export interface operations {
       query?: {
         /** @description ID подразделения (через спецификацию договора) */
         department?: number;
+        /** @description ID статьи ЭКР (через спецификацию договора) */
+        economic_class?: number;
         /** @description Срок исполнения истекает в течение N дней (включая сегодня) */
         expiring_within_days?: number;
+        /** @description ID параграфа (через спецификацию договора) */
+        functional_class?: number;
         /** @description Есть хотя бы одна оплата */
         has_payments?: boolean;
+        /** @description ID внутреннего кода ЭКР (через спецификацию договора) */
+        internal_economic_class?: number;
         /** @description Number of results to return per page. */
         limit?: number;
         /** @description The initial index from which to return the results. */
@@ -6210,6 +6260,9 @@ export interface operations {
       query?: {
         contract?: number;
         departments?: number[];
+        economic_class?: number;
+        functional_class?: number;
+        internal_economic_class?: number;
         kind?: number;
         /** @description Number of results to return per page. */
         limit?: number;

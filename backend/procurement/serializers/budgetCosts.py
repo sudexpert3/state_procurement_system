@@ -313,10 +313,34 @@ class BudgetCostsForItemSerializer(serializers.ModelSerializer):
 class BudgetCostsForShortItemSerializer(serializers.ModelSerializer):
     full_cost = serializers.SerializerMethodField()
     internal_economic_class_detail = InternalEconomicClassifierSerializer(source='internal_economic_class', read_only=True)
+    # 2026-11-26: баг, найденный пользователем на позициях вида "2026-INTERNAL-00001"
+    # (строки реестра, созданные через import_reestr26.py::create_budget_cost_for_item(),
+    # а не через синхронизацию с goszakupki.by) — реестр закупок показывал прочерк в
+    # колонках "Функциональный код"/"Экономический код", хотя на карточке позиции
+    # (plan-items/<id>, BudgetCostsForItemSerializer) эти же данные отображались верно.
+    # Причина: `functional_code`/`economic_code` на модели — ДЕНОРМАЛИЗОВАННЫЕ строки
+    # "как пришло с API" (нужны BudgetCostsImportSerializer.create() как часть ключа
+    # идентичности при версионировании синхронизации) — заполняются ТОЛЬКО через
+    # BudgetCostsImportSerializer. Пути создания BudgetCosts НЕ с портала (внутренний
+    # реестр, ручная классификация и т.п.) заполняют канонические FK `functional_class`/
+    # `economic_class`, но не знают про строковые поля и оставляют их NULL. Раньше этот
+    # сериализатор показывал ровно строковые поля — для таких строк выходил None. Теперь
+    # FK (`code_api`) — источник истины для отображения, строка — просто фоллбэк на
+    # случай (гипотетический) записи со строкой, но без связанного FK-объекта.
+    functional_code = serializers.SerializerMethodField()
+    economic_code = serializers.SerializerMethodField()
 
     class Meta:
         model = BudgetCosts
         fields = ['id', 'year', 'full_cost', 'functional_code', 'economic_code', 'internal_economic_class_detail']
+
+    @extend_schema_field(serializers.CharField(allow_null=True))
+    def get_functional_code(self, obj):
+        return (obj.functional_class.code_api if obj.functional_class_id else None) or obj.functional_code
+
+    @extend_schema_field(serializers.CharField(allow_null=True))
+    def get_economic_code(self, obj):
+        return (obj.economic_class.code_api if obj.economic_class_id else None) or obj.economic_code
 
     @extend_schema_field(serializers.DecimalField(max_digits=15, decimal_places=2))
     def get_full_cost(self, obj):

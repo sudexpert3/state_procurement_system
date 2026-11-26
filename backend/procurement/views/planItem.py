@@ -53,7 +53,7 @@ class PlanItemViewSet(viewsets.ModelViewSet):
                 models.Prefetch(
                     'budget_costs',
                     queryset=BudgetCosts.objects.filter(status=PlanItemStatus.ACTIVE).select_related(
-                        'internal_economic_class'
+                        'internal_economic_class', 'functional_class', 'economic_class',
                     ),
                     to_attr='active_budget_costs_prefetched',
                 )
@@ -152,9 +152,19 @@ class PlanItemViewSet(viewsets.ModelViewSet):
 
             budget_costs_conditions = {'status': PlanItemStatus.ACTIVE}
             if functional_code:
-                budget_costs_conditions['functional_code'] = functional_code
+                # 2026-11-26: было `functional_code=...` — денормализованная строка "как
+                # пришло с goszakupki.by", заполняется ТОЛЬКО синхронизацией с порталом
+                # (BudgetCostsImportSerializer). У строк бюджета, созданных иначе
+                # (внутренний реестр "2026-INTERNAL-...", import_reestr26.py), эта строка
+                # всегда NULL, хотя каноническая FK `functional_class` заполнена — такие
+                # позиции никогда не попадали под фильтр, даже когда реально относятся к
+                # выбранному коду (тот же баг, что и в отображении, см.
+                # BudgetCostsForShortItemSerializer). Фильтр по FK (`code_api` — то же
+                # значение, что отдаёт `/api/functional_code/`, источник значений для
+                # самого select'а на фронте) покрывает оба случая.
+                budget_costs_conditions['functional_class__code_api'] = functional_code
             if economic_code:
-                budget_costs_conditions['economic_code'] = economic_code
+                budget_costs_conditions['economic_class__code_api'] = economic_code
             if internal_economic_code:
                 budget_costs_conditions['internal_economic_class__code'] = internal_economic_code
 
@@ -173,7 +183,7 @@ class PlanItemViewSet(viewsets.ModelViewSet):
                 models.Prefetch(
                     'budget_costs',
                     queryset=BudgetCosts.objects.filter(**budget_costs_conditions).select_related(
-                        'internal_economic_class'
+                        'internal_economic_class', 'functional_class', 'economic_class',
                     ),
                     to_attr='matched_budget_costs_prefetched',
                 )
@@ -225,6 +235,23 @@ class PlanItemViewSet(viewsets.ModelViewSet):
                     budget_costs__status=PlanItemStatus.ACTIVE,
                     budget_costs__plan_shares__status=PlanItemStatus.ACTIVE,
                     budget_costs__plan_shares__department_id=department_id,
+                ).distinct()
+
+            # Запрос пользователя (2026-11-26): фильтр реестра закупок — позиции, у которых
+            # в Сведения о финансировании ЕСТЬ хотя бы одна активная строка бюджета
+            # (BudgetCosts), но НИ У ОДНОЙ из них не добавлено распределение по
+            # подразделениям (PlanShare) — "Сведения о финансировании подразделений" внутри
+            # карточки позиции пустые. `.filter(budget_costs__status=ACTIVE)` — позиция
+            # ИМЕЕТ финансирование (иначе нет смысла говорить о "недобавленном"
+            # распределении); отдельный `.exclude(...)` — а НИ У ОДНОЙ из её активных строк
+            # бюджета нет активного PlanShare. `filter()` и `exclude()` — РАЗНЫЕ JOIN'ы
+            # (стандартная семантика Django для цепочки filter+exclude по relation-полям),
+            # поэтому это не "хотя бы одна строка без доли", а именно "НИ У ОДНОЙ строки нет
+            # ни одной доли" — то, что нужно по смыслу запроса.
+            plan_shares_unset = params.get('plan_shares_unset', None)
+            if plan_shares_unset and plan_shares_unset.strip().lower() in ('true', '1'):
+                queryset = queryset.filter(budget_costs__status=PlanItemStatus.ACTIVE).exclude(
+                    budget_costs__plan_shares__status=PlanItemStatus.ACTIVE,
                 ).distinct()
 
             return queryset

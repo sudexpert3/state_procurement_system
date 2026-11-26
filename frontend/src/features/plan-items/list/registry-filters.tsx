@@ -4,6 +4,7 @@ import type { Department, PlanItemShort } from "@/shared/api/schema";
 import { useMemo } from "react";
 
 import { rqClient } from "@/shared/api/instance";
+import { Checkbox } from "@/shared/components/ui/checkbox";
 import {
   Combobox,
   ComboboxContent,
@@ -164,6 +165,14 @@ type RegistryFiltersProps = {
   onDepartmentFilterChange: (value: DepartmentFilterValue) => void;
   statusCategoryFilter: StatusCategoryFilterValue;
   onStatusCategoryFilterChange: (value: StatusCategoryFilterValue) => void;
+  /**
+   * Чекбокс «Распределение по подразделениям не добавлено»
+   * (`?plan_shares_unset=true`, backend — CurrentStatus.md, запись
+   * 2026-11-26): позиции, у которых финансирование заведено (есть активная
+   * `BudgetCosts`), но ни разу не распределено по держателям (`PlanShare`).
+   */
+  planSharesUnsetFilter: boolean;
+  onPlanSharesUnsetFilterChange: (value: boolean) => void;
 };
 
 export const RegistryFilters = ({
@@ -174,6 +183,8 @@ export const RegistryFilters = ({
   onDepartmentFilterChange,
   statusCategoryFilter,
   onStatusCategoryFilterChange,
+  planSharesUnsetFilter,
+  onPlanSharesUnsetFilterChange,
 }: RegistryFiltersProps) => {
   const { data: functionalCodes, isLoading: isFunctionalLoading } =
     rqClient.useQuery("get", "/api/functional_code/", {});
@@ -320,6 +331,15 @@ export const RegistryFilters = ({
           </SelectGroup>
         </SelectContent>
       </Select>
+      <label className="border-input flex h-8 items-center gap-1.5 rounded-lg border bg-white px-2.5 text-sm whitespace-nowrap">
+        <Checkbox
+          checked={planSharesUnsetFilter}
+          onCheckedChange={(checked) =>
+            onPlanSharesUnsetFilterChange(checked === true)
+          }
+        />
+        Распределение по подразделениям не добавлено
+      </label>
     </>
   );
 };

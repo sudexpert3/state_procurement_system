@@ -33,6 +33,7 @@ import { ContractDetail } from "./contract-detail";
 import { ContractForm } from "./contract-form";
 import { ContractsMoneySummary } from "./contracts-money-summary";
 import {
+  type ClassFilterValue,
   ContractsToolbar,
   type DepartmentFilterValue,
   type ExpiringWithinDaysFilterValue,
@@ -55,6 +56,12 @@ const ContractsPage = () => {
     useState<ExpiringWithinDaysFilterValue>("all");
   const [departmentFilter, setDepartmentFilter] =
     useState<DepartmentFilterValue>("all");
+  const [economicClassFilter, setEconomicClassFilter] =
+    useState<ClassFilterValue>("all");
+  const [functionalClassFilter, setFunctionalClassFilter] =
+    useState<ClassFilterValue>("all");
+  const [internalEconomicClassFilter, setInternalEconomicClassFilter] =
+    useState<ClassFilterValue>("all");
   const [selected, setSelected] = useState<Contract | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -82,6 +89,14 @@ const ContractsPage = () => {
           expiring_within_days:
             expiringFilter === "all" ? undefined : Number(expiringFilter),
           department: departmentFilter === "all" ? undefined : departmentFilter,
+          economic_class:
+            economicClassFilter !== "all" ? economicClassFilter : undefined,
+          functional_class:
+            functionalClassFilter !== "all" ? functionalClassFilter : undefined,
+          internal_economic_class:
+            internalEconomicClassFilter !== "all"
+              ? internalEconomicClassFilter
+              : undefined,
         },
       },
     },
@@ -107,6 +122,14 @@ const ContractsPage = () => {
           expiring_within_days:
             expiringFilter === "all" ? undefined : Number(expiringFilter),
           department: departmentFilter === "all" ? undefined : departmentFilter,
+          economic_class:
+            economicClassFilter !== "all" ? economicClassFilter : undefined,
+          functional_class:
+            functionalClassFilter !== "all" ? functionalClassFilter : undefined,
+          internal_economic_class:
+            internalEconomicClassFilter !== "all"
+              ? internalEconomicClassFilter
+              : undefined,
         },
       },
     },
@@ -149,6 +172,14 @@ const ContractsPage = () => {
                 onExpiringFilterChange={setExpiringFilter}
                 departmentFilter={departmentFilter}
                 onDepartmentFilterChange={setDepartmentFilter}
+                economicClassFilter={economicClassFilter}
+                onEconomicClassFilterChange={setEconomicClassFilter}
+                functionalClassFilter={functionalClassFilter}
+                onFunctionalClassFilterChange={setFunctionalClassFilter}
+                internalEconomicClassFilter={internalEconomicClassFilter}
+                onInternalEconomicClassFilterChange={
+                  setInternalEconomicClassFilter
+                }
               />
             </div>
           )}

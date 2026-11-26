@@ -95,10 +95,12 @@ const PlansItemsPage = () => {
     buyerFilter: BuyerFilterValue;
     departmentFilter: DepartmentFilterValue;
     statusCategoryFilter: StatusCategoryFilterValue;
+    planSharesUnsetFilter: boolean;
   }>("plan-items-list:filters", {
     buyerFilter: "all",
     departmentFilter: "all",
     statusCategoryFilter: "active",
+    planSharesUnsetFilter: false,
   });
 
   const functionalCode =
@@ -135,6 +137,12 @@ const PlansItemsPage = () => {
     (statusCategoryParam as StatusCategoryFilterValue | null) ??
     storedFilters.statusCategoryFilter ??
     "active";
+
+  const planSharesUnsetParam = searchParams.get("plan_shares_unset");
+  const planSharesUnsetFilter: boolean =
+    planSharesUnsetParam != null
+      ? planSharesUnsetParam === "true"
+      : (storedFilters.planSharesUnsetFilter ?? false);
 
   // Колоночные фильтры (функц./эконом./внутренний ЭКР код) передаются в
   // DataTable как controlled columnFilters — их значения нужны и снаружи,
@@ -241,6 +249,20 @@ const PlansItemsPage = () => {
     });
   };
 
+  const handlePlanSharesUnsetFilterChange = (value: boolean) => {
+    setStoredFilters((prev) => ({ ...prev, planSharesUnsetFilter: value }));
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      if (value) {
+        params.set("plan_shares_unset", "true");
+      } else {
+        params.delete("plan_shares_unset");
+      }
+      params.set("offset", "0");
+      return params;
+    });
+  };
+
   const handleSelectYear = (purchaseId: number) => {
     setStoredPurchaseId(purchaseId);
     // Выбранные коды привязаны к конкретному году — в другом году они почти
@@ -289,7 +311,10 @@ const PlansItemsPage = () => {
           buyer: typeof buyerFilter === "number" ? buyerFilter : undefined,
           department: departmentFilter !== "all" ? departmentFilter : undefined,
           status_category:
-            statusCategoryFilter !== "active" ? statusCategoryFilter : undefined,
+            statusCategoryFilter !== "active"
+              ? statusCategoryFilter
+              : undefined,
+          plan_shares_unset: planSharesUnsetFilter || undefined,
         },
       },
     },
@@ -322,7 +347,10 @@ const PlansItemsPage = () => {
           buyer: typeof buyerFilter === "number" ? buyerFilter : undefined,
           department: departmentFilter !== "all" ? departmentFilter : undefined,
           status_category:
-            statusCategoryFilter !== "active" ? statusCategoryFilter : undefined,
+            statusCategoryFilter !== "active"
+              ? statusCategoryFilter
+              : undefined,
+          plan_shares_unset: planSharesUnsetFilter || undefined,
         },
       },
     },
@@ -391,6 +419,10 @@ const PlansItemsPage = () => {
                 onDepartmentFilterChange={handleDepartmentFilterChange}
                 statusCategoryFilter={statusCategoryFilter}
                 onStatusCategoryFilterChange={handleStatusCategoryFilterChange}
+                planSharesUnsetFilter={planSharesUnsetFilter}
+                onPlanSharesUnsetFilterChange={
+                  handlePlanSharesUnsetFilterChange
+                }
               />
             </div>
           )}
